@@ -1,0 +1,34 @@
+model restore "rb_geo"
+
+def par
+    width=0.1 
+    height=width*2.0
+    rdmin=0.001
+    rdmax=0.002
+    
+    poro=0.16
+    
+end
+@par
+
+model domain extent [-width*2] [width*2] [-height*2] [height*2]
+
+wall generate box [-width*0.5] [width*0.5] [-height*0.5] [height*0.5] expand 1.5
+
+ball distribute  porosity @poro radius @rdmin @rdmax box [-width*0.5] [width*0.5] ...
+                        [-height*0.5] [height*0.5]
+
+ball attribute density 3e3 damp 0.7
+
+contact cmat default type ball-facet model linear property kn 1e8 ks 1e7 
+contact cmat default type ball-ball model linear property kn 1e7 ks 1e7 
+contact cmat default type ball-rblock model null
+contact cmat default type rblock-rblock model null
+contact cmat default type rblock-facet model null
+model cycle 2000 calm 20
+
+model solve 
+
+;ball delete range pos-x [-width*0.5] [width*0.5]  not
+;ball delete range pos-y [-height*0.5] [height*0.5]  not
+model save "re_sample"

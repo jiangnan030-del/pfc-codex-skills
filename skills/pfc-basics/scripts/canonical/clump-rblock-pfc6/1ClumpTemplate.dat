@@ -1,0 +1,10 @@
+model new 
+
+geometry import "11.dxf" 
+
+
+clump template create bubblepack distance 160 ratio 0.3 ...
+            surfcalculate geometry "11"
+            
+            
+model save "clump_template"

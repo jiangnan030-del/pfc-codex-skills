@@ -1,0 +1,31 @@
+model restore "weiya"
+
+model mechanical time-total 0
+
+[yingli_fuzhi=1e6*0.2]
+[pinlv=20.0]
+def UpdateTyy
+    whilestepping
+    time=mech.time.total
+    tyy=1e6+ yingli_fuzhi*math.sin(2*math.pi*pinlv*time)    
+end
+
+
+[Iy0=wly]
+def jiance
+    whilestepping
+    weyy=(wly-Iy0)/Iy0
+end
+
+
+history delete
+
+history id 1 @wsyy
+history id 2 @weyy
+history id 3 @wsxx
+
+history id 4 @tyy
+history id 5 @time
+model solve time 1.0
+
+model save "result"

@@ -1,0 +1,24 @@
+# Wave propagation parameter template.
+model:
+  dimension: 2
+  particle_spacing: 0.003
+  min_wave_speed: 2500.0
+  max_frequency: 100000.0
+  damping: 0.0
+  timestep: 5.0e-8
+source:
+  type: ricker_force
+  amplitude: 1.0e-8
+  dominant_frequency: 100000.0
+  direction: z
+boundary:
+  type: absorbing
+  notes: Verify absorbing coefficient for particle radius, density, and stiffness.
+checks:
+  wavelength_to_spacing_minimum: 10.0
+outputs:
+  histories:
+    - time
+    - source
+    - sensor_velocity
+    - sensor_force

@@ -1,0 +1,17 @@
+model new
+
+model domain extent -100 100
+
+ball generate radius 5 10 number 1000 box -100 100
+
+def IsInRange(pos,pointer)
+    if comp.x(pos)<20 & comp.x(pos)>-20 & ball.radius(pointer)>5 & ball.radius(pointer)<7.5 then
+        IsInRange=true
+        exit
+    endif
+    IsInRange=false
+end
+
+ball group "test" range fish @IsInRange
+
+

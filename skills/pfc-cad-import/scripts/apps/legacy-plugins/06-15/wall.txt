@@ -1,0 +1,30 @@
+def ini_variable2   ;;;;;;初始化变量,shichong
+	IO_READ  = 0
+   	IO_WRITE = 1
+	IO_FISH  = 0
+	IO_ASCII = 1
+        filename='boudary_particles.dat'
+	array buf3(1)
+end
+ini_variable2
+
+
+def bound_particle_searching
+status = open(filename,IO_WRITE,IO_ASCII)
+  cp = contact_head
+  loop while cp # null
+      c1=c_gobj1(cp)    ;;;;第一个接触对象
+      c2=c_gobj2(cp)    ;;;;第二个接触对象
+      if  pointer_type(c2) = 101   ;;;第二个接触对象是wall
+        ;;;;;;;输出文件,如果第一个对象是ball，第二个是wall，则输出       
+       buf3(1)=string(b_id(c1))+' '+string(b_x(c1))+' '+string(b_y(c1))
+       buf3(1)=buf3(1)+' '+string(b_z(c1))
+       buf3(1)=buf3(1)+' '+string(b_rad(c1))
+       status = write(buf3,1)
+      end_if
+      cp = c_next(cp)
+   end_loop
+ status = close
+ ii = out('Successfully Write model Data Into  File: boudary_particles.dat' )
+end   
+bound_particle_searching

@@ -1,0 +1,26 @@
+[
+  {
+    "file": "scripts/canonical/mineral_cluster_assignment.p2fis",
+    "bytes": 4036,
+    "sha256": "c7cd1858dfa02a55024aeda1dae397fe66e41d7e64492ecaefaef95fa568d70e",
+    "kind": "template"
+  },
+  {
+    "file": "scripts/canonical/mineral_lpbm_parameters.dat",
+    "bytes": 1838,
+    "sha256": "ba479aec39702f5d065b6623ccac63df074d5ece85274f48866e56ad8adbb9cd",
+    "kind": "template"
+  },
+  {
+    "file": "scripts/canonical/otsu_phase_fraction.py",
+    "bytes": 2339,
+    "sha256": "94ce69cfcdaa093d712ba1a0dbacc5f29e3e7bfc29058c22d9b5ef14ff67053d",
+    "kind": "template"
+  },
+  {
+    "file": "scripts/canonical/weibull_damage.p2fis",
+    "bytes": 1211,
+    "sha256": "85c1bc338d0e8dd859f1a508d027e2e1d45d80569acabb586d5c525163d175d3",
+    "kind": "template"
+  }
+]

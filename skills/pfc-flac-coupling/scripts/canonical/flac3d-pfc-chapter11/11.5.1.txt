@@ -1,0 +1,79 @@
+model new
+
+model random 10001
+model domain extent -2 2 -2 2 -2.5 0 condition destroy
+model largestrain on
+model mechanical timestep scale
+
+[materialMod = 1.0e6]
+[punchYoung = 1.0e7]
+
+zone create brick size 35 35 35 point 0 -4 -4 -4.5 point 1 4 -4 -4.5 ...
+                                point 2 -4 4 -4.5 point 3 -4 -4 -1 group 'bed'
+zone cmodel assign elastic
+zone property young [materialMod] poisson 0.25
+zone cmodel null ...
+            range position-x -1.5 1.5 position-y -1.5 1.5 position-z -2 -1
+zone gridpoint fix velocity
+
+wall-zone create name 'bed' starting-zone 42044
+wall generate name 'top' plane position 0 0 -1 
+
+model save '1'
+pause key  
+
+ball distribute porosity 0.4 box -1.5 1.5 -1.5 1.5 -2 -1 radius 0.04 0.06
+
+ball attribute density 2600 damp 0.7
+model cmat default model linearpbond method deformability ...
+                   emod [materialMod] kratio 1.0 
+model cycle 1000 calm 100
+ball delete range position -1.5 -1.5 -2  1.5 1.5 -1 not
+
+contact method bond gap 2.0e-3
+contact method pb_deform emod [materialMod] kratio 1.0
+contact property lin_mode 1 pb_ten 2e4 pb_coh 2e5 ...
+        range contact type 'ball-ball'
+contact property lin_mode 1 pb_ten 1e100 pb_coh 1e100 ...
+        range contact type 'ball-facet'
+wall delete wall range name 'top'
+model cmat default model linear type ball-ball method deformability ...
+                   emod [materialMod] kratio 1.0 property fric 0.3
+model cmat default model linear type ball-facet method deformability ...
+                   emod [materialMod] kratio 1.0 property fric 0.3
+model calm
+ball fix velocity spin
+ball attribute force-contact multiply 0.0
+contact property lin_force 0 0 0
+model cycle 2
+ball free velocity spin
+zone gridpoint free velocity
+zone gridpoint fix velocity-z range position-z -5 -4.4
+ball attribute displacement multiply 0.0
+model save 'withoutPunch'
+
+zone create cylinder point 0 0 -0.5 0 ...
+                  point 1 [-math.sqrt(2.0)/2.0] -0.5 [-math.sqrt(2.0)/2.0] ...
+                  point 2 0 0.5 0 ...
+                  point 3 [math.sqrt(2.0)/2.0] -0.5 [-math.sqrt(2.0)/2.0] ...
+                  size 5 5 5 group 'punch'
+zone cmodel assign elastic range group 'punch'
+zone property young [punchYoung] poisson 0.25 range group 'punch'
+wall-zone create range group 'punch'
+
+model save '2'
+
+zone gridpoint group "fixed" range position-z -0.4 1
+zone gridpoint fix velocity-z -.0001 range group "fixed"
+model save 'withPunch'
+
+model cycle 1000
+zone gridpoint fix velocity-z 0.0 range group "fixed"
+model solve ratio-average 1.0e-4 
+model save 'beforeFailure'
+
+zone gridpoint fix velocity-z -.0001 range group "fixed"
+model cycle 1000
+zone gridpoint fix velocity-z 0.0 range group "fixed"
+model solve ratio-average 1.0e-3 
+model save 'afterFailure'

@@ -1,0 +1,21 @@
+model restore "template_ball"
+
+clump template create bubblepack distance 160 ratio 0.3 ...
+            surfcalculate geometry "11" 
+            
+[cpTem=clump.template.find("11")]
+
+def CreateTemplate
+    loop foreach pb clump.template.pebblelist(cpTem)
+        clump.template.deletepebble(cpTem,pb)
+    endloop
+    loop foreach bp ball.list
+        rd=ball.radius(bp)
+        pos=ball.pos(bp)
+        clump.template.addpebble(cpTem,rd,pos)
+    endloop    
+end
+
+@CreateTemplate
+
+clump template export "11" filename "11.p2clp"

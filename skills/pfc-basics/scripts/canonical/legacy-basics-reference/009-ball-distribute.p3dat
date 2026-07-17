@@ -1,0 +1,34 @@
+; fname: cmlinear_simple.p2dat
+;
+;  Exercise the Linear contact model
+;==============================================================================
+new
+title 'Balls in a box'
+
+; Set the domain extent
+domain extent -10.0 10.0
+
+; Modify the default slots of the Contact Model Assignment Table
+; Here we choose the linear contact model (with kn=1e6) for all contact types
+cmat default model linear property kn 1.0e6
+
+; Generate 30 balls in a box
+wall generate box -5.0 5.0 onewall
+set random 10001
+
+ball distribute porosity 0.4 radius 0.5 0.75 box -5.0 5.0
+
+pause key
+
+ball attribute radius multiply 1.2
+
+pause key
+
+ball attribute density 1000 damp 0.7
+set gravity 10.0
+cycle 1000 calm 100
+cycle 1000
+
+return
+;==============================================================================
+; eof: cmlinear_simple.p2dat

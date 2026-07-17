@@ -1,0 +1,26 @@
+new
+domain extent 0 1000
+
+set random 10001
+
+ball generate number 850 radius 1 30
+
+;pause key
+
+;ball delete range id 100 300
+;ball delete range list 101 100 105
+
+pause key
+
+;named range with 'range' command:
+;a union of two x range elements (using 'union')
+range name bookends union x 0 200 x 800 1000
+
+;range phrase with 'range' keyword:
+;ball group named 'middle' is created in the given range
+ball group middle range x 500 600
+
+pause key
+
+;delete balls NOT in the named range and the group
+ball delete range nrange bookends not group middle not

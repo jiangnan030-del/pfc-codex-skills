@@ -1,0 +1,63 @@
+new
+
+def test3
+    ; test keys
+    testmap = map('yet',1,'another',4,'test',9,'m',16)
+    testkeys = map.keys(testmap) ;所有keys的链表
+    test3 = testkeys(3)
+    
+    ; check has
+    if (map.has(testmap,'wrongkey'))
+      hascheck = 909
+    else if (map.has(testmap,'another'))
+      ;hascheck = testmap['another']
+      hascheck = testmap('another')
+    endif
+end
+
+def testmap_1
+    testmap_1 = testmap(testkeys(1))
+    testmap_2 = testmap(testkeys(2))
+    testmap_3 = testmap(testkeys(3))
+    testmap_4 = testmap(testkeys(4))
+    map_size = map.size(testmap)
+end
+
+def testmap_add
+    map.add(testmap,'one',11)
+    map.add(testmap,'fourth',10)
+    map_size1 = map.size(testmap)
+    testkeys = map.keys(testmap)
+    testmap_1 = testmap(testkeys(1))
+    testmap_2 = testmap(testkeys(2))
+    testmap_3 = testmap(testkeys(3))
+    testmap_4 = testmap(testkeys(4))
+    testmap_5 = testmap(testkeys(5))
+    testmap_6 = testmap(testkeys(6))
+end
+def test
+    angle = 30.0*math.degrad
+end
+
+def testmap_remove
+    testkeys = map.keys(testmap)
+    map.remove(testmap,testkeys(1))
+    map.remove(testmap,testkeys(5))
+    map_size2 = map.size(testmap)
+    
+    testkeys = map.keys(testmap)
+    testmap_1 = testmap(testkeys(1))
+    testmap_2 = testmap(testkeys(2))
+    testmap_3 = testmap(testkeys(3))
+    testmap_4 = testmap(testkeys(4))
+end
+
+list @test3 @hascheck
+
+list @testmap_1 @testmap_2 @testmap_3 @testmap_4
+
+@testmap_add
+list @testmap_1 @testmap_2 @testmap_3 @testmap_4 @testmap_5 @testmap_6
+
+@testmap_remove
+list @testmap_1 @testmap_2 @testmap_3 @testmap_4

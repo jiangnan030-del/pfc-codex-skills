@@ -1,0 +1,30 @@
+; Ricker wavelet source template for PFC wave propagation.
+; Set source_ball before calling, or replace with a wall/source group selector.
+
+[source_amp = -1.0e-3]
+[source_freq = 16.0]
+[source_duration = 3.0 / source_freq]
+[source_direction = 1]
+
+fish define ricker_value
+    local t = mech.time.total
+    local tau = t - 1.0 / source_freq
+    local arg = math.pi * source_freq * tau
+    ricker_value = source_amp * (1.0 - 2.0 * arg^2) * math.exp(-arg^2)
+end
+
+fish define apply_ricker_velocity
+    local value = ricker_value
+    if mech.time.total > source_duration then
+        value = 0.0
+    endif
+    if source_direction = 1 then
+        ball.vel.x(source_ball) = value
+    else if source_direction = 2 then
+        ball.vel.y(source_ball) = value
+    else
+        ball.vel.z(source_ball) = value
+    endif
+end
+
+fish callback add @apply_ricker_velocity -1.0

@@ -1,0 +1,34 @@
+model restore "Re_sample"
+ball group "shajiang"
+ball group "hunningtu" range geometry-space "hunningtu" inside
+
+
+cmat default type ball-facet model linear method deform emod 20e8 kratio 2.0 ...
+                    property  fric 0.5 lin_mode 1 
+cmat default type ball-ball model linearpbond method deform emod 20e8 kratio 2.0 ...
+                    pb_deform emod 10e8 kratio 2.0 ...
+                    property pb_ten 10e6 pb_coh 10e6 pb_fa 50 fric 0.5 lin_mode 1 
+
+cmat add 1 model linearpbond method deform emod 10e8 kratio 2.0 ...
+                    pb_deform emod 10e8 kratio 2.0 ...
+                    property pb_ten 5e6 pb_coh 10e6 pb_fa 50 fric 0.5 lin_mode 1 range group "shajiang" match 2
+cmat add 2 model linearpbond method deform emod 40e8 kratio 2.0 ...
+                    pb_deform emod 10e8 kratio 2.0 ...
+                    property pb_ten 20e6 pb_coh 10e6 pb_fa 50 fric 0.5 lin_mode 1 range group "hunningtu" match 2
+                    
+
+cmat apply
+
+
+model clean
+
+model calm
+contact method bond gap 0.01
+contact property lin_force 0.0 0.0 
+ball attribute force-contact multiply 0.0 moment-contact multiply 0.0 
+
+model cycle 1
+
+model solve
+
+model save "jiaojie"

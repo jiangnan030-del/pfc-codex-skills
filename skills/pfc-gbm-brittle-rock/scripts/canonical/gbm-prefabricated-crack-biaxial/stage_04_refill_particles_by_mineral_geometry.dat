@@ -1,0 +1,43 @@
+model new
+model restore '3'
+
+contact cmat default model linear method deform emod 5.9e9 kratio 1
+
+[W=50e-3]
+[L=100e-3]
+wall generate name 'vessel' box [-W/2] [W/2] [-L/2] [L/2] expand 1.5
+[wp1 = wall.find('vesselBottom')]
+[wp2 = wall.find('vesselRight')]
+[wp3 = wall.find('vesselTop')]
+[wp4 = wall.find('vesselLeft')]
+
+[ballFriction=0.1]
+[wallFriction=0.0]
+
+[rmin=0.3e-3]
+[rmax=0.45e-3]
+
+model random 10001
+ball distribute porosity 0.1 radius [rmin] [rmax] ...
+                                box [-W/2] [W/2] [-L/2] [L/2]
+ball attribute density 2600 damp 0.7
+
+ball property 'fric' @ballFriction
+wall property 'fric' @wallFriction
+
+model cycle 2000 calm 10
+model mechanical timestep scale
+model solve ratio-average 1e-5
+model mechanical timestep auto
+model cycle 1000
+model solve ratio-average 1e-5
+
+ball delete range position-x [-W/2] [W/2] not
+ball delete range position-y [-L/2] [L/2] not
+
+ball group 'shiying' range geometry-distance 'shiying' 
+ball group 'xiechangshi' range geometry-distance 'xiechangshi' 
+ball group 'zhengchangshi' range geometry-distance 'zhengchangshi'
+ball group 'yunmu' range geometry-distance 'yunmu'
+
+model save '4'

@@ -1,0 +1,71 @@
+model restore "sample"
+
+[tyy=1e5]
+
+
+[sevro_factor=1.0]
+
+def wall_init
+    wp_down=wall.find(6)
+    wp_up=wall.find(3)
+    
+end
+@wall_init
+
+def Get_zonggang
+    zonggang_y=0
+   
+    
+    loop foreach ct wall.contactmap(wp_up)
+        zonggang_y=zonggang_y+contact.prop(ct,"kn")
+    endloop
+    loop foreach ct wall.contactmap(wp_down)
+        zonggang_y=zonggang_y+contact.prop(ct,"kn")
+    endloop
+    
+    gy=sevro_factor*width/(zonggang_y*global.timestep)
+end
+
+def cal_chicun
+     wly=wall.pos.y(wp_up)-wall.pos.y(wp_down)
+end
+
+def cal_stress
+    cal_chicun   
+   
+    wsyy=(wall.force.contact.y(wp_up)-wall.force.contact.y(wp_down))*0.5/width
+end
+
+[sevro_freq=100]
+
+[time_record=global.step-sevro_freq-1]
+
+def addVel
+    whilestepping    
+    cal_stress
+    
+    if global.step-time_record >sevro_freq then
+        Get_zonggang
+        time_record=global.step
+    endif
+    
+    
+    vel_y=(tyy-wsyy)*gy  
+   
+    if tyy>wsyy then
+        wall.vel.y(wp_down)=math.abs(vel_y)
+        wall.vel.y(wp_up)=-math.abs(vel_y)
+    else
+        wall.vel.y(wp_down)=-math.abs(vel_y)
+        wall.vel.y(wp_up)=math.abs(vel_y)
+    endif
+    
+end
+
+history id 2 @wsyy
+
+
+model cycle 1
+model solve 
+
+model save "yuya"

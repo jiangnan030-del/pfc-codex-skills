@@ -1,0 +1,14 @@
+model restore "bianpo"
+ball attribute damp 0.1
+model mechanical time-total 0
+def UpdateWallVel
+    whilestepping
+    time=mech.time.total
+    vel=0.5*math.sin(2*math.pi*1*time)
+    loop foreach wp wall.list
+        wall.vel.x(wp)=vel
+    endloop
+end
+@UpdateWallVel
+
+model solve time 2

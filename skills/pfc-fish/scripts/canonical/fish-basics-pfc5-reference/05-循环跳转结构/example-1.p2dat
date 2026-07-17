@@ -1,0 +1,20 @@
+new
+
+def sum
+    count = 0
+    sum = 0
+    loop _i(1,5)
+        count = count + _i
+        if _i >=3 then
+            exit loop
+        else
+            continue
+        endif
+        count = count - 1
+    endloop
+    sum = count
+    
+    ;shift+alt+左击鼠标
+    ;shift+alt+键盘的上下键
+end
+list @sum

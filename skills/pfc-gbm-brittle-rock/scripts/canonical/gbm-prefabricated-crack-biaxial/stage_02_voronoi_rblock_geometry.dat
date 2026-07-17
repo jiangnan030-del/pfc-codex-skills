@@ -1,0 +1,38 @@
+model new
+model restore '1'
+
+fish define ball_generate
+   g= geom.set.create('rock')
+   
+  loop foreach bp ball.list
+     ball_x = ball.pos.x(bp)
+     ball_y = ball.pos.y(bp)
+     name = ball.group(bp)
+     
+      one ='shiying'
+      two = 'xiechangshi'
+      three = 'zhengchangshi' 
+      four = 'yunmu'
+
+   a = geom.node.create(g,ball_x,ball_y)
+    if name = 'Default=shiying' then
+      geom.node.group(a) ='shiying'
+    endif
+    if name = 'Default=xiechangshi' then
+       geom.node.group(a) ='xiechangshi'
+    endif
+    if name = 'Default=zhengchangshi' then
+     geom.node.group(a) ='zhengchangshi'
+    endif
+    if name = 'Default=yunmu' then
+     geom.node.group(a) ='yunmu'
+    endif
+  endloop
+end
+@ball_generate
+
+geometry set 'rock'
+
+rblock construct from-geometry 'rock' voronoi
+
+model save '2'

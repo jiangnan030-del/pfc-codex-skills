@@ -1,0 +1,13 @@
+model new
+model restore '7' 
+
+
+[txx=-10e6]
+[tyy=-10e6]
+
+model cycle 1
+model solve
+ball delete range position-x [-wlx*0.5] [wlx*0.5] ...
+                  position-y [-wly*0.5] [wly*0.5] not
+
+model save "8"

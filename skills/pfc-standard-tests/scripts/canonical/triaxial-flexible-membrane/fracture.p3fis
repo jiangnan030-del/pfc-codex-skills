@@ -1,0 +1,118 @@
+; fname: fracture.p3fis
+;
+; Simple environment to track fragmentation in a BPM.
+; Track LinearPBond model "bond_change" events and turn them into fractures.
+; Use Fragment logic and Ball Result logic to record fragemnt ids 
+;
+;=============================================================================
+
+fish define add_crack(entries)
+    local contact    = entries(1)
+    local mode       = entries(2)
+    local  frac_pos   = contact.pos(contact)
+    local norm       = contact.normal(contact)
+    local dfn_label  = 'crack'
+    local  frac_size
+    local  bp1 = contact.end1(contact)
+    local  bp2 = contact.end2(contact)
+    local  ret = math.min(ball.radius(bp1),ball.radius(bp2))
+    frac_size = ret
+    local arg = array.create(5)
+    arg(1) = 'disk'
+    arg(2) = frac_pos
+    arg(3) = frac_size
+    arg(4) = math.dip.from.normal(norm)/math.degrad
+    arg(5) = math.ddir.from.normal(norm)/math.degrad
+    if arg(5) < 0.0
+      arg(5) = 360.0+arg(5)
+    end_if
+    crack_num = crack_num + 1
+    
+    if mode = 1 then 
+        ; failed in tension
+        dfn_label = dfn_label + '_tension'
+    else if mode = 2 then
+        ; failed in shear
+        dfn_label = dfn_label + '_shear'
+    endif
+        
+    global dfn = dfn.find(dfn_label)
+    if dfn = null then
+        dfn = dfn.create(dfn_label)
+    endif
+    local fnew = fracture.create(dfn,arg)
+    fracture.prop(fnew,'age')  = mech.time.total
+    fracture.extra(fnew,1) = bp1
+    fracture.extra(fnew,2) = bp2
+    crack_accum += 1
+    if crack_accum > 50
+        if frag_time < mech.time.total
+            frag_time = mech.time.total
+            crack_accum = 0
+            command 
+                fragment compute
+            endcommand
+            ; go through and update the fracture positions
+            loop for (local i = 0, i < 2, i = i + 1)
+                local name = 'crack_tension'
+                if i = 1
+                    name = 'crack_shear'
+                endif
+                dfn = dfn.find(name)
+                if dfn # null
+                    loop foreach local frac dfn.fracturelist(dfn)
+                        local ball1 = fracture.extra(frac,1)
+                        local ball2 = fracture.extra(frac,2)
+                        if ball1 # null
+                            if ball2 # null
+                                local len=fracture.diameter(frac)/2.0
+                                local pos=(ball.pos(ball1)+ball.pos(ball2))/2.0
+                                if comp.x(pos)-len > xmin
+                                    if comp.x(pos)+len < xmax
+                                        if comp.y(pos)-len > ymin
+                                            if comp.y(pos)+len < ymax
+                                                if comp.z(pos)-len > zmin
+                                                    if comp.z(pos)+len < zmax
+                                                        fracture.pos(frac)= pos
+                                                    end_if
+                                                end_if
+                                            endif
+                                        endif
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endloop
+                endif
+            endloop
+        endif
+    endif
+end
+
+fish define track_init
+    command
+        fracture delete
+        fragment clear
+        fragment register ball-ball
+    endcommand
+  ; activate fishcalls
+    command
+        fish callback remove @add_crack event bond_break
+        fish callback add @add_crack event bond_break
+    endcommand
+    ; reset global variables
+    global crack_accum = 0
+    global crack_num = 0
+    global track_time0 = mech.time.total
+    global frag_time = mech.time.total
+    global xmin = domain.min.x()
+    global ymin = domain.min.y()
+    global xmax = domain.max.x()
+    global ymax = domain.max.y()
+    global zmin = domain.min.z()
+    global zmax = domain.max.z()
+
+end
+
+;=============================================================================
+; eof: fracture.p3fis

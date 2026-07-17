@@ -1,0 +1,42 @@
+new
+
+def in_def
+  xx = io.in(msg+'('+'default:'+string(default)+'):')
+  if type(xx) = 3
+    in_def = default
+  else
+    in_def = xx
+  endif
+end
+
+def moduli_data
+  default = 1.0e9
+  msg='Input Young`s modulus '
+  y_mod = in_def
+  
+  command
+    list @xx
+    pause key
+  endcommand
+  default = 0.25
+  msg='Input Poisson`s ratio '
+  p_ratio = in_def
+  
+  command
+    list @xx
+    pause key
+  endcommand
+  
+  if p_ratio = 0.5 then
+    io.out(' Bulk mod is undefined at Poisson`s ratio = 0.5')
+    io.out(' Select a different value --')
+    p_ratio = in_def
+  endif
+  
+  s_mod = y_mod / (2.0 * (1.0 + p_ratio))
+  b_mod = y_mod / (3.0 * (1.0 - 2.0 * p_ratio))
+end
+
+@moduli_data
+list @y_mod @p_ratio
+list @s_mod @b_mod

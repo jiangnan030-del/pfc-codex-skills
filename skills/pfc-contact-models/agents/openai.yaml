@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Contact Models"
+  short_description: "PFC6.0-first contact model selection and property setup for linear and parallel-bond workflows."
+  default_prompt: "Use $pfc-contact-models to answer or implement PFC Contact Models tasks with a PFC6.0-first, self-contained workflow."

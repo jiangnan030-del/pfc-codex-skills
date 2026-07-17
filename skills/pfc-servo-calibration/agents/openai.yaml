@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Servo and Calibration"
+  short_description: "PFC6.0-first servo-control and parameter-calibration skill for standard test workflows."
+  default_prompt: "Use $pfc-servo-calibration to answer or implement PFC Servo and Calibration tasks with a PFC6.0-first, self-contained workflow."

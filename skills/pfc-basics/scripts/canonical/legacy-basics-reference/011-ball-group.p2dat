@@ -1,0 +1,28 @@
+new
+domain extent 0 1000
+set random 10001
+
+ball generate number 850 radius 1 20 ;group all slot 1
+
+ball group one slot 1 range x 0 500 
+
+;pause key
+
+;ball group two slot 1 range x 250 750
+;ball group two add range x 250 750
+ball group two slot 2 range x 250 500
+ball group two slot 1 range x 500 750
+
+pause key
+
+ball delete range group two slot 2 y 100 500 ;union
+
+;ball group two remove 
+
+;pause key
+
+;删除两组重叠的部分
+;ball delete range group one slot 1 group two slot 2
+;ball delete range group one or group two union
+;ball delete range group one or two
+;ball delete range group one not

@@ -1,0 +1,33 @@
+model restore "tmp"
+[wp=wall.find(3)]
+[mubiao_force=12e5-wall.force.contact.y(wp)]
+def Get_zonggang
+    zonggang=0
+    
+    loop foreach ct wall.contactmap(wp)
+        zonggang=zonggang+contact.prop(ct,"kn")
+    endloop
+end
+@Get_zonggang
+
+[distance=mubiao_force/zonggang]
+model mechanical timestep fix 1e-3
+
+def addVel
+    whilestepping
+    mubiao_force=12e5-wall.force.contact.y(wp)
+    distance=mubiao_force/zonggang
+    
+    vel=-distance/1e-3
+    
+    wall.vel.y(wp)=vel
+    
+    wp_force=wall.force.contact.y(wp)
+end
+
+history id 1 @wp_force
+
+model cycle 1
+model solve 
+
+

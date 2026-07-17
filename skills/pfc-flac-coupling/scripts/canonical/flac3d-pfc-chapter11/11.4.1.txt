@@ -1,0 +1,46 @@
+model new
+
+model domain extent (-1,25) (-6,6) (-6,20)
+model domain condition destroy
+
+wall generate box (0,24) (-5,5) (0,17)
+model random 10001
+ball generate box (0,24) (-5,5) (0,10) number 2000 radius 0.40   
+
+model cmat default type ball-ball model linearpbond ...
+        property fric 0.577 kn 1e8 ks 1e8             ...
+        pb_kn 1e8 pb_ks 1e8 pb_ten 1e6                ...
+        pb_coh 1e6 pb_rmul 0.8 dp_nratio 0.2
+
+model cmat default type ball-facet model linear     ...
+        property fric 0.09 kn 1e8 ks 1e8              ...
+        dp_nratio 0.2
+
+ball attribute density 2000 radius multiply 1.4
+
+history interval 5
+ball history velocity-z position 12 0 5
+model history mechanical unbalanced-maximum
+
+model mechanical timestep scale
+model gravity 0 0 -9.81
+model cycle 1000 calm 50
+model solve ratio-average 1e-5
+
+wall delete range set id 2
+wall generate group 'footing' box (0,5) (-5,5) (12,20) 
+
+contact method bond gap 0.0
+
+model save 'Assembly'
+
+wall attribute velocity-z -0.25 range group 'footing'
+history wall force-contact-z id 7
+
+model mechanical timestep auto
+model solve time 10.0
+
+wall attribute velocity-z 0.0
+model solve ratio-average 1e-5
+
+model save 'Footing'

@@ -1,0 +1,9 @@
+model restore "jiaojie"
+
+[txx=1e4]
+[tyy=1e4]
+
+model cycle 1
+model solve
+
+model save "xiezai" 

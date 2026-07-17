@@ -1,0 +1,50 @@
+model new
+
+model domain extent -5 5 -100 100
+
+ball create position -2 -99 radius 1
+
+ball create position 2 -99 radius 1
+
+ball attribute velocity 0 1 range id 1
+ball attribute velocity 0 5 range id 2
+ball attribute density 3e3
+
+model mechanical timestep fix 1e-3
+
+[gui=ball.find(1)]
+[tu=ball.find(2)]
+def update_tu
+    whilestepping
+    
+    gui_pos_y=ball.pos.y(gui)
+    tu_pos_y=ball.pos.y(tu)
+    
+    if tu_pos_y-gui_pos_y>10 then
+        ball.vel.y(tu)=0
+    endif
+    
+    if gui_pos_y>tu_pos_y then
+        ball.vel.y(tu)=5
+    endif    
+end
+
+[gui_pfc=0]
+[tu_wo=1]
+
+[count=1]
+def savefile
+    whilestepping
+    gui_pfc=mech.time.total    
+    if gui_pfc>tu_wo-0.01 then
+        tu_wo=tu_wo+1
+        fileName="jieguo"+string(count)
+        command
+            model save @fileName
+        endcommand
+        count+=1
+    endif    
+end
+
+model solve time 20
+

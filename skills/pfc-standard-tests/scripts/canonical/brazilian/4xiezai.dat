@@ -1,0 +1,10 @@
+model restore "jiaojie"
+
+[trr=1e4]
+[sevro_factor=0.01]
+history delete
+history id 1 @wsrr
+model cycle 1000
+model solve
+
+model save "xiezai"

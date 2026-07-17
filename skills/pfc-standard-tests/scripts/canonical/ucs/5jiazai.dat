@@ -1,0 +1,34 @@
+model restore "xiezai"
+;model restore "liewen"
+wall delete walls range id 2 
+wall delete walls range id 4
+def addVel 
+
+end
+
+[strainrate=1e-1]
+
+[final_strain=1e-2]
+wall attribute vel-y [strainrate*wly] range id 1
+wall attribute vel-y [-strainrate*wly] range id 3
+
+[Iy0=wly]
+def jiance
+    whilestepping
+    wly=wall.pos.y(wp_up)-wall.pos.y(wp_down)
+    weyy=(wly-Iy0)/Iy0
+    wsyy=(wall.force.contact.y(wp_up)-wall.force.contact.y(wp_down))*0.5/wlx
+end
+
+program call "fracture.p2fis"
+@track_init
+
+history delete
+history id 1 @wsyy
+history id 2 @weyy
+
+
+model solve time [final_strain/strainrate]
+
+model save "result"
+

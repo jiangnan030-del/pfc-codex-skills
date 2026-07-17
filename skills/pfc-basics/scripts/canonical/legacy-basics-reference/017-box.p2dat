@@ -1,0 +1,24 @@
+new
+domain extent -10 10
+
+wall generate ...
+    group boxes ...
+    id 1 ...
+    name box1 ...
+    box -5.0 5.0 ;onewall ;注意onewall的作用
+
+pause key
+
+wall delete facets range id 1
+
+pause key
+
+wall delete range id 2 by facet
+
+pause key
+
+wall delete walls range id 3
+
+pause key
+
+wall delete range id 4 by wall

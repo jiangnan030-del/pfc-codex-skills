@@ -1,0 +1,33 @@
+model new
+
+domain extent -10 10 
+
+wall generate box -8 8
+
+model configure cfd
+
+ball generate radius 0.1 0.4 number 50 box -7 7 -7 7 1 7
+
+
+ball attribute density 2e3 damp 0.7
+cmat default model linear property kn 1e7
+
+
+cfd read nodes "Node.Dat"
+cfd read elements "Elem.Dat"
+
+cfd buoyancy on
+element cfd attribute density 1000.0
+element cfd attribute viscosity 1.5
+
+
+element cfd attribute velocity-x 2.0
+
+
+model mechanical timestep fix 4e-4
+
+model gravity 9.8
+
+model cycle 1
+
+model solve

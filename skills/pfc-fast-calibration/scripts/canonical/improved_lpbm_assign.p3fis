@@ -1,0 +1,84 @@
+; Improved LPBM fast-calibration template for PFC3D.
+; Parameterize values per orthogonal-design row before production use.
+
+[pb_modules = 70.0e9]
+[emod000 = 0.2 * pb_modules]
+[pb_kratio = 1.5]
+[ten_ = 11.0e7]
+[coh_ = ten_ * 2.0]
+[fric_coefficient = 0.7]
+[fric_ = 38.0]
+[coeff_mcf = 0.3]
+[crack_bili = 0.65]
+[beta000 = 200.0]
+[strength_bili = 0.1]
+[moduls_bili = 0.1]
+[kratio_bili = 2.0]
+
+model clean
+
+contact cmat default model linearpbond ...
+    property lin_mode 1 dp_nratio 0.0 dp_sratio 0.0 ...
+    method pb_deformability emod [pb_modules * moduls_bili] krat [pb_kratio * kratio_bili] ...
+    deform emod [emod000] kratio [pb_kratio] ...
+    property pb_ten [ten_ * strength_bili * 0.0] pb_coh [coh_ * strength_bili * 0.0] ...
+    fric [fric_coefficient] pb_fa [fric_] pb_mcf [coeff_mcf] ...
+    type 'ball-ball'
+contact cmat default model linear method deform emod [emod000 * 0.25] kratio 0.0 type 'ball-facet'
+contact cmat apply
+
+contact group 'contact1111' range contact type 'ball-ball'
+contact model linearpbond range group 'contact1111'
+contact method bond gap 0 range group 'contact1111'
+contact method pb_deformability emod [pb_modules] krat [pb_kratio] deform emod [emod000] kratio [pb_kratio] range group 'contact1111'
+contact property pb_ten [ten_] pb_coh [coh_] fric [fric_coefficient] pb_fa [fric_] pb_mcf [coeff_mcf] pb_rmul 1.0 range group 'contact1111'
+contact property lin_mode 1 dp_nratio 0.3 dp_sratio 0.3 range group 'contact1111'
+
+fish define part_contact_turn_off
+    loop foreach local cp contact.list('ball-ball')
+        if contact.model(cp) = 'linearpbond' then
+            local z0 = contact.pos.z(cp)
+            if z0 < 0.99 * height then
+                if z0 > 0.01 * height then
+                    if math.random.uniform < crack_bili then
+                        contact.group(cp) = 'contact2222'
+                    endif
+                endif
+            endif
+        endif
+    endloop
+end
+@part_contact_turn_off
+
+contact model linearpbond range group 'contact2222'
+contact method bond gap 0 range group 'contact2222'
+contact method pb_deformability emod [pb_modules * moduls_bili] krat [pb_kratio * kratio_bili] deform emod [emod000] kratio [pb_kratio] range group 'contact2222'
+contact property pb_ten [ten_ * strength_bili] pb_coh [coh_ * strength_bili] fric [fric_coefficient] pb_fa [fric_] pb_mcf [coeff_mcf] pb_rmul 1.0 range group 'contact2222'
+contact property lin_mode 1 dp_nratio 0.3 dp_sratio 0.0 range group 'contact2222'
+
+fish define weibull_random(alfa, beta)
+    local freq = math.random.uniform
+    if freq >= 1.0 then
+        freq = 1.0 - 1.0e-12
+    endif
+    weibull_random = alfa * (-math.ln(1.0 - freq))^(1.0 / beta)
+end
+
+fish define weibull_parameter
+    loop foreach local cp contact.list
+        if type.pointer(cp) = 'ball-ball' then
+            if contact.model(cp) = 'linearpbond' then
+                local xishu = weibull_random(1.0, beta000)
+                contact.prop(cp,'pb_ten') = contact.prop(cp,'pb_ten') * xishu
+                contact.prop(cp,'pb_coh') = contact.prop(cp,'pb_coh') * xishu
+                contact.prop(cp,'pb_kn') = contact.prop(cp,'pb_kn') * xishu
+                contact.prop(cp,'pb_ks') = contact.prop(cp,'pb_ks') * xishu
+            endif
+        endif
+    endloop
+end
+@weibull_parameter
+
+ball attribute damp 0.3
+model cycle 1000 calm 100
+model save 'consolidation_state222'

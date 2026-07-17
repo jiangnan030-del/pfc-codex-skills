@@ -1,0 +1,38 @@
+new
+
+set random 10001
+
+def array_test
+    array arr1(1,2,3,4,5)
+    arr2 = array.create(2,4)
+end
+
+define afill          ; fill matrix with random numbers
+  array var(4,3)
+  loop local m (1,array.size(var,1))
+    loop local n (1,array.size(var,2))
+      var(m,n) = math.random.uniform
+      math_random_gauss = 5.0 + 3.0*math.random.gauss
+    end_loop
+  end_loop
+end
+
+define ashow          ; display contents of matrix
+
+  loop local m (1,array.size(var,1))
+    local hed = '   '
+    local msg = '  '+string(m)
+    loop local n (1,array.size(var,2))
+      hed = hed + '               '+string(n)
+      msg = msg + '  '+string(var(m,n),8,' ',8,'E')
+    end_loop
+    if m = 1
+      io.out(hed)
+    end_if
+    io.out(msg)
+  end_loop
+end
+
+@array_test
+@afill
+@ashow

@@ -1,0 +1,28 @@
+new
+
+def sum
+    count = 0
+    sum = 0
+    _i = 
+    loop _n(1,2)
+        loop while 1 # 0
+            _i = _i + 1
+            count = count + _i
+            if count >= 7 then
+                exit loop
+            endif
+            if _i >=5 then
+                exit loop
+            else
+                continue
+            endif
+            count = count - 1
+        endloop
+        count = count * 2
+        if count >= 13 then
+            exit loop
+        endif
+    endloop
+    sum = count
+end
+list @sum

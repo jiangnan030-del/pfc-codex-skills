@@ -1,0 +1,55 @@
+campaign_name: b30_d20_optuna_tuning
+workspace_dir: ./campaign_outputs/b30_d20_optuna_tuning
+random_seed: 42
+
+parameters:
+  - name: emod
+    lower: 8.0e5
+    upper: 3.5e6
+    scale: log
+    integer: false
+  - name: pb_ten
+    lower: 9.0e4
+    upper: 1.9e5
+    scale: linear
+    integer: false
+  - name: pb_coh
+    lower: 1.4e5
+    upper: 3.0e5
+    scale: linear
+    integer: false
+  - name: pb_fa
+    lower: 8.0
+    upper: 14.0
+    scale: linear
+    integer: false
+
+targets:
+  - name: ucs
+    value: 0.168270172
+    tolerance: 0.012
+    weight: 1.5
+    direction: match
+  - name: peak_strain
+    value: 0.089791994
+    tolerance: 0.01
+    weight: 2.0
+    direction: match
+
+runner:
+  kind: command
+  timeout_sec: 420
+  workdir: .
+  command_template: "python .codex\\skills\\pfc-workflow\\scripts\\runner_pfc_case.py --params-file \"{params_file}\" --metrics-file \"{metrics_file}\" --case-dir \"<CASE_DIR>/b30_d20\" --case-name b30_d20 --timeout-sec 420"
+
+budget:
+  n_init: 4
+  n_iter: 2
+  max_failures: 4
+
+optimizer:
+  mode: bayes
+  acquisition: ei
+  engine: optuna_tpe
+  candidate_pool: 2048
+  seed: 42

@@ -1,0 +1,37 @@
+new
+
+;def sum
+;    count = 1/2.0
+;    sum = 2/count
+;end
+;@sum
+;
+
+def make_arr
+    array test_arr(100)
+    test_arr(1) = 1
+    test_arr(2) = 2
+    
+    arr_val_30 = test_arr(30)
+    
+    loop i(1,100)
+        arr_val = test_arr(100)
+    endloop
+end
+@make_arr
+
+def testBreak
+    sum = 0
+    loop local i (1,2)
+        ;testmap = map()
+        ;keys
+        testmap = map('first',4,'second',5,'first',1,'second',2,'third',3)
+        ;sum = 0
+        map_size = map.size(testmap)
+        loop foreach local v testmap
+            sum = sum + v
+        endloop
+    endloop        
+end
+@testBreak
+[sum]

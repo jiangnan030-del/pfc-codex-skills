@@ -1,0 +1,59 @@
+[
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/canonical/fluid-coupling-baseline/1kelirushui.dat",
+    "source_name": "1kelirushui.dat",
+    "bytes": 1245,
+    "sha256": "25b2070f4e4e11a61f4edb5225b3dfdefc3c91d8c5475c66ff27b45ed5c1ecfc"
+  },
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/canonical/fluid-coupling-baseline/1luoshui.dat",
+    "source_name": "1luoshui.dat",
+    "bytes": 517,
+    "sha256": "0b4cdcd98efccbb529fb757c39c420d0609e6d7997363816cfcfd45c16122b21"
+  },
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/canonical/fluid-coupling-baseline/dll.py",
+    "source_name": "dll.py",
+    "bytes": 6005,
+    "sha256": "6e1fb85110cef03d08c16b1ea703030c2fb614a363874baf5e7d0e00105e24c7"
+  },
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/canonical/fluid-coupling-baseline/Elem.dat",
+    "source_name": "Elem.dat",
+    "bytes": 11755,
+    "sha256": "b1378a73ccfbffd41ad1fa8820f33becb1bc5124feaa7e4cd1d8da19d463fe5d"
+  },
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/canonical/fluid-coupling-baseline/Node.dat",
+    "source_name": "Node.dat",
+    "bytes": 10018,
+    "sha256": "52699ecbe376b26f448bb87c9deb2b17f5053e0531010ef904b199b15ac8252b"
+  },
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/canonical/fluid-coupling-baseline/particles.dat",
+    "source_name": "particles.dat",
+    "bytes": 1140,
+    "sha256": "fd877b410e6e4cd82dcc7939c66df7d979bfeb4d4574614d1b35f2b9f8353f67"
+  },
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/canonical/fluid-coupling-baseline/test.dat",
+    "source_name": "test.dat",
+    "bytes": 9,
+    "sha256": "45537e09561f0f018e30a3fb13261081b29a70408f52abecccd54d6b8c57c21f"
+  },
+  {
+    "case": "fluid-coupling-baseline",
+    "file": "scripts/apps/create_mesh/create_mesh.exe",
+    "source_name": "create_mesh.exe",
+    "bytes": 12800,
+    "sha256": "0b43028bd79f3090c4dc06d59ed1a82fc2c2418fa805cf3e0ce389c80c5cf32e",
+    "kind": "optional-helper-app"
+  }
+]

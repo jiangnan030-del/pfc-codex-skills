@@ -1,0 +1,19 @@
+# Sensor cluster layout template for velocity-free AE source location.
+# Units are user-defined but must be consistent.
+clusters:
+  - name: C1
+    ref: [0.0, 0.0]
+    s2: [0.03, 0.0]
+    s3: [0.0, 0.03]
+  - name: C2
+    ref: [0.50, 0.0]
+    s2: [0.53, 0.0]
+    s3: [0.50, 0.03]
+  - name: C3
+    ref: [0.50, 0.50]
+    s2: [0.53, 0.50]
+    s3: [0.50, 0.53]
+  - name: C4
+    ref: [0.0, 0.50]
+    s2: [0.03, 0.50]
+    s3: [0.0, 0.53]

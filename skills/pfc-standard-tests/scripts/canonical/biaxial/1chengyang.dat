@@ -1,0 +1,32 @@
+model new
+
+def par
+    width=0.1 
+    height=width*2.0
+    rdmin=0.002
+    rdmax=0.003
+    
+    poro=0.16
+    
+end
+@par
+
+model domain extent [-width*2] [width*2] [-height*2] [height*2]
+
+wall generate box [-width*0.5] [width*0.5] [-height*0.5] [height*0.5] expand 1.5
+
+ball distribute  porosity @poro radius @rdmin @rdmax box [-width*0.5] [width*0.5] ...
+                        [-height*0.5] [height*0.5]
+
+ball attribute density 3e3 damp 0.7
+
+contact cmat default model linear property kn 1e7 ks 1e7 fric 0.5
+
+
+model cycle 2000 calm 20
+
+model solve 
+
+;ball delete range pos-x [-width*0.5] [width*0.5]  not
+;ball delete range pos-y [-height*0.5] [height*0.5]  not
+model save "sample"

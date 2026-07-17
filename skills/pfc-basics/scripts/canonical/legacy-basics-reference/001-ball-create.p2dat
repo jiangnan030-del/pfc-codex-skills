@@ -1,0 +1,33 @@
+
+new
+domain extent -10.0 10.0
+
+def make_assembly
+    ball_pos_x = -4.0
+    ball_pos_y = -4.0
+    ball_pos_x0 = ball_pos_x
+    ball_radius = 1.0
+    loop local i(1,5)
+        loop local j(1,5)
+            ball_pos_vec = vector(ball_pos_x,ball_pos_y)
+            ;ball.create(ball_radius,ball_pos_vec)
+            ;command
+            ;    ;ball create position [ball_pos_x] [ball_pos_y] radius [ball_radius]
+            ;    ball create position [ball_pos_vec] radius [ball_radius]
+            ;endcommand
+            bp = ball.create(ball_radius,vector(ball_pos_x,ball_pos_y)) 
+            ball_pos_x = ball_pos_x + 2.0 * ball_radius
+        endloop
+        ball_pos_x = ball_pos_x0
+        ball_pos_y = ball_pos_y + 2.0 * ball_radius
+    endloop
+end
+@make_assembly
+
+pause key
+
+cmat default model linear property kn 1e6 proximity 0.0
+
+pause key
+
+clean

@@ -1,0 +1,114 @@
+model new
+model restore '8'
+
+program echo off
+program call 'fracture.p2fis'
+program echo on
+@track_init
+@compute_vessel_dimensions
+[wlx0=wlx]
+[wly0=wly]
+
+[do_yservo = false]
+model calm
+
+model cycle 1
+
+ball attribute velocity multiply 0
+ball attribute displacement multiply 0
+
+model energy mechanical on
+model mechanical time-total 0
+
+[_vel = 5e-1]
+wall attribute velocity-y [_vel] range id 1
+wall attribute velocity-y [-_vel] range id 3
+
+fish define monitoring
+  whilestepping
+  y_dis  = wall.pos.y(wp3) - wall.pos.y(wp1)
+  x_dis  = wall.pos.y(wp2) - wall.pos.y(wp4)
+  up_force=wall.force.contact.y(wp3)
+  down_force=wall.force.contact.y(wp1)
+  y_force=math.abs(wall.force.contact.y(wp1)-wall.force.contact.y(wp3))
+  y_stress = math.abs(y_force/wlx0/2)
+  y_strain = math.abs((y_dis-wly0)/wly0)
+  x_strain = math.abs((x_dis-wlx0)/wlx0)
+  V_strain = x_strain+y_strain
+  Poisson_Ratio = math.abs(x_strain/(y_strain+1e-10))
+  Elasticity_mod = math.abs(y_stress/(y_strain+1e-10))
+end
+
+fish define energy_monitoring
+  whilestepping
+  energy_body=ball.energy('energy-body')
+  energy_damp=ball.energy('energy-damp')
+  energy_kinetic=ball.energy('energy-kinetic')
+  eboundary_=wall.energy('energy-boundary')
+  energy_strain=contact.energy.sum('energy-strain')
+  energy_slip=contact.energy.sum('energy-slip')
+  eenergy_dashpot=contact.energy.sum('energy-dashpot')
+  energy_pbstrain=contact.energy.sum('energy-pbstrain')
+  
+  time=mech.time.total
+end
+
+[calpinlv=3e-6]
+[pinlv_record=0]       
+[liewen_record=0]      
+[zhenling=0]           
+
+fish define AE_monitoring
+   monitoring
+  local increment = 0
+  if y_strain - pinlv_record >= calpinlv then
+    increment = crack_num - liewen_record
+    zhenling = increment
+    pinlv_record = y_strain
+    liewen_record = crack_num
+  endif
+end
+fish callback add @AE_monitoring -1.0
+
+fish history name '21' @y_dis
+fish history name '22' @x_dis
+fish history name '23' @y_stress
+fish history name '24' @y_strain
+fish history name '25' @x_strain
+fish history name '26' @V_strain
+fish history name '27' @Poisson_Ratio
+fish history name '28' @Elasticity_mod
+
+fish history name '31' @crack_num
+fish history name '32' @crack_tension_num
+fish history name '33' @crack_shear_num
+fish history name '34' @crack_tension_num_linearpbond
+fish history name '35' @crack_tension_num_smoothjoint
+fish history name '36' @crack_shear_num_linearpbond
+fish history name '37' @crack_shear_num_smoothjoint
+
+fish history name '41' @energy_body
+fish history name '42' @energy_damp
+fish history name '43' @energy_kinetic
+fish history name '44' @eboundary_
+fish history name '45' @energy_strain
+fish history name '46' @energy_slip
+fish history name '47' @eenergy_dashpot
+fish history name '48' @energy_pbstrain
+
+fish history name '51' @zhenling
+
+history purge
+model cycle 1000
+[stop_load = 0]
+[peak_fraction = 0.7]
+fish define stop_load
+    local abs_stress = math.abs(y_stress)
+    global peak_stress = math.max(y_stress,peak_stress)
+    if abs_stress < peak_stress*peak_fraction
+        stop_load = 1
+    end_if
+end
+model solve fish-halt @stop_load
+list @peak_stress
+model save '9'

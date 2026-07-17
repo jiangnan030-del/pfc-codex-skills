@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Fluid Coupling"
+  short_description: "PFC6.0-first fluid-coupling skill covering seepage, particle-water interaction, and related legacy flow-solid materials."
+  default_prompt: "Use $pfc-fluid-coupling to answer or implement PFC Fluid Coupling tasks with a PFC6.0-first, self-contained workflow."

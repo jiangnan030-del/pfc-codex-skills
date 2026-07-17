@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Flat Joint Brittle Rock"
+  short_description: "Flat-joint formulas, tests, discing, and plots"
+  default_prompt: "Use $pfc-flat-joint-brittle-rock to explain flat-joint brittle-rock modeling, key formulas, Brazilian-test or core-discing workflows, and the required plotting outputs."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC FLAC Coupling"
+  short_description: "PFC6.0-first FLAC coupling skill covering discrete-continuum handoff and chapter-level coupling materials."
+  default_prompt: "Use $pfc-flac-coupling to answer or implement PFC FLAC Coupling tasks with a PFC6.0-first, self-contained workflow."

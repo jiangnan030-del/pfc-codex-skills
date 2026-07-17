@@ -1,0 +1,41 @@
+model new
+def par
+    width=1.0
+    height=width*0.5
+    
+    jianqiehe_height_factor=1.2
+    jianqiehe_houdu=width*0.2
+    
+    rdmin=0.006
+    rdmax=0.009
+    
+    poro=0.16
+    
+end
+@par
+
+model domain extent [-width] [width] [-height] [height]
+wall generate id 1 box [-width*0.5-jianqiehe_houdu] [-width*0.5] 0 [height*jianqiehe_height_factor*0.5] one-wall
+wall generate id 2 box [width*0.5] [width*0.5+jianqiehe_houdu]  0 [height*jianqiehe_height_factor*0.5] one-wall
+wall create id 3 vertices [-width*0.5]  [height*0.5]  [width*0.5]  [height*0.5]
+
+wall generate id 4 box [-width*0.5-jianqiehe_houdu] [-width*0.5] [-height*jianqiehe_height_factor*0.5] 0  one-wall
+wall generate id 5 box [width*0.5] [width*0.5+jianqiehe_houdu]  [-height*jianqiehe_height_factor*0.5] 0  one-wall
+wall create id 6 vertices [-width*0.5]  [-height*0.5]  [width*0.5]  [-height*0.5]
+
+
+ball distribute  porosity @poro radius @rdmin @rdmax box [-width*0.5] [width*0.5] ...
+                        [-height*0.5] [height*0.5]
+
+ball attribute density 3e3 damp 0.7
+
+contact cmat default model linear property kn 1e7 ks 1e7 fric 0.5
+
+
+model cycle 2000 calm 20
+ball delete range pos-x [-width*0.5] [width*0.5]  not
+ball delete range pos-y [-height*0.5] [height*0.5]  not
+model solve 
+
+
+model save "sample"

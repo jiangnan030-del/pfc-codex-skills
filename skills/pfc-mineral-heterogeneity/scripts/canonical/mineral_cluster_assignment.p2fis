@@ -1,0 +1,135 @@
+; Mineral heterogeneity template: ball phase assignment and contact grouping.
+; Parameterize target fractions, seed rules, and group names before production use.
+
+[area_total = 0.0]
+[area_feldspar = 0.0]
+[area_quartz = 0.0]
+[area_mica = 0.0]
+[target_feldspar = 0.5932]
+[target_quartz = 0.3586]
+[target_mica = 0.0481]
+
+fish define mineral_ball_area(bp)
+    mineral_ball_area = math.pi * ball.radius(bp) * ball.radius(bp)
+end
+
+fish define mineral_area_total
+    area_total = 0.0
+    loop foreach local bp ball.list
+        area_total = area_total + mineral_ball_area(bp)
+    endloop
+end
+
+fish define mineral_assign_matrix
+    area_feldspar = 0.0
+    area_quartz = 0.0
+    area_mica = 0.0
+    loop foreach local bp ball.list
+        ball.group(bp) = 'mineral_feldspar'
+        area_feldspar = area_feldspar + mineral_ball_area(bp)
+    endloop
+end
+
+fish define mineral_seed_fillers
+    loop foreach local bp ball.list
+        local r = math.random.uniform
+        if r < 0.16 then
+            ball.group(bp) = 'mineral_quartz'
+        endif
+        if r > 0.985 then
+            ball.group(bp) = 'mineral_mica'
+        endif
+    endloop
+end
+
+fish define mineral_recount_areas
+    area_feldspar = 0.0
+    area_quartz = 0.0
+    area_mica = 0.0
+    loop foreach local bp ball.list
+        local a = mineral_ball_area(bp)
+        local g = ball.group(bp)
+        if g = 'mineral_feldspar' then
+            area_feldspar = area_feldspar + a
+        endif
+        if g = 'mineral_quartz' then
+            area_quartz = area_quartz + a
+        endif
+        if g = 'mineral_mica' then
+            area_mica = area_mica + a
+        endif
+    endloop
+end
+
+fish define mineral_grow_one_pass
+    @mineral_recount_areas
+    loop foreach local bp ball.list
+        local phase = ball.group(bp)
+        if phase = 'mineral_feldspar' then
+            continue
+        endif
+        loop foreach local cp ball.contactmap(bp, contact.typeid('ball-ball'))
+            local other = contact.end1(cp)
+            if other = bp then
+                other = contact.end2(cp)
+            endif
+            if ball.group(other) # 'mineral_feldspar' then
+                continue
+            endif
+            local accept = 0.0
+            if phase = 'mineral_quartz' then
+                accept = math.max((target_quartz * area_total - area_quartz) / (target_quartz * area_total), 0.0)
+            endif
+            if phase = 'mineral_mica' then
+                accept = math.max((target_mica * area_total - area_mica) / (target_mica * area_total), 0.0)
+            endif
+            if math.random.uniform < accept then
+                ball.group(other) = phase
+            endif
+        endloop
+    endloop
+end
+
+fish define mineral_assign_contacts
+    loop foreach local cp contact.list
+        if type.pointer(cp) = 'ball-ball' then
+            local b1 = contact.end1(cp)
+            local b2 = contact.end2(cp)
+            local g1 = ball.group(b1)
+            local g2 = ball.group(b2)
+            if g1 = g2 then
+                if g1 = 'mineral_feldspar' then
+                    contact.group(cp) = 'pbond_feldspar'
+                endif
+                if g1 = 'mineral_quartz' then
+                    contact.group(cp) = 'pbond_quartz'
+                endif
+                if g1 = 'mineral_mica' then
+                    contact.group(cp) = 'pbond_mica'
+                endif
+            else
+                contact.group(cp) = 'pbond_boundary'
+                ; Optional weak-mineral priority rule.
+                if g1 = 'mineral_mica' then
+                    contact.group(cp) = 'pbond_mica'
+                endif
+                if g2 = 'mineral_mica' then
+                    contact.group(cp) = 'pbond_mica'
+                endif
+            endif
+        endif
+    endloop
+end
+
+fish define mineral_build_groups
+    @mineral_area_total
+    @mineral_assign_matrix
+    @mineral_seed_fillers
+    loop local i (1, 12)
+        @mineral_grow_one_pass
+    endloop
+    @mineral_recount_areas
+    @mineral_assign_contacts
+end
+
+@mineral_build_groups

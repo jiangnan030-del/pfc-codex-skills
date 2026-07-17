@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC GBM Brittle Rock"
+  short_description: "PFC2D grain-based brittle-rock modeling with mineral GBM, smooth-joint boundaries, prefabricated cracks, biaxial loading, fracture tracking, and energy histories."
+  default_prompt: "Use $pfc-gbm-brittle-rock to design or implement a PFC2D GBM/equivalent-crystal brittle-rock case with mineral geometry transfer, smooth-joint grain boundaries, prefabricated cracks, biaxial compression, fracture tracking, and handoff to pfc-workflow."

@@ -1,0 +1,62 @@
+[
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/fracture_tracking.p2fis",
+    "bytes": 4704,
+    "sha256": "7da3f9448d3004a827f9e55d38c408bc5ca5eaef80a76f5d4c8e06612d86b2ab",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_01_initial_particle_pack.dat",
+    "bytes": 1472,
+    "sha256": "3bfe431dd149c0823df61d5d16bb916dbfa1921b69740cb5decd98a32fa2510e",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_02_voronoi_rblock_geometry.dat",
+    "bytes": 847,
+    "sha256": "4f40c5d3a7eb2d1cfcf767f87a71c12aef4226ccc15ec52236b33068b6595173",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_03_export_mineral_geometry.dat",
+    "bytes": 1090,
+    "sha256": "9f623b207f07ae7d6e0f3c47b48270c16a79c8ad91f3bafde3b46071a9122b55",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_04_refill_particles_by_mineral_geometry.dat",
+    "bytes": 1188,
+    "sha256": "d50162eb38e6cdcb12817d458af0557bee52c9a10ca05927565e8fcd3081d15d",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_05_biaxial_confining_servo.dat",
+    "bytes": 2081,
+    "sha256": "e315fa3d6f0ec3ba95b918db6ea03a489aca3f4d4e48bc67e142de54874e3094",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_06_prefabricated_crack_cut.dat",
+    "bytes": 1455,
+    "sha256": "2b7e051b8861e64b295569f96c2c69b9f4721265c5d6f06b8796df4bafd86f56",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_07_gbm_contact_assignment.dat",
+    "bytes": 2335,
+    "sha256": "2833c2b211b34675b19851e123a935e9988e2329fb1723a78c415335e6b54536",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_08_trim_specimen.dat",
+    "bytes": 217,
+    "sha256": "b7819aec51778214e2a56a03f81599384599864f7388adf1273dc52736eacc33",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/gbm-prefabricated-crack-biaxial/stage_09_biaxial_loading_monitoring.dat",
+    "bytes": 3198,
+    "sha256": "1eb5ff10b5a8d47cd2bd45d937dcf7fd4a888432be230dac23a531304b344fa7",
+    "kind": "pfc-template"
+  }
+]

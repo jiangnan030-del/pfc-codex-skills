@@ -1,0 +1,38 @@
+; Mineral heterogeneity template: per-mineral LPBM parameter assignment.
+; Assumes ball-ball contacts exist and have groups from mineral_cluster_assignment.p2fis.
+
+model clean
+
+contact model linear range contact type 'ball-facet'
+contact method deform emod 2.5e9 kratio 2.0 range contact type 'ball-facet'
+
+contact model linearpbond range contact type 'ball-ball'
+contact method bond gap 1e-3 range contact type 'ball-ball'
+
+; Example calibrated seeds from the source method. Recalibrate for each material.
+; feldspar matrix
+contact method deform emod 9.6e9 kratio 2.7 range group 'pbond_feldspar'
+contact method pb_deform emod 32.0e9 kratio 2.7 range group 'pbond_feldspar'
+contact property fric 1.5 pb_rmul 1.0 range group 'pbond_feldspar'
+contact property pb_ten 332.5e6 pb_coh 332.5e6 range group 'pbond_feldspar'
+
+; quartz filling
+contact method deform emod 7.5e9 kratio 2.7 range group 'pbond_quartz'
+contact method pb_deform emod 28.0e9 kratio 2.7 range group 'pbond_quartz'
+contact property fric 1.5 pb_rmul 1.0 range group 'pbond_quartz'
+contact property pb_ten 66.2e6 pb_coh 66.2e6 range group 'pbond_quartz'
+
+; mica filling / weak mineral
+contact method deform emod 1.9e9 kratio 2.7 range group 'pbond_mica'
+contact method pb_deform emod 6.8e9 kratio 2.7 range group 'pbond_mica'
+contact property fric 1.5 pb_rmul 1.0 range group 'pbond_mica'
+contact property pb_ten 49.6e6 pb_coh 49.6e6 range group 'pbond_mica'
+
+; generic mixed-mineral boundary, if not already assigned to a weak phase
+contact method deform emod 5.0e9 kratio 2.7 range group 'pbond_boundary'
+contact method pb_deform emod 18.0e9 kratio 2.7 range group 'pbond_boundary'
+contact property fric 1.5 pb_rmul 1.0 range group 'pbond_boundary'
+contact property pb_ten 60.0e6 pb_coh 60.0e6 range group 'pbond_boundary'
+
+model clean
+model save 'mineral_lpbm_assigned'

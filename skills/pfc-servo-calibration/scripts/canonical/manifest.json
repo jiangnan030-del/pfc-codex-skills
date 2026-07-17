@@ -1,0 +1,37 @@
+[
+  {
+    "case": "servo-principles",
+    "file": "scripts/canonical/servo-principles/1sifu_1.dat",
+    "source_name": "1sifu_1.dat",
+    "bytes": 441,
+    "sha256": "ae96d215105c6b3d5db6dca09baed92ba5f5bdccbee8cedefcf016d5cb353f55"
+  },
+  {
+    "case": "servo-principles",
+    "file": "scripts/canonical/servo-principles/2sifu_2.dat",
+    "source_name": "2sifu_2.dat",
+    "bytes": 439,
+    "sha256": "d03f9621cda8dfea3c1cc78dff48c1d6800d42203f00804bd8abe0fbb8c341fc"
+  },
+  {
+    "case": "servo-principles",
+    "file": "scripts/canonical/servo-principles/3sifu_3.dat",
+    "source_name": "3sifu_3.dat",
+    "bytes": 483,
+    "sha256": "238726e25e1de5a1723c12ebdf2c97ef73e09d5468c02edc36ba508cd468da5a"
+  },
+  {
+    "case": "servo-principles",
+    "file": "scripts/canonical/servo-principles/3sifu_4.dat",
+    "source_name": "3sifu_4.dat",
+    "bytes": 271,
+    "sha256": "27514f375b39fe7215bb786e8b9b592708bd7c7ed56b5e1138c12c9645ae0f78"
+  },
+  {
+    "case": "servo-principles",
+    "file": "scripts/canonical/servo-principles/4sifu_4_jixu.dat",
+    "source_name": "4sifu_4_jixu.dat",
+    "bytes": 609,
+    "sha256": "751029c8100db072937a95499611670e7c32f0fef56abb6d8ec048e1747ef482"
+  }
+]

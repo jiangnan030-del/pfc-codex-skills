@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC FISH"
+  short_description: "PFC6.0-first FISH language skill covering variables, loops, callbacks, IO, map usage, and object traversal."
+  default_prompt: "Use $pfc-fish to answer or implement PFC FISH tasks with a PFC6.0-first, self-contained workflow."

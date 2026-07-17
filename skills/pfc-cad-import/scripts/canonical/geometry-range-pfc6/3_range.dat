@@ -1,0 +1,11 @@
+model new
+
+
+
+model domain extent -100 100
+
+ball generate radius 5 10 number 500 box -100 100
+
+
+ball group "11" range  radius 5 6
+ball group "22" range  group "11" position-x -20 20

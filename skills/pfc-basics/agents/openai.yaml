@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Basics"
+  short_description: "PFC6.0-first basics for balls, walls, clumps, rblocks, geometry, range, and cluster specimen setup."
+  default_prompt: "Use $pfc-basics to answer or implement PFC Basics tasks with a PFC6.0-first, self-contained workflow."

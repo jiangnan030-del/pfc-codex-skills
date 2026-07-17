@@ -1,0 +1,9 @@
+new
+
+def test1
+    local temp = map('hello',1,'world',2)
+    test1 = temp('hello') + temp('world')
+    test2 = map.value(temp,'hello') + map.value(temp,'world')
+end
+list @test1 @test2
+

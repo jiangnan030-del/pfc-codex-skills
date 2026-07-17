@@ -1,0 +1,26 @@
+model new
+
+model random 10001
+domain extent -5 5 condition destroy
+
+wall generate box -1 1 onewall
+ball generate number 800 radius 0.1 0.2  box -1 1 
+ball attribute density 2500.0 damp 0.1
+
+model cmat default model linear property kn 1e7 ks 1e7 dp_nratio 0.0 
+
+model cmat default type ball-ball ...
+                   model hertz ...
+                   property hz_shear 30e9 hz_poiss 0.3  ...
+                            fric 0.25                   ...
+                            dp_nratio 0.2
+               
+model cmat default type ball-facet ...
+                   model linear ...
+                   property kn 1e6 dp_nratio 0.2
+
+model gravity 9.80
+model solve 
+model save '11.3.4.f3sav'
+
+return

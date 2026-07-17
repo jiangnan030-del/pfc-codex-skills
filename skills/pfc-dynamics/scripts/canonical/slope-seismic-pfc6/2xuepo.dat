@@ -1,0 +1,15 @@
+model restore "diji"
+ball attribute displacement multiply 0
+
+[jiaodu=40]
+[pos_x=0]
+[pos_y=height*0.2]
+
+;ball delete range position-y [pos_y] [height] 
+
+ball delete range plane origin @pos_x @pos_y dip [jiaodu] above ...
+                position-y [pos_y] [height] 
+                
+model solve 
+
+model save "bianpo"

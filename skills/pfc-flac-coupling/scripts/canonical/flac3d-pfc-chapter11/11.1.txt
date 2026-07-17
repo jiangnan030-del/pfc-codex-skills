@@ -1,0 +1,20 @@
+model new
+
+model domain extent -10.0 10.0
+
+wall generate box -5.0 5.0
+
+model random 10001
+ball generate radius 1.0 1.4 box -5.0 5.0 number 30
+ball attribute density 100.0
+
+model cmat default model linear property kn 1.0e6
+
+model gravity 10.0
+
+model cycle 0
+model save 'ini.f3sav'
+
+ball history id 3 velocity-z id 25
+model solve time 10.0
+model save '11.1.f3sav'

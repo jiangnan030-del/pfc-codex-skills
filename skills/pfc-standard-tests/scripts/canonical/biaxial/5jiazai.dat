@@ -1,0 +1,43 @@
+model restore "weiya"
+
+def addVel        
+    cal_stress    
+    if global.step-time_record >sevro_freq then
+        Get_zonggang
+        time_record=global.step
+    endif   
+    
+    vel_x=(txx-wsxx)*gx
+    
+    if txx>wsxx then
+        wall.vel.x(wp_left)=math.abs(vel_x)
+        wall.vel.x(wp_right)=-math.abs(vel_x)
+    else
+        wall.vel.x(wp_left)=-math.abs(vel_x)
+        wall.vel.x(wp_right)=math.abs(vel_x)
+    endif    
+end
+
+[strainrate=1e-1]
+
+[final_strain=1e-2]
+wall attribute vel-y [strainrate*wly] range id 1
+wall attribute vel-y [-strainrate*wly] range id 3
+
+[Iy0=wly]
+def jiance
+    whilestepping
+    weyy=(wly-Iy0)/Iy0
+end
+
+
+history delete
+
+history id 1 @wsyy
+history id 2 @weyy
+history id 3 @wsxx
+
+model solve time [final_strain/strainrate]
+
+model save "result"
+

@@ -1,0 +1,828 @@
+[
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/11.dxf",
+    "source_name": "11.dxf",
+    "bytes": 56648,
+    "sha256": "34dc6b0e076b5701e8b85d7f74a4437b42a07022dbbb7edba7b7b543f66bbd39",
+    "kind": "source"
+  },
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/11.stl",
+    "source_name": "11.stl",
+    "bytes": 284,
+    "sha256": "088c70f18f20c56784414faed5edd5f35771a631abc24fa5c9f3b4bbb5b800be",
+    "kind": "source"
+  },
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/1_createGeometry.dat",
+    "source_name": "1_createGeometry.dat",
+    "bytes": 968,
+    "sha256": "098e11340397217a539ebb559ff3a9b683c93b56757dafbcd49a3b85892b96de",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/22.dxf",
+    "source_name": "22.dxf",
+    "bytes": 56648,
+    "sha256": "c0d7fe6d2865628e58498dcc0df5971becdc9f9744d6d7f35fbddfe07011c32a",
+    "kind": "source"
+  },
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/22.stl",
+    "source_name": "22.stl",
+    "bytes": 834,
+    "sha256": "e18679459056823398a204f822eec268c3ef6b7f84b9aa4689f20191e7e567a5",
+    "kind": "source"
+  },
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/2_importGeo.dat",
+    "source_name": "2_importGeo.dat",
+    "bytes": 183,
+    "sha256": "5d56da0ad2359652c6c85788e24e29bc7e1f8536cb0cbe26bc2d4e1b00ad9c8a",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/3_range.dat",
+    "source_name": "3_range.dat",
+    "bytes": 190,
+    "sha256": "6205b467d6ac92a1b48fb689910a1d1e0d375cc0effbd5ae8d395d9e4e2d0683",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "geometry-range-pfc6",
+    "file": "scripts/canonical/geometry-range-pfc6/4_rangefish.dat",
+    "source_name": "4_rangefish.dat",
+    "bytes": 347,
+    "sha256": "73818d4aba6d6250027d5e6d4725b18ab14b0faa657d57e470f9c1fb33b95b94",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method1/11.dxf",
+    "source_name": "11.dxf",
+    "bytes": 56295,
+    "sha256": "80a5a9fec3d4710503accab53f739d58a888c8209b86cbfbca1561797f01b0bf",
+    "kind": "source"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method1/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 999,
+    "sha256": "15dd8a2e7baa2da4cd3b664a35b71ce24e2a061d4ab6bf80cb1bb60342d7a106",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method1/22.stl",
+    "source_name": "22.stl",
+    "bytes": 284,
+    "sha256": "5d0cac98383474aefd3b2f471a1283ea2c165a9b489f631799dc09d29ac86154",
+    "kind": "source"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method1/2tihuan.dat",
+    "source_name": "2tihuan.dat",
+    "bytes": 643,
+    "sha256": "052b2cdffb3d83616db87f660afbef240aec9554349b2d3b9ae6888fe61c1f7a",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method1/3exportGeo.dat",
+    "source_name": "3exportGeo.dat",
+    "bytes": 366,
+    "sha256": "a78197c3c0be36730b1f3c626bebed0050aa15ed9ce85b451305973bbb979885",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method1/3jiajiaojie.dat",
+    "source_name": "3jiajiaojie.dat",
+    "bytes": 1213,
+    "sha256": "dc8fd6ab24056da58c1a6ef7577b839eb0fd948422918f54df61f09d19f64691",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method1/4jiajiaojie.dat",
+    "source_name": "4jiajiaojie.dat",
+    "bytes": 1220,
+    "sha256": "157ca8b30490882c7afce06d6647536c40a09bbaf6fb1ae66c7f486c1772376d",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method2/11.dxf",
+    "source_name": "11.dxf",
+    "bytes": 56295,
+    "sha256": "80a5a9fec3d4710503accab53f739d58a888c8209b86cbfbca1561797f01b0bf",
+    "kind": "source"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method2/11.p2clp",
+    "source_name": "11.p2clp",
+    "bytes": 1950,
+    "sha256": "d80388067c8b6f789eaa11cc0eae8ab161155118bd95d08e1549ef2ec427b408",
+    "kind": "source"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method2/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 704,
+    "sha256": "1949309c64e84b92c713022802e598d5ca6b200e30cec410950e9b823cbd2d88",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method2/1CreateClumpTemplate.dat",
+    "source_name": "1CreateClumpTemplate.dat",
+    "bytes": 389,
+    "sha256": "4cccb3c723da8cfd173b2c9c8621cd0e2785a00b27e1a336edefba8f842b6704",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method2/2CreateTemplate.dat",
+    "source_name": "2CreateTemplate.dat",
+    "bytes": 545,
+    "sha256": "5fc66f9bc3b053d8a3184e66c14e77fbb0a28cc8661e5c55825c35c9f066468b",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method2/2tihuan.dat",
+    "source_name": "2tihuan.dat",
+    "bytes": 655,
+    "sha256": "7a2ca2ec3f33dcabec58b44cc5637e2e502e10e3e18c151953ccd1a8838868e3",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method2/3tihuan_cluster.dat",
+    "source_name": "3tihuan_cluster.dat",
+    "bytes": 1498,
+    "sha256": "d048dd2bdb1985729943cde0628d0fe36d82718f9d276a6f9be59821388d6e67",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 779,
+    "sha256": "2f4f5a2f591f4ab32de13ef5708e4e8b8c9e4bedac9eedf2d733c855f6e30e03",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/2rblock.dat",
+    "source_name": "2rblock.dat",
+    "bytes": 496,
+    "sha256": "9c390f97157eb84f16e878a922bf9c3ab748c01e983db119b9acc556b8270932",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/3reSample.dat",
+    "source_name": "3reSample.dat",
+    "bytes": 962,
+    "sha256": "430bae2b5196b23fac9f7d8bfdb83bd8eeeed0536e9f2953aa6ad1cff909433e",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/4jiajiaojie.dat",
+    "source_name": "4jiajiaojie.dat",
+    "bytes": 1915,
+    "sha256": "6c7618334875642ee50678bc67c3272b9a2bd0db84aa46dfb130f04ab47f8e97",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/interparticle/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 779,
+    "sha256": "2f4f5a2f591f4ab32de13ef5708e4e8b8c9e4bedac9eedf2d733c855f6e30e03",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/interparticle/2rblock.dat",
+    "source_name": "2rblock.dat",
+    "bytes": 496,
+    "sha256": "9c390f97157eb84f16e878a922bf9c3ab748c01e983db119b9acc556b8270932",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/interparticle/3reSample.dat",
+    "source_name": "3reSample.dat",
+    "bytes": 962,
+    "sha256": "430bae2b5196b23fac9f7d8bfdb83bd8eeeed0536e9f2953aa6ad1cff909433e",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/interparticle/4jiajiaojie.dat",
+    "source_name": "4jiajiaojie.dat",
+    "bytes": 3586,
+    "sha256": "b74d3932a8297493571786177541e510cfc6c39583c3ddcf2d5eb83308c9f837",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "cluster-shape-pfc6",
+    "file": "scripts/canonical/cluster-shape-pfc6/method3/interparticle/test.dat",
+    "source_name": "test.dat",
+    "bytes": 363,
+    "sha256": "56234aa10b2966ffcddea302f74cf6152278174b7975be6e5b680ad461127cd3",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "01-10",
+    "file": "scripts/apps/legacy-plugins/01-10/app.exe",
+    "source_name": "fill_overlapping_disks.exe",
+    "bytes": 1552489,
+    "sha256": "96e9af6b687c9ff4b785c8c8fae29f5b8998e8782baef3fb907f8fecddb8407c",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "01-10",
+    "file": "scripts/apps/legacy-plugins/01-10/clump-command.txt",
+    "source_name": "clump_command.txt",
+    "bytes": 208,
+    "sha256": "1f19ef0973cce08ec747f62bfa022280c55cd478b85f59fce8820db118b22a7b",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "01-10",
+    "file": "scripts/apps/legacy-plugins/01-10/linshi.txt",
+    "source_name": "linshi.txt",
+    "bytes": 316,
+    "sha256": "3f173546936c375bcb2201e1a3cede31fd880e14bbdd4b208e0ce43965799937",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "01-10",
+    "file": "scripts/apps/legacy-plugins/01-10/asset.dxf",
+    "source_name": "填充模型.dxf",
+    "bytes": 29,
+    "sha256": "de8f63e3141e1b001450cac2793622a1707be9be38ca02ff7fbaca9fb9fcbb6a",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "01-10",
+    "file": "scripts/apps/legacy-plugins/01-10/asset.txt",
+    "source_name": "检查.txt",
+    "bytes": 8948,
+    "sha256": "eb47df39f37af502b112400a4f46ba0c99f29c9813ef488f2db1f8fd722aa041",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "01-10",
+    "file": "scripts/apps/legacy-plugins/01-10/asset.dxf",
+    "source_name": "模型边界.dxf",
+    "bytes": 40069,
+    "sha256": "89b45d5c1a2c4b776a440b91ef688e165c125b959ae30aa7e493a4d200362e0f",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "02-11-fill-3d-particle-by-overlapping-spheres",
+    "file": "scripts/apps/legacy-plugins/02-11-fill-3d-particle-by-overlapping-spheres/app.exe",
+    "source_name": "Fill_3d_particle_by_overlapping_spheres.exe",
+    "bytes": 753765,
+    "sha256": "19dd96f10b8bb7c268bfb714d6cd55ea35c715cb6e0a3daad221f48d32aa615a",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "02-11-fill-3d-particle-by-overlapping-spheres",
+    "file": "scripts/apps/legacy-plugins/02-11-fill-3d-particle-by-overlapping-spheres/pfc3d.txt",
+    "source_name": "pfc3d颗粒.txt",
+    "bytes": 131495,
+    "sha256": "4602fdaa59f7e7b188c131f8b478c56afe147083de4811565c9003bdbb419e84",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "02-11-fill-3d-particle-by-overlapping-spheres",
+    "file": "scripts/apps/legacy-plugins/02-11-fill-3d-particle-by-overlapping-spheres/asset.dxf",
+    "source_name": "填充后的模型.dxf",
+    "bytes": 867655,
+    "sha256": "4bfbbaaa08113372012ddffc52fcf3e726a1a033f5779a509d8778a5f346e0ea",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "02-11-fill-3d-particle-by-overlapping-spheres",
+    "file": "scripts/apps/legacy-plugins/02-11-fill-3d-particle-by-overlapping-spheres/asset.txt",
+    "source_name": "颗粒坐标与半径.txt",
+    "bytes": 89590,
+    "sha256": "57fe1ab736b734d4dfc8b2242c570132fbc8666c44776d7ed2e67c891329736e",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "02-11-fill-3d-particle-by-overlapping-spheres",
+    "file": "scripts/apps/legacy-plugins/02-11-fill-3d-particle-by-overlapping-spheres/asset.dxf",
+    "source_name": "颗粒外轮廓.dxf",
+    "bytes": 587072,
+    "sha256": "50ee0a7304578b3f837a1b4e931a55c9b0084eb8038075024b53a9d44456064d",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "03-12",
+    "file": "scripts/apps/legacy-plugins/03-12/app.exe",
+    "source_name": "delaunay_2d_shichong.exe",
+    "bytes": 671819,
+    "sha256": "c76bb3655d327872b2c159133f220ea05de9cc13c3622b8d6f999f787f1499f0",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "03-12",
+    "file": "scripts/apps/legacy-plugins/03-12/bbb.dxf",
+    "source_name": "bbb.dxf",
+    "bytes": 58,
+    "sha256": "b0473cae79e06a21c35ae9a92050ab01a284f386dd9f9437c795b86cc6b8326b",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "03-12",
+    "file": "scripts/apps/legacy-plugins/03-12/bianjie.dxf",
+    "source_name": "bianjie.dxf",
+    "bytes": 9575,
+    "sha256": "a77dce063e28f6b37a24c37fbcfb888e77fe6d9108d05a89ac0a817b761aa48b",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "03-12",
+    "file": "scripts/apps/legacy-plugins/03-12/asset.dxf",
+    "source_name": "模型边界.dxf",
+    "bytes": 185045,
+    "sha256": "64bc531c3f0fccf1a9cd0690ff8c5e068f56350361cd78152903c99825ac129a",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "03-12",
+    "file": "scripts/apps/legacy-plugins/03-12/asset.dxf",
+    "source_name": "网格.dxf",
+    "bytes": 4372,
+    "sha256": "44cd53f996533fc81729b2e68c2bcddb4bf0726c98c4fde19e0d7d9827b62b3c",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "04-13",
+    "file": "scripts/apps/legacy-plugins/04-13/app.exe",
+    "source_name": "finite_to_pfc2d_back_method.exe",
+    "bytes": 880731,
+    "sha256": "68b7268a4f195ab951eb1c19d5b809fcafc73b841c82e568eaec9b3a6012f177",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "05-14",
+    "file": "scripts/apps/legacy-plugins/05-14/app.exe",
+    "source_name": "finite_to_pfc3d.exe",
+    "bytes": 1163356,
+    "sha256": "fcbc4faeb51e60319e420b0c8aa2cb1311ef4cb1e2f0d0e36ec9f0577c732a07",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "05-14",
+    "file": "scripts/apps/legacy-plugins/05-14/model-cad.dxf",
+    "source_name": "model_cad.dxf",
+    "bytes": 498585,
+    "sha256": "9a8d18263e76a1cb01de48045cebf2fea40f4e211ae840dcd67ab88a466ef9f4",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "05-14",
+    "file": "scripts/apps/legacy-plugins/05-14/asset.dxf",
+    "source_name": "原始球.dxf",
+    "bytes": 10255,
+    "sha256": "f4e1fe7ffafe5f6237da8fee16dc839c296997331379e01d36ed52a64694cfc1",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "06-15",
+    "file": "scripts/apps/legacy-plugins/06-15/app.exe",
+    "source_name": "sliding_surface_add_water_PFC3D.exe",
+    "bytes": 1466464,
+    "sha256": "fc198a45af049c822e2b34676b108024642bb964eef17f8d7d933d23cc2e4a0c",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "06-15",
+    "file": "scripts/apps/legacy-plugins/06-15/asset.txt",
+    "source_name": "使用说明.txt",
+    "bytes": 625,
+    "sha256": "19eb51d83288e060839f46306094a96336f52d21439643b989bbf14085907b23",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "06-15",
+    "file": "scripts/apps/legacy-plugins/06-15/asset.dxf",
+    "source_name": "原始球.dxf",
+    "bytes": 11034,
+    "sha256": "13e944bd280a1ed4bc501a8d335b24dd4d2917175f5983c678e9491eafdc9ed1",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "06-15",
+    "file": "scripts/apps/legacy-plugins/06-15/wall.txt",
+    "source_name": "导出与wall接触的颗粒.txt",
+    "bytes": 953,
+    "sha256": "154cf6875036b82bb97d0c4a5c27fe77632051e2b64e77802e80a00eecfe029a",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/app.exe",
+    "source_name": "delaunay_2d_shichong.exe",
+    "bytes": 671819,
+    "sha256": "49d67e6baf5bf6a7568d06cdc6c78defa8731e4b60472b1a22febbbb2877160f",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/bianjie.dxf",
+    "source_name": "bianjie.dxf",
+    "bytes": 5479,
+    "sha256": "1b996af9a2a5657b4822e889002bfe70c1bfd3a51ddb2e50f61b3dd5162329ac",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/shichong.dat",
+    "source_name": "shichong.dat",
+    "bytes": 10049,
+    "sha256": "09dd14d53aceea5e29740136ccedb66547091fd3485e9eea847eba0f96c79171",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/asset.txt",
+    "source_name": "单元检查.txt",
+    "bytes": 66900,
+    "sha256": "68ed03e2b9af2f64706cc25f16e8b943ab6fba3acbd232d694fd68b6afabb345",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/asset.dxf",
+    "source_name": "模型边界.dxf",
+    "bytes": 185391,
+    "sha256": "2db68372f9c95c14d310e532d302f3086442adae22ac29e10eedba413e4009ee",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/asset.dxf",
+    "source_name": "生成颗粒.dxf",
+    "bytes": 13528,
+    "sha256": "85dc78bfe765dce014d95ebec4e571d642b1a0d0387cca5eb4812cd3aacaea5f",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/asset.dxf",
+    "source_name": "网格.dxf",
+    "bytes": 19300,
+    "sha256": "dd3d518b6aa1ba06fc735ce7ca2b466cc880fa427e7502b5156807bd706e69e4",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "07-17",
+    "file": "scripts/apps/legacy-plugins/07-17/asset.txt",
+    "source_name": "颗粒.txt",
+    "bytes": 6897,
+    "sha256": "0af3a5e85b51b6a4c7ee2181f9b50de151034dfd930da02fddbb72baf5e69a2e",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "08-1-read-polyline-in-autocad",
+    "file": "scripts/apps/legacy-plugins/08-1-read-polyline-in-autocad/app.exe",
+    "source_name": "提取等值线.exe",
+    "bytes": 417865,
+    "sha256": "3b6f120a0a609bbfa73d25366f9a66b2f12cba7e61cd0b1a76dc8fff0a9598c4",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "08-1-read-polyline-in-autocad",
+    "file": "scripts/apps/legacy-plugins/08-1-read-polyline-in-autocad/asset.txt",
+    "source_name": "文件名设置.txt",
+    "bytes": 288,
+    "sha256": "a7bb976e908d04394d386b70d65a0368cde9774b7893c6d4be27fe6cd08c4d13",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "09-2-cad-wall-pfc3d-cad-to-pfc3d",
+    "file": "scripts/apps/legacy-plugins/09-2-cad-wall-pfc3d-cad-to-pfc3d/app.exe",
+    "source_name": "cad_to_PFC3D.exe",
+    "bytes": 581723,
+    "sha256": "a3c19428ebcacf84239a2f12ada5f7bb19e8f6059e9cf2b588940ba60952f165",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "09-2-cad-wall-pfc3d-cad-to-pfc3d",
+    "file": "scripts/apps/legacy-plugins/09-2-cad-wall-pfc3d-cad-to-pfc3d/example.dxf",
+    "source_name": "example.dxf",
+    "bytes": 834026,
+    "sha256": "f241075db89fa76e6650a902ff3ab0cfd556d1daa964b6b3f1c671237bf95223",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "09-2-cad-wall-pfc3d-cad-to-pfc3d",
+    "file": "scripts/apps/legacy-plugins/09-2-cad-wall-pfc3d-cad-to-pfc3d/model-pfc3d.dat",
+    "source_name": "model_pfc3d.dat",
+    "bytes": 626635,
+    "sha256": "9369347ff3ef55beb914bde47a60ca9691e1c7976f2f7d71297cf307abac76eb",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "10-3",
+    "file": "scripts/apps/legacy-plugins/10-3/app.exe",
+    "source_name": "finite_to_pfc2d中心向边界填充.exe",
+    "bytes": 856139,
+    "sha256": "2399f02eb58604556b62af6cd0adbf54e625baa4c5180b040c19cbb7c5c2b2d3",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "11-4",
+    "file": "scripts/apps/legacy-plugins/11-4/app.exe",
+    "source_name": "cad_to_PFC2D_jipei.exe",
+    "bytes": 557154,
+    "sha256": "4633eb596861c740bf3840d4468e9e9a41cb1885fda6d8f20774f81f18d5e4b3",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "11-4",
+    "file": "scripts/apps/legacy-plugins/11-4/shichong.dat",
+    "source_name": "shichong.dat",
+    "bytes": 28920,
+    "sha256": "b59b88a24a7b682b553c1e77fa06b69de92c2739db0bfc16453a8ba10acf0682",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "11-4",
+    "file": "scripts/apps/legacy-plugins/11-4/shichong.dxf",
+    "source_name": "shichong.dxf",
+    "bytes": 12436,
+    "sha256": "b9661048a4f094cf45e0581af37a4ac181f80379f73cbed6acfa7de3438f8c05",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "11-4",
+    "file": "scripts/apps/legacy-plugins/11-4/asset.txt",
+    "source_name": "不同材料控制面积.txt",
+    "bytes": 216,
+    "sha256": "ccb3bdaa995710b0ee111c1e406515a823e6fd9e8dfc8f4d85cee3d55a077cf3",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "11-4",
+    "file": "scripts/apps/legacy-plugins/11-4/asset.txt",
+    "source_name": "使用说明.txt",
+    "bytes": 864,
+    "sha256": "b9c8de7fd62c5c6010f5ce63772a9c53425977222a4333905565a01e099034fe",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "12-5",
+    "file": "scripts/apps/legacy-plugins/12-5/app.exe",
+    "source_name": "材料设置.exe",
+    "bytes": 471151,
+    "sha256": "b6d2b5350c11dd4cdbf76c30ac648d6937b27767f27d549d7b4390cb03f258d7",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "12-5",
+    "file": "scripts/apps/legacy-plugins/12-5/pfc2d-model.dat",
+    "source_name": "pfc2d_model.dat",
+    "bytes": 998949,
+    "sha256": "ef8c393c7f9c9ede083eb1b8c9d82ec7f75ce807e097a4f4bc6919134959d14a",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "12-5",
+    "file": "scripts/apps/legacy-plugins/12-5/asset.txt",
+    "source_name": "导出球的坐标.txt",
+    "bytes": 777,
+    "sha256": "08157d864d98199b1bafdf74f3e1917441b811807f313f9b68c0b33653087e2c",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "12-5",
+    "file": "scripts/apps/legacy-plugins/12-5/asset.dxf",
+    "source_name": "材料边界.dxf",
+    "bytes": 25706,
+    "sha256": "16cc47fe70e685522d85a39cd49e2632e1c04683959830b0721e5def3e8be821",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "12-5",
+    "file": "scripts/apps/legacy-plugins/12-5/asset.txt",
+    "source_name": "说明.txt",
+    "bytes": 663,
+    "sha256": "174feb2c665fada2595172d13a3ebaf44d17f7f02972f67e91c7478f99c54c28",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "13-6",
+    "file": "scripts/apps/legacy-plugins/13-6/app.exe",
+    "source_name": "boundary_search_3D.exe",
+    "bytes": 479311,
+    "sha256": "3e532e7d05d94d0b7902249e3142419dfe1bf3dd06447f9b1752d0411e8af330",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "13-6",
+    "file": "scripts/apps/legacy-plugins/13-6/model-cad.dxf",
+    "source_name": "model_cad.dxf",
+    "bytes": 175514,
+    "sha256": "12bf3daf669f4cec04c3085efa9a1b633327cbf204af01fa8d138ff56fd1aa10",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "13-6",
+    "file": "scripts/apps/legacy-plugins/13-6/asset.txt",
+    "source_name": "导出节点与单元信息.txt",
+    "bytes": 6244,
+    "sha256": "2758f06ca95e50211977667c9025eaeb43b8f17772fea2199012887ac01ed82d",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "13-6",
+    "file": "scripts/apps/legacy-plugins/13-6/asset.txt",
+    "source_name": "建议三维模型计算时先检查一遍，防止错误，管用.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "14-7",
+    "file": "scripts/apps/legacy-plugins/14-7/app.exe",
+    "source_name": "boundary_search_3D_local.exe",
+    "bytes": 512076,
+    "sha256": "d5f436e4e72cbb60570b44d34822659a893d65eaa6cd2c15a8dc46f7684a4263",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "14-7",
+    "file": "scripts/apps/legacy-plugins/14-7/asset.txt",
+    "source_name": "保留单元.txt",
+    "bytes": 18,
+    "sha256": "db3558ed34802bed11b7e64873df0dd68574d7b2e6f78e994dbf72b41f64b86d",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "14-7",
+    "file": "scripts/apps/legacy-plugins/14-7/asset.txt",
+    "source_name": "导出节点与单元信息.txt",
+    "bytes": 6244,
+    "sha256": "2758f06ca95e50211977667c9025eaeb43b8f17772fea2199012887ac01ed82d",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "14-7",
+    "file": "scripts/apps/legacy-plugins/14-7/asset.txt",
+    "source_name": "建议三维模型计算时先检查一遍，防止错误，管用.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "15-8",
+    "file": "scripts/apps/legacy-plugins/15-8/app.exe",
+    "source_name": "boundary_search_2D.exe",
+    "bytes": 479297,
+    "sha256": "7621660f4b55203cf231d04624b04503cf451d73c4eff7479165ac7bff8af7b8",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "15-8",
+    "file": "scripts/apps/legacy-plugins/15-8/asset.txt",
+    "source_name": "建议三维模型计算时先检查一遍，防止错误，管用.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/app.exe",
+    "source_name": "delaunay_2d_shichong.exe",
+    "bytes": 675930,
+    "sha256": "5b0706d89ab0fa739e973696ff122d7395292949f67b1212dfdb9c5d498f5e54",
+    "kind": "optional-helper-app"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/bbb.dxf",
+    "source_name": "bbb.dxf",
+    "bytes": 116,
+    "sha256": "dfe45eadc0d837fcfdd2ec11e5952c6070d9e3e51f09962998b8179243813bf3",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/bianjie.dxf",
+    "source_name": "bianjie.dxf",
+    "bytes": 120967,
+    "sha256": "d963b919aac83b9bd9d2a7bb789905c2e272e709eb1f1f5c75ab0720d3ecbb7c",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/shichong.dat",
+    "source_name": "shichong.dat",
+    "bytes": 790588,
+    "sha256": "c695ee3c2e5b70019dd1ded62defe00ed7dfe3446fe9e97e4829e86c8534a4b9",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/asset.dxf",
+    "source_name": "模型边界.dxf",
+    "bytes": 17553,
+    "sha256": "c25d7781d26d5c048b68cf67da338f77c0ba6afe84d2d338f71ac547eee606ad",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/asset.dxf",
+    "source_name": "网格.dxf",
+    "bytes": 457329,
+    "sha256": "b80c55c43689870c2d2ad339a776b81b57aef3a3e902cf4a59e8e617312b9e2b",
+    "kind": "optional-helper-input"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/asset.txt",
+    "source_name": "说明.txt",
+    "bytes": 164,
+    "sha256": "d7fa1c7cd9cbd3b74cdd0cdbb1d81b74038c95ab4c64df5140d1226161390f61",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "16-9",
+    "file": "scripts/apps/legacy-plugins/16-9/asset.txt",
+    "source_name": "颗粒.txt",
+    "bytes": 562761,
+    "sha256": "2e049b427c660b4dec71d9de0e5719af69a365e41a6e3dfdb74d3862f597b5c7",
+    "kind": "optional-helper-input",
+    "encoding": "utf-8"
+  }
+]

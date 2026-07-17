@@ -1,0 +1,47 @@
+model new
+
+model domain extent -10 10
+
+ball create id 1 position 0 1 radius 1
+ball create id 2 position 0 -1 radius 1
+ball attribute density 3e3 
+
+ball fix vel spin
+ball attribute vel 0.1 0 range id 1
+
+[pb_kn=1e7/(2*1.0)]
+
+[tensile_force_fengzhi=7e5]
+[pb_ten=tensile_force_fengzhi/(2*1.0)]
+
+[pb_coh=7e5/(2*1.0)]
+cmat default  model linearpbond property kn 1e7 ks 1e7 fric 0.5 ...
+                        pb_kn @pb_kn pb_ks @pb_kn ...
+                        pb_coh @pb_coh pb_ten @pb_ten pb_fa 50
+
+model clean
+
+contact method bond gap 0.1
+
+
+[ct=contact.find("ball-ball",1)]
+[bp=ball.find(1)]
+def jiance
+    whilestepping
+    if ct==null then
+        exit
+    endif
+    
+    faxiang_force=contact.force.normal(ct)
+    qiexiang_force=contact.force.shear(ct)
+end
+
+history id 1 @faxiang_force
+history id 2 @qiexiang_force
+
+model mechanical timestep fix 1e-4
+model solve time 1
+
+model save "qiexiang"
+
+

@@ -1,0 +1,24 @@
+model new
+
+model domain extent -10 10 
+
+wall generate box -5 5
+
+wall generate box -5 1 -1 1
+
+ball create position 0 -4 radius 1
+ball attribute density 2e3
+[bp=ball.find(1)]
+def update_ball_vel
+    time=mech.time.total
+    ball.vel.x(bp)=1
+    ball.vel.y(bp)=1
+    if time>4 then
+        ball.vel.x(bp)=-1
+    endif
+end
+model mechanical timestep fix 1e-4
+fish callback add @update_ball_vel -1.0
+
+
+model solve time 8

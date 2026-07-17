@@ -1,0 +1,13 @@
+model new
+
+[a=0]
+
+model mechanical timestep fix 1e-2
+
+def add    
+    a=a+1
+end
+fish callback add @add -1.0
+
+model cycle 1000
+

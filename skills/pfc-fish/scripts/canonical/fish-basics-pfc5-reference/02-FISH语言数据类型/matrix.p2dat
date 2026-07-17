@@ -1,0 +1,52 @@
+new
+; Matrix functionality tests
+def setup
+   alan = matrix(4,4)
+   alan(1,3) = 6
+   alan(2,1) = 2.2
+   alan(3,4) = 6.6
+   alan(4,2) = math.pi
+end
+@setup
+[alan(4,2)]
+
+def setup2
+   alan = matrix.transpose(alan)
+end
+@setup2
+[alan(2,4)]
+
+def sum_tests
+   herp = matrix(2,2)
+   derp = matrix(2,2)
+   serp = matrix(2,2)
+
+   herp(1,1) = 6
+   herp(1,2) = -1
+   herp(2,1) = -3
+   herp(2,2) = 2
+   
+   derp(1,1) = 4
+   derp(1,2) = 3
+   derp(2,1) = -7
+   derp(2,2) = 0
+   
+   klerp = herp + derp
+   werp = herp - derp
+   serp = herp * derp
+   
+end
+@sum_tests
+[klerp(1,1)] 
+[werp(1,1)] 
+[serp(1,1)] 
+   
+
+def test
+   local first = vector(2,4,3)
+   local second = vector(8,1,5)
+   local prod = math.outer.product(first, second)
+   output = array.convert(prod);
+end
+@test
+[output(1,1)]

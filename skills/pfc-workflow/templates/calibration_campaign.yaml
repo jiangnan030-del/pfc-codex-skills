@@ -1,0 +1,64 @@
+campaign_name: demo_auto_calibration
+workspace_dir: ./campaign_outputs/demo_auto_calibration
+random_seed: 42
+
+parameters:
+  - name: emod
+    lower: 1.0e6
+    upper: 1.0e7
+    scale: log
+    integer: false
+  - name: pb_ten
+    lower: 1.0e5
+    upper: 4.0e5
+    scale: linear
+    integer: false
+  - name: pb_coh
+    lower: 1.5e5
+    upper: 5.0e5
+    scale: linear
+    integer: false
+  - name: pb_fa
+    lower: 5.0
+    upper: 20.0
+    scale: linear
+    integer: false
+
+targets:
+  - name: elastic_modulus
+    value: 3.2
+    tolerance: 0.2
+    weight: 1.0
+    direction: match
+  - name: ucs
+    value: 0.25
+    tolerance: 0.015
+    weight: 1.5
+    direction: match
+  - name: peak_strain
+    value: 0.045
+    tolerance: 0.005
+    weight: 1.0
+    direction: match
+
+runner:
+  kind: synthetic
+  function: mock_pfc_calibration
+  timeout_sec: 3600
+  metrics_format: json
+  command_template: "python your_pfc_wrapper.py --params-file {params_file} --metrics-file {metrics_file}"
+  workdir: .
+
+budget:
+  n_init: 24
+  n_iter: 12
+  max_failures: 8
+  stop_objective: 0.25
+
+optimizer:
+  mode: bayes
+  acquisition: ei
+  engine: gp_ei
+  candidate_pool: 5000
+  de_popsize: 12
+  seed: 42

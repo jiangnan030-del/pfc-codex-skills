@@ -1,0 +1,14 @@
+new
+
+set random 10001
+
+domain extent -10 10
+ball generate id 5 radius 1.0 1.5 box -10 10 number 26 tries 20000
+
+def get_list
+    local lp = ball.list
+    global pb = list.find(lp,5)
+    list_size= list.size(lp)
+    max_id = ball.maxid
+end
+@get_list

@@ -1,0 +1,58 @@
+[
+  {
+    "case": "slope-seismic-pfc6",
+    "file": "scripts/canonical/slope-seismic-pfc6/1diji.dat",
+    "source_name": "1diji.dat",
+    "bytes": 547,
+    "sha256": "7ee0b20cb2e049f15dca5dda0babd951d8525f51b8873fdf664ccb922da984dc",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "slope-seismic-pfc6",
+    "file": "scripts/canonical/slope-seismic-pfc6/2xuepo.dat",
+    "source_name": "2xuepo.dat",
+    "bytes": 331,
+    "sha256": "dcc521ce65f5968abcf9bd68e52696af0bd750843bedd22e32cfb874eb660060",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "slope-seismic-pfc6",
+    "file": "scripts/canonical/slope-seismic-pfc6/3dizhen.dat",
+    "source_name": "3dizhen.dat",
+    "bytes": 297,
+    "sha256": "2a05c6ae859cd71676634eb0e1facfeeaf18b1d714cff25590f6caa3b70af086",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "demolition-blasting-reference",
+    "file": "scripts/canonical/demolition-blasting-reference/crk.FIS",
+    "source_name": "crk.FIS",
+    "bytes": 27183,
+    "sha256": "3ed53dfef19e6accefea4db2912fdd4c79e6e521f50ca69bc2ce324efcf7dd2d",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "demolition-blasting-reference",
+    "file": "scripts/canonical/demolition-blasting-reference/fishcall.FIS",
+    "source_name": "fishcall.FIS",
+    "bytes": 842,
+    "sha256": "715a052e97688e1eaf8af4a999ff6ec0f25e8dd9e49ec3c5c0fab7752ffde89e",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "demolition-blasting-reference",
+    "file": "scripts/canonical/demolition-blasting-reference/flt.FIS",
+    "source_name": "flt.FIS",
+    "bytes": 8665,
+    "sha256": "207bf4e7c32a87b1bce2a27a0d56f49c926f5cfe3dc5984837629123eea64942",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "demolition-blasting-reference",
+    "file": "scripts/canonical/demolition-blasting-reference/demolition_model_build.txt",
+    "source_name": "demolition_model_build.txt",
+    "bytes": 1077967,
+    "sha256": "51c3faa7710eb436c70e4dcaf5486b119b41b1b5b43bdaacf05bd219b4b3250c",
+    "encoding": "utf-8-normalized-filename"
+  }
+]

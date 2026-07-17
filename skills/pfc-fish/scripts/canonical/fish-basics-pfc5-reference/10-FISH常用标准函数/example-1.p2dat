@@ -1,0 +1,39 @@
+new
+
+set random 10001
+
+def array_command
+    array command_arr(2)
+    command_arr(1) = 'domain extent -10 10'
+    command_arr(2) = 'ball generate radius 1.0 1.5 box -10 10 number 20'
+    v = array.command(command_arr)
+end
+@array_command
+
+def array_copy
+    test1_arr = array.copy(command_arr)
+    v = array.command(test1_arr)
+end
+@array_copy
+
+def array_delete
+    v = array.delete(test1_arr) 
+end
+@array_delete
+
+def array_dim
+    array  test2_arr(2,2) test3_arr(1,12,4,6,8)
+    dim1 = array.dim(test1_arr)
+    dim2 = array.dim(test2_arr)
+    dim3 = array.dim(test3_arr)
+end
+@array_dim
+
+def array_size
+    ir1 = array.size(test3_arr,1)
+    ir2 = array.size(test3_arr,2)
+    ir3 = array.size(test3_arr,3)
+    ir4 = array.size(test3_arr,4)
+    ir5 = array.size(test3_arr,5)
+end
+@array_size

@@ -1,0 +1,25 @@
+model new
+
+zone create brick point 0 -10 -10 -5 ...
+                  point 1 10 -10 -5  ...
+                  point 2 -10 10 -5  ...
+                  point 3 -10 -10 0  ...
+                  size 10 10 5
+                  
+zone cmodel elastic 
+zone initialize density 3.6e3
+zone property young 10e6 poisson 0.3
+
+model gravity 9.8
+
+zone gridpoint fix velocity-z range pos-z  -5.1 -4.9
+zone gridpoint fix velocity-x range pos-x  -10.1 -9.9
+zone gridpoint fix velocity-x range pos-x  9.9 10.1
+zone gridpoint fix velocity-y range pos-y  -10.1 -9.9
+zone gridpoint fix velocity-y range pos-y  9.9 10.1
+
+
+model cycle 1
+model solve
+
+model save "diji"

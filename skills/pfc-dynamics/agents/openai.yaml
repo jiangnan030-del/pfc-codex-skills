@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Dynamics"
+  short_description: "PFC6.0-first dynamics skill for slope motion, seismic loading, blasting references, and rate-aware legacy cases."
+  default_prompt: "Use $pfc-dynamics to answer or implement PFC Dynamics tasks with a PFC6.0-first, self-contained workflow."

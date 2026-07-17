@@ -1,0 +1,20 @@
+model restore "tihuan"
+geometry delete
+rblock export to-geometry "hunningtu"  
+
+rblock delete
+
+
+ball distribute radius 0.005 0.007 porosity @poro  box [-width*0.5] [width*0.5] [-height*0.5] [height*0.5]
+
+
+
+ball attribute density 3e3 damp 0.7
+
+cmat default model linear property kn 1e7
+
+model cycle 2000 calm 20
+
+model solve
+
+model save "Re_sample"

@@ -1,0 +1,22 @@
+new
+
+def if_test(input_num)
+    _n = input_num
+    if _n < 0 then
+        _n = -1
+    else if _n = 0 then
+        _n = 0
+    else if _n < 10 then
+        _n = 1
+    else
+        _n = 2
+    endif
+end
+@if_test(-8)
+list @_n
+@if_test(0)
+list @_n
+@if_test(5)
+list @_n
+@if_test(12)
+list @_n

@@ -1,0 +1,147 @@
+new
+;----------------------------------------------------------------------------------
+def setup
+	ball_num_required = 72   ; Set balls number required
+	tries_maxnum = 107     ; Set tries maximum number to generate balls
+    
+	x_min = -5.0
+	x_max =  5.0
+	y_min = -5.0
+	y_max =  5.0
+	z_min = -5.0
+	z_max =  5.0
+	
+	count = 0
+	idc = 1
+	
+	rlo = 0.5  ;ball low radius
+	rhi = 0.75  ;ball high radius
+    
+    overlap_flag = false
+    bp_map = map()
+end
+@setup
+
+domain extent -10 10 ;condition destroy
+
+; Modify the default slots of the Contact Model Assignment Table
+; Here we choose the linear contact model (with kn=1e6) for all contact types
+cmat default model linear property kn 1.0e6
+
+; Generate 30 balls in a box
+wall generate box -5.0 5.0 onewall
+set random 10001
+
+pause key
+
+def generate_sump_ball
+    if global.dim = 2 then
+        command
+            geometry generate circle ...
+                                position @pos_vec... 
+                                radius @rc ...
+                                resolution 0.01
+        endcommand
+    else
+        command
+            geometry generate sphere ...
+                                position @pos_vec... 
+                                radius @rc ...
+                                resolution 0.1
+        endcommand
+    endif
+    
+    lp = label.create(pos_vec)
+    label.text(lp) = 'Overlapping with others !'
+    overlap_flag = true
+    command
+        ;pause key
+        geometry delete
+    endcommand
+    label.delete(lp) 
+end
+;----------------------------------------------------------------------------------
+def check_overlap
+    overlap_flag = false
+    section
+        loop foreach local bp bp_map
+            dist = math.mag(pos_vec - ball.pos(bp)) 
+            dist_min = rc + ball.radius(bp)
+            if dist < dist_min then
+                generate_sump_ball
+                ;exit loop
+                exit section
+            end_if
+        end_loop
+    endsection
+end
+;----------------------------------------------------------------------------------
+def make_assembly
+	;section
+        rc=rlo+math.random.uniform*(rhi-rlo)
+		loop _i(1,tries_maxnum)
+            ;section
+                diameter = rc * 2.0
+                xl = x_max-x_min-diameter
+                yl = y_max-y_min-diameter
+                xc = xl*(math.random.uniform+float(x_min+rc)/xl)
+                yc = yl*(math.random.uniform+float(y_min+rc)/yl)
+                
+                if global.dim=2 then
+                    pos_vec = vector(xc,yc)
+                else
+                    zl = z_max-z_min-diameter
+                    zc = zl*(math.random.uniform+float(z_min+rc)/zl)
+                    pos_vec = vector(xc,yc,zc)  
+                end_if
+                
+                ;if count>=1 then
+                ;    check_overlap
+                ;end_if
+                
+                if overlap_flag = true then
+                    ;exit section
+                    continue
+                endif
+                
+                local bp = ball.create(rc,pos_vec,idc)
+                
+                ;command
+                ;    ball create id @idc radius @rc position @pos_vec
+                ;endcommand
+                
+                ;command
+                ;    pause key
+                ;endcommand
+                
+                map.add(bp_map,idc,bp)
+                count = count + 1
+                idc=idc+1
+                
+                if count>=ball_num_required
+                    actual_tries_num=_i
+                    oo=io.out('--- ' + string(count) + ' balls successfully generated !')
+                    oo=io.out('--- ' + string(actual_tries_num) + ' times tries has been done !')
+                    ;exit section
+                    exit
+                end_if
+                
+                rc=rlo+math.random.uniform*(rhi-rlo)  ;rc=(rlo+rhi)/2.0+(rhi-rlo)/2.0*math.random.gauss粒径分布服从均匀（高斯）分布
+            ;endsection
+		end_loop
+		actual_tries_num=_i-1
+        
+		oo=io.out('--- Fewer balls generated than specified !')
+        oo=io.out('--- '+string(actual_tries_num) + ' times tries has been done !')
+	;end_section
+end
+@make_assembly
+
+pause key
+
+ball attribute density 1000 damp 0.7
+set gravity 10.0
+cycle 1000 calm 100
+cycle 1000
+
+return

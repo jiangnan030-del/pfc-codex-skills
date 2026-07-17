@@ -1,0 +1,17 @@
+model restore "jiaojie"
+
+
+[jiazai_rad=height*0.2]
+[painyi=0.8]
+wall delete
+
+
+wall generate id 1  circle position 0 [height*0.5+jiazai_rad] radius @jiazai_rad
+
+
+wall generate id 2  circle position [-width*0.5*painyi] [-height*0.5-jiazai_rad] radius @jiazai_rad
+ 
+wall generate id 3  circle position [width*0.5*painyi] [-height*0.5-jiazai_rad] radius @jiazai_rad
+
+
+model save "addjiazai"

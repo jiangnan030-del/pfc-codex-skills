@@ -1,0 +1,15 @@
+model restore "addjiazai"
+ball attribute displacement multiply 0
+wall attribute vel-y [-height*1] range id 1
+
+[wp=wall.find(1)]
+def jiance
+    whilestepping
+    force=wall.force.contact.y(wp)
+    weiyi=wall.disp.y(wp)
+end
+
+program call "fracture.p2fis"
+@track_init
+
+model solve time 0.3

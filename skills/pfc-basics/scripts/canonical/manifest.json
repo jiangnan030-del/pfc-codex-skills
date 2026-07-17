@@ -1,0 +1,369 @@
+[
+  {
+    "case": "basic-elements-pfc6",
+    "file": "scripts/canonical/basic-elements-pfc6/1create_ball.dat",
+    "source_name": "1create_ball.dat",
+    "bytes": 319,
+    "sha256": "186e0ad09d4a10eb3c1050be8b5a378f305640601346a8e97af379d356c94b4b",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "basic-elements-pfc6",
+    "file": "scripts/canonical/basic-elements-pfc6/2pengzhuang.dat",
+    "source_name": "2pengzhuang.dat",
+    "bytes": 182,
+    "sha256": "6798b2d122ae2fb76783971002da8b7edeec153228db8f24b8bf23acdf943752",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "basic-elements-pfc6",
+    "file": "scripts/canonical/basic-elements-pfc6/3create_wall.dat",
+    "source_name": "3create_wall.dat",
+    "bytes": 269,
+    "sha256": "f6051a84683d731a260d20c01f7df843bd311809015cc021dde6f94115235cf2",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "clump-rblock-pfc6",
+    "file": "scripts/canonical/clump-rblock-pfc6/11.dxf",
+    "source_name": "11.dxf",
+    "bytes": 56295,
+    "sha256": "80a5a9fec3d4710503accab53f739d58a888c8209b86cbfbca1561797f01b0bf",
+    "kind": "source"
+  },
+  {
+    "case": "clump-rblock-pfc6",
+    "file": "scripts/canonical/clump-rblock-pfc6/1ClumpTemplate.dat",
+    "source_name": "1ClumpTemplate.dat",
+    "bytes": 204,
+    "sha256": "3605da79a4fd009b445ece1fa7f077e613c9a4fdc713618507c406469440db29",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "clump-rblock-pfc6",
+    "file": "scripts/canonical/clump-rblock-pfc6/22.stl",
+    "source_name": "22.stl",
+    "bytes": 284,
+    "sha256": "5d0cac98383474aefd3b2f471a1283ea2c165a9b489f631799dc09d29ac86154",
+    "kind": "source"
+  },
+  {
+    "case": "clump-rblock-pfc6",
+    "file": "scripts/canonical/clump-rblock-pfc6/2CreateClump.dat",
+    "source_name": "2CreateClump.dat",
+    "bytes": 481,
+    "sha256": "9dc4656e3a3ab51fad9bda4ce41fc294e326fa1bd53391618bcf2876c18354ea",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "clump-rblock-pfc6",
+    "file": "scripts/canonical/clump-rblock-pfc6/3rblockTemplate.dat",
+    "source_name": "3rblockTemplate.dat",
+    "bytes": 143,
+    "sha256": "8f1457ff8a60955799e0cb0046f10ed9c2de27e4a65b921c6957df0261fe1e0a",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "clump-rblock-pfc6",
+    "file": "scripts/canonical/clump-rblock-pfc6/4createrblock.dat",
+    "source_name": "4createrblock.dat",
+    "bytes": 480,
+    "sha256": "d5c7abac9165ad79d44cec0803d6382122fe11f3121f32d6bdd1b1d3e4ea5729",
+    "kind": "source",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/001-ball-create.p2dat",
+    "source_name": "ball create.p2dat",
+    "bytes": 883,
+    "sha256": "59ab6f5810c11279fde8cc3d089e0a5eccda2e8c5351d9d4e6a9f9743662a67c",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/002-ball-generate.p2dat",
+    "source_name": "ball generate.p2dat",
+    "bytes": 734,
+    "sha256": "9ffbfc14dbadd6b194c48801b7a2bfb07825c0d22a2c7a37accdafa5cd4659b0",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/003-ball-create.p3dat",
+    "source_name": "ball create.p3dat",
+    "bytes": 1124,
+    "sha256": "846c948f16dff46d520d47fc731aaf3312ead19da611334bb78674f3ca350259",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/004-ball-generate.p3dat",
+    "source_name": "ball generate.p3dat",
+    "bytes": 717,
+    "sha256": "a6e2a24de5bf63f75344eca5db249b2e1d7c54a413edeb6c4bf023a980eca1d4",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/005-ball-create.p2dat",
+    "source_name": "ball create.p2dat",
+    "bytes": 4427,
+    "sha256": "8eb37de6321487e9a68ceb8c66fd1622cd1638c86a15d7794c1a9d249ee65a96",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/006-ball-distribute.p2dat",
+    "source_name": "ball distribute.p2dat",
+    "bytes": 798,
+    "sha256": "1e56991520095c21f80d00e67c3456ac6886ec2e58c4581e51ad63bb104e6f04",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/007-ball-generate.p2dat",
+    "source_name": "ball generate.p2dat",
+    "bytes": 854,
+    "sha256": "6d236a16ca534c5a5fd9f003a88cef99db98390be0780f1027d79444d5ecf748",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/008-ball-create.p3dat",
+    "source_name": "ball create.p3dat",
+    "bytes": 4424,
+    "sha256": "fbad8af0d529383064949fc6254ae967b662104daa45d776424782ea647f7045",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/009-ball-distribute.p3dat",
+    "source_name": "ball distribute.p3dat",
+    "bytes": 849,
+    "sha256": "41dd543752629d8f4370818764e5dbedbbace3c1a5427c482790aefb34ca2c1a",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/010-ball-generate.p3dat",
+    "source_name": "ball generate.p3dat",
+    "bytes": 803,
+    "sha256": "6cd55e361955c20345b3b233235ea177d4968cd95b3a547c8fa04260992c46a7",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/011-ball-group.p2dat",
+    "source_name": "ball group.p2dat",
+    "bytes": 629,
+    "sha256": "1029742866afa6e7b39b09a9c1758af05850f6151b7aa28931d85d59cc50bb41",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/012-range-name.p2dat",
+    "source_name": "range name.p2dat",
+    "bytes": 573,
+    "sha256": "e2e09d4953bee6117116596c02ce2cfc759c1099673a5a48b489948307a275a8",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/013-example-1.p2dat",
+    "source_name": "example-1.p2dat",
+    "bytes": 141,
+    "sha256": "06a1367c05ed3d78e79cb2bc289676f5aeb4647c00a221e3d0236c5194b08cf8",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/014-example-2.p2dat",
+    "source_name": "example-2.p2dat",
+    "bytes": 691,
+    "sha256": "062cf953ca47921562041fe737f72bbcbe4cdac8b8778dfbe320f574602ef761",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/015-example-1.p3dat",
+    "source_name": "example-1.p3dat",
+    "bytes": 164,
+    "sha256": "f004cbf1e997c919c5adf283693a5e59575031a1077154392f0eb5397efc8193",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/016-example-2.p3dat",
+    "source_name": "example-2.p3dat",
+    "bytes": 798,
+    "sha256": "9709f2e821bcff5cdaff9cad4b0a955b68b2e5e8ad4124530eb580c205fc373b",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/017-box.p2dat",
+    "source_name": "box.p2dat",
+    "bytes": 337,
+    "sha256": "c19d6fac0b88d7a522b3583fbaf970e7dfabca59854bb524077900b8879cb674",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/018-circle.p2dat",
+    "source_name": "circle.p2dat",
+    "bytes": 314,
+    "sha256": "974c404432853368b65f6d9c40f2ce5e55b91c22b6524d43f1063fca60f6e309",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/019-plane.p2dat",
+    "source_name": "plane.p2dat",
+    "bytes": 474,
+    "sha256": "64d5aac4e3f7f3769741735826c6577d12dd4e1d82d0dc1212058b48507d19a0",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/020-point.p2dat",
+    "source_name": "point.p2dat",
+    "bytes": 376,
+    "sha256": "d762771995c953297d29c834a11a434e0e81b75545dad46de6a25970391d472a",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/021-box.p2dat",
+    "source_name": "box.p2dat",
+    "bytes": 65,
+    "sha256": "0086a5afbcf0b26071bc2ed57229281696124aa3a0116ffc77c17e9b1660de92",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/022-box.p3dat",
+    "source_name": "box.p3dat",
+    "bytes": 324,
+    "sha256": "c25ef6d6af15e1a302ab434513d92084b70876443f8669cae8d09f48f94157dc",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/023-cone.p3dat",
+    "source_name": "cone.p3dat",
+    "bytes": 499,
+    "sha256": "fefaf025a7705f2a958a17f58f5b93a5a7020f69bd12a0effdd5164fc81f61d8",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/024-cylinder.p3dat",
+    "source_name": "cylinder.p3dat",
+    "bytes": 508,
+    "sha256": "0863063ede9be6189cc5c71c0218276802e4cddd621087c1ab88bd68bbe2b861",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/025-disk.p3dat",
+    "source_name": "disk.p3dat",
+    "bytes": 1689,
+    "sha256": "aa3a861a93e11090f3b45b54e102612efc9f06b24621bb15df5c7ffcef36a8d4",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/026-plane.p3dat",
+    "source_name": "plane.p3dat",
+    "bytes": 421,
+    "sha256": "5849b5a0a698e1dec88689cf0cd50fe965ff852ac6d8e577925bc558381e6c8c",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/027-point.p3dat",
+    "source_name": "point.p3dat",
+    "bytes": 380,
+    "sha256": "77f4fee4bec17adcd281c46fb67f74a7f9ba030584964ab37bdd027381c793f3",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/028-polygon.p3dat",
+    "source_name": "polygon.p3dat",
+    "bytes": 832,
+    "sha256": "6a4da5358ee6891e6fcd3a705bdb32cf71507ce63032a6572b301f94f8cf366d",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/029-sphere.p3dat",
+    "source_name": "sphere.p3dat",
+    "bytes": 344,
+    "sha256": "49534a674fc437e0d2c126c58239ae0be477bc6dcfa5bbfa79bc1fbe108097ed",
+    "kind": "reference",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/030-ball-distribute.p2dat",
+    "source_name": "ball distribute.p2dat",
+    "bytes": 1036,
+    "sha256": "60afff991e3a848a4f47e5c27416fddfd8b0a1d66f7cf819055e889f8b100c16",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/031-ball-distribute.p2dat",
+    "source_name": "ball distribute.p2dat",
+    "bytes": 815,
+    "sha256": "9d1cce4dd1af174f65e615d21c2bf722afd25c20837c67ebe3288c00250912a6",
+    "kind": "reference",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "legacy-basics-reference",
+    "file": "scripts/canonical/legacy-basics-reference/032-ball-distribute.p2dat",
+    "source_name": "ball distribute.p2dat",
+    "bytes": 815,
+    "sha256": "60d111b35f597f9a4522f8e87090302512002e34b0caeb9b606b2b2a619859fa",
+    "kind": "reference",
+    "encoding": "utf-8"
+  }
+]

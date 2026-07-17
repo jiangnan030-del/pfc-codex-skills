@@ -1,0 +1,77 @@
+new
+
+;读入数据
+def read_data
+    array arr(100) var(100,100) var1(100,100)
+    
+    max_i = 5
+    max_j = 7
+    
+    datafile_num = 1
+    ;file_name = 'data_1' + string(datafile_num) + '.dat'
+    file_name = string.build('data_1%1.dat',datafile_num)
+    ;%1占位符
+    
+    status = file.open(file_name, 0, 1)
+    status = file.read(arr,max_i)
+    status = file.close()
+    
+    ;arr(1) arr(5)
+    string_len = string.len(arr(1)) 
+    
+    ;拆分字符串
+    loop _i(1,max_i)
+        string_len = string.len(arr(_i)) 
+        str_tolower = string.tolower(arr(_i)) 
+        str_toupper = string.toupper(arr(_i)) 
+         
+        loop _j(1,max_j)
+            var(_i,_j) = string.token(arr(_i),_j)
+            var1(_i,_j) = string.char(arr(_i),_j) 
+            ir = string.token.type(arr(_i),_j)
+            
+            str_token = string.token(arr(_i),_j)
+            str_char = string.char(arr(_i),_j) 
+            str_sub = string.sub(arr(_i),_i,_j)
+            command
+                list @ir
+                pause key
+            endcommand
+        endloop
+    endloop
+end
+@read_data
+
+;输出数据
+def output_data
+    first_num = 01
+    datafile_num = 02
+    
+    ;file_name = 'data_01' + string(datafile_num) + '.dat'
+    file_name1 = string.build('data_%1%2.dat',first_num,datafile_num)
+    
+    status = file.open(file_name1, 1, 1)
+    status = file.write(arr,max_i)
+    status = file.close()
+    
+    datafile_num = 03
+    str = string(datafile_num)
+    file_name2 = string.build('data_0%2_0%1.dat',string(first_num),string(datafile_num))
+    status = file.open(file_name2, 1, 1)
+    status = file.write(var,max_i) ;var(_i,1) _i=1...5
+    status = file.close()
+    
+    loop local m (1,max_i)
+        local hed = '   '
+        local msg = '  '+string(m)
+        loop local n (1,max_j)
+            hed = hed + '               '+string(n)
+            msg = msg + '  '+string(var(m,n),8,' ',8,'E')
+        end_loop
+        if m = 1
+            io.out(hed)
+        end_if
+        io.out(msg)
+    end_loop
+end
+@output_data

@@ -1,0 +1,45 @@
+model new
+;geometry polygon create  by-positions -2 -2  ...
+;                                    3 -2 ...
+;                                   4 4 ...
+;                                    -2 2 ...
+
+
+geometry generate circle position 0 0  radius 0.5
+
+;
+;
+;geometry node create -2 -2 
+;geometry node create 3 -2 
+;geometry node create 2 2 
+;geometry node create -2 2 
+;
+;
+;geometry edge create by-node 1 2
+;geometry edge create by-node 2 3
+;geometry edge create by-node 3 4
+;geometry edge create by-node 4 1
+;
+;
+;geometry polygon create  by-edges 1 2 3 4
+
+def tuoyuan
+    gs=geom.set.find(1)
+    loop foreach gNode geom.node.list(gs)
+        x_pos=geom.node.pos.x(gNode)
+        y_pos=geom.node.pos.y(gNode)       
+        
+        y_pos_new=math.sqrt(1-x_pos^2/(0.5^2))
+        if y_pos<0 then
+            y_pos_new=y_pos_new*(-1)
+        endif        
+        geom.node.pos.y(gNode)=y_pos_new
+    endloop
+
+end
+@tuoyuan
+
+
+
+
+

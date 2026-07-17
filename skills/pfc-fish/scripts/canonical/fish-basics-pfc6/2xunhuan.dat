@@ -1,0 +1,14 @@
+model new
+
+def test
+    result=0
+    n=1
+    loop while true
+        result=result+n
+        n=n+1
+        if n>100 then
+            exit
+        endif
+    endloop
+end
+@test

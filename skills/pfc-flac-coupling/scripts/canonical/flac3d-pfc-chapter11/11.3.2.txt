@@ -1,0 +1,5 @@
+model new
+model domain extent -20.0 20.0 condition periodic
+model cmat default model linear property fric 0.25 method deformability emod 1e6 kratio 1.25 
+
+wall generate box 6 16 ;onewall

@@ -1,0 +1,37 @@
+new
+
+def sum
+    count = 0
+    sum = 0
+    _i = 0
+    section
+        loop while 1 # 0
+            _i = _i + 1
+            count = count + _i
+            if _i >=3 then
+                exit loop
+                ;exit section
+            else
+                continue
+            endif
+            count = count - 1
+        endloop
+        count = -count
+        if count < -5 then
+            count = 2 * count
+            command
+                pause key
+            endcommand
+            exit
+        endif
+    endsection
+    sum = count
+end
+list @sum
+
+;总结：
+;同一个自定义fish函数中loop结构可多重嵌套
+;同一个loop结构中可以有多个出口，即可以设置多个exit loop
+
+;同一个自定义fish函数中section结构不可嵌套
+;同一个section结构中可以有多个出口，即可以设置多个exit section

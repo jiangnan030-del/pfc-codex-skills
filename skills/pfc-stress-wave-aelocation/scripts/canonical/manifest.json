@@ -1,0 +1,44 @@
+[
+  {
+    "file": "scripts/canonical/absorbing_boundary.p2fis",
+    "bytes": 868,
+    "sha256": "fda71331cf38242ad4fd226a26228e644612a94fc92ae89a20b2834d15e46042",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/ae_locate.py",
+    "bytes": 3705,
+    "sha256": "f2f4e32138e3ae81b20adeff2812664adca4fd79f0a1143a9b2ed4a9c797a5fd",
+    "kind": "python-helper"
+  },
+  {
+    "file": "scripts/canonical/chain_1d.p2dat",
+    "bytes": 1270,
+    "sha256": "b78729e886e3b8179441a02aca7f7b8b50126d030df26a69e7bdec8caf79ec43",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/hex_2d.p2dat",
+    "bytes": 965,
+    "sha256": "4734aba5b6ea115b82eb4d8ed5ae5ed5a63fca3da86e51bdd3ebc1868bf56031",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/plot_cross_correlation_demo.py",
+    "bytes": 4755,
+    "sha256": "038fe4f2a7f89bb5f67aa0f184cec58d4c3871488ac7080eca8a42dfd585f173",
+    "kind": "python-helper"
+  },
+  {
+    "file": "scripts/canonical/plot_wavefield.py",
+    "bytes": 1298,
+    "sha256": "6a35e9ed7781a520e61da94defa026e1770c2eb1c9d0291482cc89ea79ea8bf2",
+    "kind": "python-helper"
+  },
+  {
+    "file": "scripts/canonical/ricker_source.p2fis",
+    "bytes": 861,
+    "sha256": "361214b364956e7585047ea863402352236c406402ac0ddeeac01723db4de94c",
+    "kind": "pfc-template"
+  }
+]

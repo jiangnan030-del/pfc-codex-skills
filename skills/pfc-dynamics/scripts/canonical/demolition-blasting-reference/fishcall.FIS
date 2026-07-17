@@ -1,0 +1,28 @@
+; Filename: fishcall.FIS
+;
+; PURPOSE:  Defines the FISHcall macros for both PFC2D and PFC3D.
+;
+; Itasca Consulting Group, Inc.
+; ===================================================================
+;
+;------------------ FISHCALL DEFINITIONS --------------------------
+macro FC_CYC_MOT     0
+macro FC_CYC_XMOT    1
+macro FC_CYC_FORD    2
+macro FC_CYC_XFORD   3
+macro FC_BALL_CREATE 4
+macro FC_BALL_DEL    5
+macro FC_CONT_CREATE 6
+macro FC_CONT_DEL    7
+macro FC_BOND_CREATE 8
+macro FC_BOND_DEL    9
+macro FC_PB_CREATE   10
+macro FC_PB_DEL      11
+macro FC_CYC_TOP     12
+macro FC_PIPE_ACTIVE 13
+macro FC_FCYC_TOP    14
+macro FC_BUILD_PROGRESS 15
+;
+;-- end FISHCALL DEFINITIONS --------------------------------------
+; ===================================================================
+; END OF Filename: fishcall.FIS

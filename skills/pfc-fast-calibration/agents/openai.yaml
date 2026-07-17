@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Fast Calibration"
+  short_description: "Rapid improved-LPBM micro-parameter calibration with 13-factor orthogonal design, strong/weak contacts, Weibull damage, and regression back-solving."
+  default_prompt: "Use $pfc-fast-calibration to design or implement a PFC3D improved LPBM rapid-calibration campaign with 13 micro-parameters, strong/weak contact grouping, Weibull damage, orthogonal design, macro metric extraction, regression formulas, and handoff to pfc-workflow."

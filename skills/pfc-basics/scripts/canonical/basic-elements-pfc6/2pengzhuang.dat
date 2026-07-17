@@ -1,0 +1,8 @@
+model restore "likai"
+
+contact cmat default model linear property kn 1e7
+
+ball attribute velocity 1 0 range id 1
+ball attribute velocity -1 0 range id 2
+
+model solve time 2.01

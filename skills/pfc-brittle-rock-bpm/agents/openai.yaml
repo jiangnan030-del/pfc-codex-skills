@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Brittle Rock BPM"
+  short_description: "Brittle-rock traits, BPM limits, formulas, and plots"
+  default_prompt: "Use $pfc-brittle-rock-bpm to explain brittle-rock mechanics features, standard BPM assumptions, key formulas, and how to produce strength-envelope and UCS/TS comparison plots."

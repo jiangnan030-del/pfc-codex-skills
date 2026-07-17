@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Equivalent Crystal Model"
+  short_description: "Equivalent-crystal formulas, validation, and plots"
+  default_prompt: "Use $pfc-equivalent-crystal-model to structure an equivalent crystal model workflow, retain core formulas, and specify validation and plotting outputs for brittle-rock simulations."

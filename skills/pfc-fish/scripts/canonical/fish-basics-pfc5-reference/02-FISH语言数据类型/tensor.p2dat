@@ -1,0 +1,43 @@
+new
+def setup
+   notch = tensor(2,3,4,1,6,5)
+end
+@setup
+[notch(1,2)]
+[notch(2,1)]
+
+def setup
+    jeb_ = tensor(8,8,3,7,3,5)
+    c418 = tensor(3,1,4,1,5,9)
+    array output(2,9)
+end
+@setup
+
+def tests
+    local newMat = jeb_ + c418
+    
+    output(1,1) = comp.xx(newMat)
+    output(1,2) = comp.yy(newMat)
+    output(1,3) = comp.zz(newMat)
+    output(1,4) = comp.xy(newMat)
+    output(1,5) = comp.xz(newMat)
+    output(1,6) = comp.yz(newMat)
+    
+    ; some extra room in output, so toss on some determinant tests
+    output(1,7) = matrix.det(jeb_)
+    output(1,8) = matrix.det(c418)
+    output(1,9) = matrix.det(newMat)
+    
+    ; newMat is now a matrix!
+    newMat = jeb_ * c418
+    output(2,1) = newMat(1,1)
+    output(2,2) = newMat(1,2)
+    output(2,3) = newMat(1,3)
+    output(2,4) = newMat(2,1)
+    output(2,5) = newMat(2,2)
+    output(2,6) = newMat(2,3)
+    output(2,4) = newMat(3,1)
+    output(2,5) = newMat(3,2)
+    output(2,6) = newMat(3,3)
+end
+@tests

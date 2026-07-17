@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Mineral Heterogeneity"
+  short_description: "Mineral-composition-aware heterogeneous rock modeling with image fractions, clusters, LPBM parameters, and Weibull damage."
+  default_prompt: "Use $pfc-mineral-heterogeneity to design or implement mineral-aware PFC rock specimens with image/fraction intake, mineral clusters, per-mineral contact parameters, interface rules, Weibull damage, and validation handoff to pfc-workflow."

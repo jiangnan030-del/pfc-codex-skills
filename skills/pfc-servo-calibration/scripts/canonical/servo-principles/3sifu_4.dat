@@ -1,0 +1,18 @@
+model  new
+model domain extent -10 10 
+
+wall generate box -2 2
+
+ball distribute porosity 0.16 radius 0.2 0.3 box -2 2
+
+ball attribute density 3e3 damp 0.7
+cmat default model linear property kn 1e7
+
+model solve cycle 1
+model solve 
+
+
+model save "tmp"
+
+
+

@@ -1,0 +1,32 @@
+; Mineral heterogeneity template: Weibull damage multipliers for bonded contacts.
+; Use after LPBM contact properties are assigned.
+
+[weibull_alpha = 1.0]
+[weibull_beta = 3.3]
+
+fish define weibull_random(alpha, beta)
+    local r = math.random.uniform
+    if r >= 1.0 then
+        r = 1.0 - 1.0e-12
+    endif
+    weibull_random = alpha * (-math.ln(1.0 - r))^(1.0 / beta)
+end
+
+fish define mineral_apply_weibull_damage
+    loop foreach local cp contact.list
+        if type.pointer(cp) = 'ball-ball' then
+            if contact.model(cp) = 'linearpbond' then
+                local factor_strength = weibull_random(weibull_alpha, weibull_beta)
+                local factor_stiffness = weibull_random(weibull_alpha, weibull_beta)
+                contact.prop(cp, 'pb_ten') = contact.prop(cp, 'pb_ten') * factor_strength
+                contact.prop(cp, 'pb_coh') = contact.prop(cp, 'pb_coh') * factor_strength
+                contact.prop(cp, 'pb_kn') = contact.prop(cp, 'pb_kn') * factor_stiffness
+                contact.prop(cp, 'pb_ks') = contact.prop(cp, 'pb_ks') * factor_stiffness
+            endif
+        endif
+    endloop
+end
+
+@mineral_apply_weibull_damage
+model clean
+model save 'mineral_weibull_damaged'

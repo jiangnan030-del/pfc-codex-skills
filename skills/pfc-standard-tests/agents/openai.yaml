@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Standard Tests"
+  short_description: "PFC6.0-first standard mechanical tests including UCS, biaxial, triaxial, direct shear, Brazilian, and three-point bending."
+  default_prompt: "Use $pfc-standard-tests to answer or implement PFC Standard Tests tasks with a PFC6.0-first, self-contained workflow."

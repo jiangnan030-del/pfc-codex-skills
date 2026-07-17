@@ -1,0 +1,31 @@
+model new
+
+model domain extent -10 10 
+
+
+ball create id 1 position -2 0 radius 1
+ball create id 2 position 0 0 radius 1
+ball create id 3 position 2 0 radius 1
+
+wall create vertices -3 1 3 1
+
+
+ball fix vel 
+
+
+ball attribute density 3e3
+cmat default model linear property kn 1e7
+
+[mubiao_force=50e4]
+[distance=mubiao_force/(3.0*1e7)]
+wall attribute vel-y [-distance/1e-3]
+
+
+
+model mechanical timestep fix 1e-3
+model solve cycle 1
+
+model save "sifu_3"
+
+
+

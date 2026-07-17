@@ -1,0 +1,45 @@
+; Minimal 1D particle-chain wave propagation template.
+; Verify syntax and dimensions for the target PFC version before production use.
+
+model new
+model configure dynamic
+model mechanical time-total 0.0
+
+[chain_count = 640]
+[radius = 5.0]
+[spacing = 2.0 * radius]
+[density = 2000.0]
+[emod_contact = 1.0e9]
+[kratio_contact = 1.0]
+
+model domain extent [-spacing] [chain_count * spacing + spacing] [-2.0 * radius] [2.0 * radius]
+model random 10001
+contact cmat default model linear method deform emod [emod_contact] kratio [kratio_contact]
+
+fish define build_chain
+    loop local i (1, chain_count)
+        local x = (i - 1) * spacing
+        command
+            ball create radius [radius] position ([x],0.0)
+        endcommand
+    endloop
+end
+@build_chain
+
+ball attribute density [density] damp 0.0
+model clean
+
+[source_ball = ball.near(0.0,0.0)]
+[monitor_1 = ball.near(100.0 * spacing,0.0)]
+[monitor_2 = ball.near(200.0 * spacing,0.0)]
+
+program call 'ricker_source.p2fis'
+
+fish history name 'source_vx' @ricker_value
+ball history name 'm1_vx' velocity-x id [ball.id(monitor_1)]
+ball history name 'm2_vx' velocity-x id [ball.id(monitor_2)]
+
+model mechanical timestep fix 1.0e-5
+model cycle 5000
+history export file 'chain_wave_histories.txt'
+model save 'chain_wave_done'

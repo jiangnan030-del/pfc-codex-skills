@@ -1,0 +1,32 @@
+model new
+
+def par
+    sample_rad=0.8
+    
+    rdmin=0.01
+    rdmax=0.02
+    
+    poro=0.16
+end
+@par
+
+
+model domain extent [-sample_rad*2]  [sample_rad*2]
+
+
+wall generate circle position 0 0 radius @sample_rad
+
+ball distribute radius @rdmin @rdmax porosity @poro range circle center 0 0  radius  @sample_rad
+
+ball attribute density 3e3 damp 0.7
+
+contact cmat default model linear property kn 1e7 ks 1e7 fric 0.5
+
+
+model cycle 2000 calm 20
+ball delete range circle center 0 0  radius  @sample_rad not
+model solve 
+
+
+model save "sample"
+

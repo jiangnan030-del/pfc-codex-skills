@@ -1,0 +1,20 @@
+model new
+geometry import "11.dxf" 
+
+model domain extent 180 700 -100 300 
+
+wall import from-geometry "11" 
+
+
+ball distribute radius 20 30 porosity 0.16 range geometry-space "11" inside
+
+
+ball attribute density 3e3 damp 0.7
+
+cmat default model linear property kn 1e7
+
+model cycle 2000 calm 20
+ball delete  range geometry-space "11" outside
+
+model save "template_ball"
+

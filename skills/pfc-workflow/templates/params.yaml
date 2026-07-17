@@ -1,0 +1,40 @@
+﻿# Example editable parameter pack for a generic PFC study.
+
+model:
+  dimension: 2d
+  random_seed: 10001
+  damping: 0.7
+
+specimen:
+  porosity_target: 0.36
+  density: 2650.0
+  radius_min: 5.0e-4
+  radius_max: 7.5e-4
+
+contact:
+  model: linearpbond
+  bond_gap: 1.0e-5
+  emod: 1.0e8
+  kratio: 1.5
+  fric: 0.5
+  pb_ten: 5.0e6
+  pb_coh: 5.0e6
+  pb_fa: 30.0
+
+calibration:
+  targets:
+    elastic_modulus: null
+    poisson_like_ratio: null
+    ucs: null
+    peak_strain: null
+    friction_angle: null
+    cohesion: null
+  tolerances:
+    relative_error: 0.05
+  active_parameters:
+    - emod
+    - kratio
+    - pb_ten
+    - pb_coh
+    - pb_fa
+    - fric

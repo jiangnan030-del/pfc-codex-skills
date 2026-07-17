@@ -1,0 +1,46 @@
+model new
+def par
+    sample_rad=0.8
+    sample_height=sample_rad*4.0
+    
+    rdmin=0.06
+    rdmax=0.09
+    
+    poro=0.34   
+    
+end
+@par
+
+model domain extent [-sample_rad*2] [sample_rad*2] ...
+                    [-sample_rad*2] [sample_rad*2] ...
+                    [-sample_height] [sample_height]
+
+ball distribute porosity @poro radius @rdmin @rdmax range cylinder ...
+                    end-1 0 0 [sample_height*0.5]  end-2 0 0 [-sample_height*0.5] radius @sample_rad 
+
+wall generate id 1  cylinder base 0 0 [-sample_height*0.5*1.4] axis 0 0 1 height [sample_height*1.4] radius @sample_rad cap false false ...
+            resolution 0.3
+
+
+wall generate id 2 plane position 0 0 [sample_height*0.5]  dip 0 dip-direction 0
+
+wall generate id 3 plane position 0 0 [-sample_height*0.5]  dip 0 dip-direction 0
+
+cmat default type ball-facet model linear property kn 5e7 ks 5e7 fric 0.3
+cmat default type ball-ball model linear property kn 1e7 ks 1e7 fric 0.1
+
+ball attribute density 3e3 damp 0.7
+
+model cycle 2000 calm 50
+
+ball delete range cylinder ...
+                    end-1 0 0 [sample_height*0.5]  end-2 0 0 [-sample_height*0.5] radius @sample_rad not
+
+model solve 
+
+
+model save "sample"
+
+
+
+

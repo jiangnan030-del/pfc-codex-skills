@@ -1,0 +1,24 @@
+new
+
+;记录并输出数据
+def record_and_output_data
+    array arr(1)
+    loop datafile_num(1,3)
+        file_name = 'data_2' + string(datafile_num) + '.dat'
+        loop row(1,10)
+            status = file.open(file_name, 2, 1)
+            arr_str = ' '
+            loop col(1,5)
+                arr_str = arr_str + ' ' + string(row * math.random.uniform)
+            endloop
+            arr(1) = arr_str
+            status = file.write(arr,1)
+            status = file.close()
+            
+            ;command
+            ;    pause key
+            ;endcommand
+        endloop
+    endloop
+end
+@record_and_output_data

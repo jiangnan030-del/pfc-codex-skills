@@ -1,0 +1,43 @@
+model restore 'Assembly'
+
+ball group 'Tunnel' range cylinder end-1 (16.0,-6.0,6.0) ...
+     end-2 (16.0,6.0,6.0) radius 3.0
+ball delete range group 'Tunnel'
+
+model cycle 1
+model solve ratio-average 1e-5
+
+model save 'StableTunnel'
+
+wall attribute velocity-z -0.25 range group 'footing'
+
+model mechanical timestep auto
+model solve time 10.0
+
+wall attribute velocity-z 0.0
+model solve ratio-average 1e-5
+
+
+model save 'UnlinedTunnel'
+
+model restore 'StableTunnel'
+
+contact group 'Lining' range cylinder end-1 (16.0,-6.0,6.0) ...
+        end-2 (16.0,6.0,6.0) radius 4.0
+
+contact property fric 0.18 kn 1e8 ks 1e8            ...
+        pb_kn 1e8 pb_ks 1e8 pb_ten 1e10             ...
+        pb_coh 1e10 pb_rmul 1.0 dp_nratio 0.2       ...
+        range group 'Lining'
+
+wall attribute velocity-z -0.25 range group 'footing'
+
+model save 'Lining'
+
+model mechanical timestep auto
+model solve time 10.0
+
+wall attribute velocity-z 0.0
+model solve ratio-average 1e-5
+
+model save 'LinedTunnel'

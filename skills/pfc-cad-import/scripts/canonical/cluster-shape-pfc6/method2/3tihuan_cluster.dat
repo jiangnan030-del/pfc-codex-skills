@@ -1,0 +1,43 @@
+model restore "clump_tihuan"
+
+cmat default type ball-facet model linear method deform emod 50e8 kratio 2.0 property lin_mode 1 
+cmat default type ball-ball model linear method deform emod 20e8 kratio 2.0 property fric 0.5 lin_mode 1 
+
+def tihuan
+    loop foreach cp clump.list
+        loop foreach pb clump.pebblelist(cp)
+            rd=clump.pebble.radius(pb)
+            pos=clump.pebble.pos(pb)
+            bp=ball.create(rd,pos)
+            
+            ball.group(bp)="daijiaojie"
+        endloop              
+        
+        clump.delete(cp)
+        command
+            model clean
+            contact model linearpbond range group  "daijiaojie" match 2
+            contact method deform emod 15e8 kratio 2.0 ...
+                    pb_deform emod 10e8 kratio 2.0 range group "daijiaojie" match 2
+            contact property pb_ten 10e6 pb_coh 10e6 pb_fa 50 fric 0.5 lin_mode 1 range group "daijiaojie" match 2         
+            model clean
+            contact method bond gap 0.0004 
+            contact property lin_force 0.0 0.0 
+            ball attribute force-contact multiply 0.0 moment-contact multiply 0.0 
+            
+            ball group "kuaishi" range group "daijiaojie"
+        endcommand
+        
+    endloop
+end
+@tihuan
+
+ball attribute density 3e3 damp 0.7
+
+ball delete range pos-x [-width*0.5] [width*0.5]  not
+ball delete range pos-y [-height*0.5] [height*0.5]  not
+model cycle 1
+
+model solve
+
+model save "tihuan_cluster"

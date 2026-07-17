@@ -1,0 +1,12 @@
+model new
+
+model domain extent -10 10
+
+def create_ball
+    loop m(1,5)
+        loop n(1,10)
+            ball.create(1,vector(2*n-11,2*m-5))
+        endloop
+    endloop
+end
+@create_ball

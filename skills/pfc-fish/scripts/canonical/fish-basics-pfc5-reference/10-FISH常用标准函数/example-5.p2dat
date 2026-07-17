@@ -1,0 +1,39 @@
+new
+
+title 'Balls in a box'
+
+; Set the domain extent
+domain extent -10.0 10.0
+
+; Modify the default slots of the Contact Model Assignment Table
+; Here we choose the linear contact model (with kn=1e6) for all contact types
+cmat default model linear property kn 1.0e6
+
+; Generate 30 balls in a box
+wall generate box -8.0 8.0 onewall
+set random 10001
+ball generate radius 0.5 0.75 box -8.0 8.0 number 100 tries 20000
+
+
+; Assign ball density
+ball attribute density 100.0
+
+def get_time0
+    time01 = time.clock()
+    time02 = time.cpu
+    time03 = time.real
+end
+@get_time0
+
+; Activate gravity
+set gravity 100.0
+
+; Solve for a given time and save the model
+solve time 10.0
+
+def get_time
+    time1 = time.clock() - time01
+    time2 = time.cpu - time02
+    time3 = time.real - time03
+end
+@get_time

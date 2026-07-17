@@ -1,0 +1,27 @@
+new
+
+;FISH变量的三种定义方法
+
+;1-通过fish命令定义变量a
+fish create a = 1
+
+;2-在中括号内定义变量b和c
+[m = 2]
+[b = 2 + 3]
+[c = a + b]
+
+;pause key
+;pause 5
+
+;3-在自定义函数体内定义变量d
+def sum
+    n = 1.25
+    e = a + b * c + d
+end
+
+set @d = 4
+
+;@sum ;也可用[sum]来调用函数
+[sum]
+
+list @n @a @b @c @d @e ;list后边只能用@调用变量

@@ -1,0 +1,96 @@
+model restore "re_sample"
+contact cmat default type ball-facet model linear property kn 1e7 ks 1e7 
+def ApllyGroupToBall
+    count=0    
+    loop foreach rb rblock.list
+        count+=1
+        rb_id=rblock.id(rb)
+        groupName=rblock.group(rb)
+        wall_name="nn_"+string(count)
+        command
+            rblock export to-geometry "rb" range id @rb_id
+            wall import group "rb_gro" name @wall_name from-geometry "rb"
+            model cycle 2000 calm 20
+            ball group @groupName  range geometry-space "rb" inside
+            ball group @wall_name slot "jingli"  range geometry-space "rb" inside
+            geometry delete
+            rblock delete range id @rb_id
+        endcommand
+        
+    endloop
+end
+@ApllyGroupToBall
+
+model save "temp"
+
+def isInchangshi_changshi(pos,ctPt)
+    bpYanxing1=ball.group(contact.end1(ctPt),"Default")
+    bpYanxing2=ball.group(contact.end2(ctPt),"Default")
+    
+    bpjingli1=ball.group(contact.end1(ctPt),"jingli")
+    bpjingli2=ball.group(contact.end2(ctPt),"jingli")
+    
+    if bpYanxing1=="changshi" & bpYanxing2=="changshi" then
+        if bpjingli1 == bpjingli2 then
+            isInchangshi_changshi=true
+            exit
+        endif
+    endif
+    
+    isInchangshi_changshi=false
+end
+
+def isBetweenchangshi_changshi(pos,ctPt)
+    bpYanxing1=ball.group(contact.end1(ctPt),"Default")
+    bpYanxing2=ball.group(contact.end2(ctPt),"Default")
+    
+    bpjingli1=ball.group(contact.end1(ctPt),"jingli")
+    bpjingli2=ball.group(contact.end2(ctPt),"jingli")
+    
+    if bpYanxing1=="changshi" & bpYanxing2=="changshi" then
+        if bpjingli1 # bpjingli2 then
+            isBetweenchangshi_changshi=true
+            exit
+        endif
+    endif
+    
+    isBetweenchangshi_changshi=false
+end
+
+
+wall delete walls range group "rb_gro"
+
+contact cmat default type ball-ball model linearpbond method deform emod 0.5e9 kratio 1.5 ...
+                                pb_deform emod 1e9 kratio 1.5 ...
+                                property pb_coh 10e6 pb_ten 10e6 pb_fa 50 fric 0.5 lin_mode 1 
+contact cmat add 1  model linear method deform emod 1e9 kratio 1.5 property fric 0.5 lin_mode 1  range contact type "ball-facet"
+
+contact cmat add 2 model linearpbond method deform emod 2e9 kratio 1.5 ...
+                                pb_deform emod 1e9 kratio 1.5 ...
+                                property pb_coh 10e6 pb_ten 10e6 pb_fa 50 fric 0.5 lin_mode 1 range fish @isInchangshi_changshi
+contact cmat add 3  model linearpbond method deform emod 3e9 kratio 1.5 ...
+                                pb_deform emod 1e9 kratio 1.5 ...
+                                property pb_coh 10e6 pb_ten 10e6 pb_fa 50 fric 0.5 lin_mode 1  range group "shiying" match 2
+contact cmat add 4  model linearpbond method deform emod 4e9 kratio 1.5 ...
+                                pb_deform emod 1e9 kratio 1.5 ...
+                                property pb_coh 10e6 pb_ten 10e6 pb_fa 50 fric 0.5 lin_mode 1  range group "yunmu" match 2
+contact cmat add 5  model linearpbond method deform emod 1e9 kratio 1.5 ...
+                                pb_deform emod 1e9 kratio 1.5 ...
+                                property pb_coh 10e6 pb_ten 10e6 pb_fa 50 fric 0.5 lin_mode 1  range fish @isBetweenchangshi_changshi
+
+
+cmat apply
+
+
+model clean
+
+model calm
+contact method bond gap 0.01
+contact property lin_force 0.0 0.0 
+ball attribute force-contact multiply 0.0 moment-contact multiply 0.0  
+
+model cycle 1
+
+model solve
+
+model save "jiaojie"

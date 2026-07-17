@@ -1,0 +1,25 @@
+model new
+
+[width=12]
+[height=width*0.5]
+
+model domain extent [-width*2] [width*2] [-height*2] [height*2]
+
+wall generate box [-width*0.5] [width*0.5] [-height*0.5] [height*2] 
+
+ball generate radius 0.06 0.09 number 6000 box [-width*0.5] [width*0.5] ...
+                        [-height*0.5] [height*2]
+
+ball attribute density 3e3 damp 0.7
+
+contact cmat default model linear property kn 1e7 ks 1e7 fric 0.5
+
+model gravity 9.8
+
+model solve 
+
+ball delete range position-y [height*0.5] [height]
+
+model solve 
+
+model save "diji"

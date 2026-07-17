@@ -1,0 +1,4 @@
+new
+domain extent -10 10
+
+wall generate box -5.0 5.0 onewall

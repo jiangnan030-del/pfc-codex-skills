@@ -1,0 +1,88 @@
+model new
+model restore '4'
+
+fish define compute_vessel_dimensions
+wlx = wall.pos.x(wp2) - wall.pos.x(wp4)
+wly = wall.pos.y(wp3) - wall.pos.y(wp1)
+end
+
+fish define compute_gain(fac)
+  compute_vessel_dimensions 
+  global gx = 0.0
+  loop foreach contact wall.contactmap(wp2)
+    gx = gx + contact.prop(contact,"kn")
+  endloop
+  loop foreach contact wall.contactmap(wp4)
+    gx = gx + contact.prop(contact,"kn")
+  endloop
+
+  global gy = 0.0
+  loop foreach contact wall.contactmap(wp3)
+    gy = gy + contact.prop(contact,"kn")
+  endloop
+  loop foreach contact wall.contactmap(wp1)
+    gy = gy + contact.prop(contact,"kn")
+  endloop
+  gx1=gx
+  if gx1 < 1.0e5 then
+     gx1=1.0e5
+  endif
+  gy1=gy
+  if gy1 <1.0e5 then
+     gy1=1.0e5
+  endif
+  gx = fac*2.0 * (wly * 1.0) / (gx1 * global.timestep)
+  gy = fac*2.0 * (wlx * 1.0) / (gy1 * global.timestep)
+end
+
+fish define compute_walls_stress
+  compute_vessel_dimensions
+  wsxx = 0.5*(wall.force.contact.x(wp4)-wall.force.contact.x(wp2))/wly
+  wsyy = 0.5*(wall.force.contact.y(wp1) - wall.force.contact.y(wp3))/wlx
+end
+
+fish history name 11 @wsxx
+fish history name 12 @wsyy
+
+[max_vel = 10]
+fish define servo_walls
+  compute_walls_stress
+  if do_xservo = true then
+    xvel = gx * (wsxx - txx)
+    xvel = math.sgn(xvel) * math.min(max_vel,math.abs(xvel))
+    wall.vel.x(wp4) = xvel
+    wall.vel.x(wp2) = -xvel 
+  endif  
+  if do_yservo = true then
+    yvel = gy * (wsyy - tyy)
+    yvel = math.sgn(yvel) * math.min(max_vel,math.abs(yvel))
+    wall.vel.y(wp1) = yvel
+    wall.vel.y(wp3) = -yvel     
+  endif
+end
+
+[txx = -1e7]
+[tyy = -1e7]
+[do_xservo = true]
+[do_yservo = true]
+
+fish callback add @servo_walls 9.0
+
+[stop_me = 0]
+[tol = 5.0e-2]
+[gain_safety_fac=0.5]
+fish define stop_me
+    compute_gain(gain_safety_fac)
+  if math.abs((wsyy - tyy) / tyy) > tol
+    exit
+  endif
+  if math.abs((wsxx - txx) / txx) > tol
+    exit
+  endif
+    if mech.solve("ratio-average") > 1e-5
+    exit
+  endif
+  stop_me = 1
+end
+model solve fish-halt @stop_me
+model save '5'

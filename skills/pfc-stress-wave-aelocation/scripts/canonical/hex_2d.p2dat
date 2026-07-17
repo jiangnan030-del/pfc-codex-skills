@@ -1,0 +1,31 @@
+; 2D hexagonal wavefield template scaffold.
+; Implement lattice generation according to target PFC version and desired spacing.
+
+model new
+model configure dynamic
+model mechanical time-total 0.0
+
+[domain_size = 3000.0]
+[spacing = 10.0]
+[density = 2000.0]
+[emod_contact = 1.0e9]
+[kratio_contact = 1.0]
+
+model domain extent [-domain_size/2] [domain_size/2] [-domain_size/2] [domain_size/2]
+contact cmat default model linear method deform emod [emod_contact] kratio [kratio_contact]
+
+; Build hexagonal lattice here using FISH loops:
+; x = i * spacing + 0.5 * spacing * (j % 2)
+; y = j * spacing * sqrt(3) / 2
+; ball create radius [spacing/2] position ([x],[y])
+
+ball attribute density [density] damp 0.0
+model clean
+
+; Select source and monitor balls after lattice generation.
+; [source_ball = ball.near(0.0,0.0)]
+; program call 'ricker_source.p2fis'
+
+model mechanical timestep fix 1.0e-4
+; model cycle <duration_cycles>
+; history export file 'hex_wave_histories.txt'

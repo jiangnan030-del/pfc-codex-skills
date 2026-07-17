@@ -1,0 +1,10 @@
+model new
+
+
+model domain extent -100 100
+
+geometry import "11.dxf" 
+
+ball generate radius 5 10 number 500 box -100 100
+
+ball group "inner" range geometry-space "11" outside

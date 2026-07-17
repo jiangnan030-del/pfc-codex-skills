@@ -1,0 +1,5 @@
+ New
+ set random ;;;;reset random-number generator
+ set disk on ;;;;reset random-number generator
+ macro wall_kn_ks 'kn 1.5e10 ks 1.5e10 fric 0.0' 
+ macro zero 'ini xvel 0 yvel 0 xdisp 0 ydisp 0 spin 0'

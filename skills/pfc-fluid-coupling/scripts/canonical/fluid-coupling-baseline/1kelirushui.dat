@@ -1,0 +1,49 @@
+model new
+domain extent -10 10
+
+wall generate box -8 8 
+
+ball generate radius 0.1 0.2 number 50 box -7 7 1 7
+
+cmat default model linear property kn 1e7
+def ApplyDensity
+    loop foreach bp ball.list
+        rd=math.random.uniform
+        rd_true=rd*1e3+5e2
+        ball.density(bp)=rd_true
+        ball.damp(bp)=0.7
+    endloop
+end
+@ApplyDensity
+
+def cal_fuli
+    whilestepping
+    loop foreach bp ball.list
+        dibu=ball.pos.y(bp)-ball.radius(bp)
+        dingbu=ball.pos.y(bp)+ball.radius(bp)
+        if dibu>0 then
+            ball.force.app.y(bp)=0
+        else if dingbu<0 then
+            fuli=1e3*9.8*math.pi*ball.radius(bp)^2
+            ball.force.app.y(bp)=fuli
+        else
+            x_fengzhi=0-ball.pos.y(bp)
+            
+            diyibufen_1=(-(ball.radius(bp)^2)/2.0)*math.acos(x_fengzhi/ball.radius(bp))
+            diyibufen_2=(x_fengzhi/2.0)*math.sqrt((ball.radius(bp)^2)-x_fengzhi^2)
+            
+            mianji=2*(diyibufen_1+diyibufen_2+math.pi*(ball.radius(bp)^2)/2.0)
+            
+            fuli=1e3*9.8*mianji
+            ball.force.app.y(bp)=fuli
+        endif
+    endloop
+end
+model gravity 9.8
+
+geometry generate box -8 8 -8 0
+
+model cycle 1
+
+model solve
+

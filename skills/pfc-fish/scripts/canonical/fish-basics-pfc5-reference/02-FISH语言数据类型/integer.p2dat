@@ -1,0 +1,26 @@
+new
+
+def factorial(n)
+    prc = 1
+    loop _i(1,n)
+        prc = prc * _i
+    endloop
+end
+
+@factorial(25)
+list @prc
+
+pause key
+
+@factorial(26)
+list @prc
+
+pause key
+
+@factorial(65)
+list @prc
+
+pause key
+
+@factorial(660)
+list @prc

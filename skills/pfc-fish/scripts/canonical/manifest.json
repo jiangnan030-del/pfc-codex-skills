@@ -1,0 +1,346 @@
+[
+  {
+    "case": "fish-basics-pfc6",
+    "file": "scripts/canonical/fish-basics-pfc6/1value.dat",
+    "source_name": "1value.dat",
+    "bytes": 203,
+    "sha256": "4cb4e3cbc8ae0a400670e2ccd6cd99b1acf2ac7c7b552a7bfa21322505b30f83"
+  },
+  {
+    "case": "fish-basics-pfc6",
+    "file": "scripts/canonical/fish-basics-pfc6/2xunhuan.dat",
+    "source_name": "2xunhuan.dat",
+    "bytes": 186,
+    "sha256": "be29b13a9945e77eb77fa3f71921958bcbdb9730f68591ab5aa403f4c6da9413"
+  },
+  {
+    "case": "fish-basics-pfc6",
+    "file": "scripts/canonical/fish-basics-pfc6/3fishcreate_ball.dat",
+    "source_name": "3fishcreate_ball.dat",
+    "bytes": 195,
+    "sha256": "fc721f1cf613d4cbfd6220135f7a22759f37ff2af6ceadc19ee83017e5bf661a"
+  },
+  {
+    "case": "fish-basics-pfc6",
+    "file": "scripts/canonical/fish-basics-pfc6/3huidiao.dat",
+    "source_name": "3huidiao.dat",
+    "bytes": 140,
+    "sha256": "9990653e0a726a0ace89e4cb74929e39c1e5c19b8cd8dc902081a7f12399adbb"
+  },
+  {
+    "case": "fish-basics-pfc6",
+    "file": "scripts/canonical/fish-basics-pfc6/4shepizouwei.dat",
+    "source_name": "4shepizouwei.dat",
+    "bytes": 437,
+    "sha256": "e4a056caaa8a5b22e8d3b8b8cb6672898c01f63f7559707768bdc7f63a180c56"
+  },
+  {
+    "case": "fish-basics-pfc6",
+    "file": "scripts/canonical/fish-basics-pfc6/5guitusaipao.dat",
+    "source_name": "5guitusaipao.dat",
+    "bytes": 606,
+    "sha256": "67803b6b0d8177359add6832b27296936e22e4656ffc904bdac528a09e65c32c"
+  },
+  {
+    "case": "fish-basics-pfc6",
+    "file": "scripts/canonical/fish-basics-pfc6/6jianduan.dat",
+    "source_name": "6jianduan.dat",
+    "bytes": 913,
+    "sha256": "9a6e3ffad96069de51dedb61cfafe671f085c9d0e862eab48c8c5cffd4db37ff"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/01-变量定义及赋值/example-1.p2dat",
+    "source_name": "example-1.p2dat",
+    "bytes": 410,
+    "sha256": "365bc1fcad63db560a611f2eff7be34778bb175c9401c8b491cc571b06449f1b",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/02-FISH语言数据类型/array.p2dat",
+    "source_name": "array.p2dat",
+    "bytes": 797,
+    "sha256": "a14a0eaf9a2a5786179a1b20702b4a527603227d9d218f0dd4610d19bd3509e4"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/02-FISH语言数据类型/float.p2dat",
+    "source_name": "float.p2dat",
+    "bytes": 219,
+    "sha256": "93dd6a1faf316c662eddd9dc2cd5667355350e46484516b25008ed1463ee93fe"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/02-FISH语言数据类型/integer.p2dat",
+    "source_name": "integer.p2dat",
+    "bytes": 254,
+    "sha256": "72770c91fdb7ebcd32fd2dcad065f6b3f37087184202d8ec8d09b76d7959e279"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/02-FISH语言数据类型/matrix.p2dat",
+    "source_name": "matrix.p2dat",
+    "bytes": 826,
+    "sha256": "1dd631806e45e12db133419e8bbd2c181063e878159806ed42a8e460583e74ff"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/02-FISH语言数据类型/string.p2dat",
+    "source_name": "string.p2dat",
+    "bytes": 252,
+    "sha256": "813c6c878a32e862dc0888d695e56724260a0928a40a62acfd1fb0e7dfa51ccf"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/02-FISH语言数据类型/tensor.p2dat",
+    "source_name": "tensor.p2dat",
+    "bytes": 1002,
+    "sha256": "68ece08b144b10afc27067593c73a760e9319d49154819f7612d8ec19a60a778"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/02-FISH语言数据类型/vector.p2dat",
+    "source_name": "vector.p2dat",
+    "bytes": 746,
+    "sha256": "dda49b16e373d878cf7235f1c32974c24fb2865bc18c5f3c069a3e05f05abd61"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/03-自定义函数功能及用法/example-1p2dat.p2dat",
+    "source_name": "example-1p2dat.p2dat",
+    "bytes": 552,
+    "sha256": "1b935c4a7ecf4690c9f59595b3f67457519e3ae40a692c16be8f54a92e9b0eec"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/04-分支（条件）结构/example-1.p2dat",
+    "source_name": "example-1.p2dat",
+    "bytes": 307,
+    "sha256": "4617e8dc88a299105b7bc6f087bfc7d0ce94107c07bd678f195be92cf6be1863"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/04-分支（条件）结构/example-2.p2dat",
+    "source_name": "example-2.p2dat",
+    "bytes": 353,
+    "sha256": "924722c6f70739ca03e3b713eba981276cc0b56fe4c88485ff40d4f8cff5a30f"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/05-循环跳转结构/example-1.p2dat",
+    "source_name": "example-1.p2dat",
+    "bytes": 329,
+    "sha256": "2c60cba8b9a1473a21908495d58f47377496efc0b1a2835092ec3bd881f431b0",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/05-循环跳转结构/example-2.p2dat",
+    "source_name": "example-2.p2dat",
+    "bytes": 538,
+    "sha256": "64bd98a72ff40b4ee69e74d9cd7f8b5fd56da6f3ba7b70fa6f38acd3654ac681"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/05-循环跳转结构/example-3.p2dat",
+    "source_name": "example-3.p2dat",
+    "bytes": 639,
+    "sha256": "40051af4622cfeabbcf2687923fc0896e2f939c035043e05a5c3db791cfa5c7e"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/05-循环跳转结构/example-4.p2dat",
+    "source_name": "example-4.p2dat",
+    "bytes": 420,
+    "sha256": "92a1128dc33c272a88ad34c99945336ec101a3f437ae98aa75c09acd85cb60b9"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/05-循环跳转结构/example-5.p2dat",
+    "source_name": "example-5.p2dat",
+    "bytes": 882,
+    "sha256": "570e35a42eb8b67ced5af52a6ba02efbbf24bc183f310ff7efa0a6d9ab42aec5",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/06-交互式输入输出/example.p2dat",
+    "source_name": "example.p2dat",
+    "bytes": 754,
+    "sha256": "7fb2dc3926eaced9f9827f35057c0abd0aecbb89b6aeef1760098b921c13a730"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/data_11.dat",
+    "source_name": "data_11.dat",
+    "bytes": 430,
+    "sha256": "46b122d3153e190ef45b9d5244971df25c09d0fe9471feb2cb8b41b7cc09f5c9"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/data_12.dat",
+    "source_name": "data_12.dat",
+    "bytes": 445,
+    "sha256": "9cb29c27549ad82c180efd4913db25469993ec97519dfb544d0fa1c75fe632a6"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/data_13.dat",
+    "source_name": "data_13.dat",
+    "bytes": 445,
+    "sha256": "9cb29c27549ad82c180efd4913db25469993ec97519dfb544d0fa1c75fe632a6"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/data_21.dat",
+    "source_name": "data_21.dat",
+    "bytes": 1325,
+    "sha256": "3b9cc97fb3deb52fef520056023d7a0e5f2a443342b9b3c8b7043bf9f36554d4"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/data_22.dat",
+    "source_name": "data_22.dat",
+    "bytes": 1324,
+    "sha256": "5b2be14a9c675bfb93b19280518600c8c4268e517eb4ad35690019984b699672"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/data_23.dat",
+    "source_name": "data_23.dat",
+    "bytes": 1311,
+    "sha256": "d140bcfd9421d8c5e3762e9178a12e996f42c3a4d3ede9e8a82215bb4e046eaa"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/Data_Record_and_Output-1.p2dat",
+    "source_name": "Data_Record_and_Output-1.p2dat",
+    "bytes": 580,
+    "sha256": "3b26d5a01ca70be73808b394e32e19cf5a744e908a415b8f6461702e8adc1df8",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/07-数据记录及输出/Data_Record_and_Output-2.p2dat",
+    "source_name": "Data_Record_and_Output-2.p2dat",
+    "bytes": 644,
+    "sha256": "06e46cda7b5f6d10c7d6dda21ecf13f09c17efea7b1008fa21db5d9e7fc8c086",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/08-数据导入及应用/data_012.dat",
+    "source_name": "data_012.dat",
+    "bytes": 230,
+    "sha256": "417097fa019335afbd45e4454acc95bc485c862267b3ff1d6c4afd8eacf1fc8e"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/08-数据导入及应用/data_013.dat",
+    "source_name": "data_013.dat",
+    "bytes": 45,
+    "sha256": "fc9e824f24eae496c0084568d587c922d479caceb8135c206e9b752adaa735c0"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/08-数据导入及应用/data_11.dat",
+    "source_name": "data_11.dat",
+    "bytes": 453,
+    "sha256": "23ddf2cd3c4102f4b2e5f1367deeab2a06767c9bdb31e7ddec672f1d29145759"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/08-数据导入及应用/example-1.p2dat",
+    "source_name": "example-1.p2dat",
+    "bytes": 1493,
+    "sha256": "2e5621388b6a5aa4d33ebd3edf384ffe8cb50baeb1d18ad896cec8977a6dd945",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/09-Map的功能及用法/example-1.p2dat",
+    "source_name": "example-1.p2dat",
+    "bytes": 634,
+    "sha256": "fea753a961d33ecdf0f27043ed7ef0d5f778d571f2b0d6099b7324e90f41dd4b"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/09-Map的功能及用法/example-2.p2dat",
+    "source_name": "example-2.p2dat",
+    "bytes": 194,
+    "sha256": "2229c71b5fc65235bc662ca4543e3aa4265314371fec846dd2177d32010e394b"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/09-Map的功能及用法/example-3.p2dat",
+    "source_name": "example-3.p2dat",
+    "bytes": 341,
+    "sha256": "5fff3a2eec021dbceb2a88028c9e4ef45b4308fccdb89e8d4c53f0f855c61668"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/09-Map的功能及用法/example-4.p2dat",
+    "source_name": "example-4.p2dat",
+    "bytes": 1620,
+    "sha256": "c3c26a5d1bfdf4d391c7ae14c9cd40479f64a0709793ee9459f50ffc0fa505de",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/data_03_01.dat",
+    "source_name": "data_03_01.dat",
+    "bytes": 45,
+    "sha256": "fc9e824f24eae496c0084568d587c922d479caceb8135c206e9b752adaa735c0"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/data_11.dat",
+    "source_name": "data_11.dat",
+    "bytes": 453,
+    "sha256": "23ddf2cd3c4102f4b2e5f1367deeab2a06767c9bdb31e7ddec672f1d29145759"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/data_12.dat",
+    "source_name": "data_12.dat",
+    "bytes": 230,
+    "sha256": "417097fa019335afbd45e4454acc95bc485c862267b3ff1d6c4afd8eacf1fc8e"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/example-1.p2dat",
+    "source_name": "example-1.p2dat",
+    "bytes": 826,
+    "sha256": "20cc1ec8b9695ef0576019385ec7809a4465d1ec2f8b627ad49039583035e13b"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/example-2.p2dat",
+    "source_name": "example-2.p2dat",
+    "bytes": 700,
+    "sha256": "f9597c9e8452833729a39a8fe6c0fa7dad2a5040cf5998a08f297f604dd4aac1"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/example-3.p2dat",
+    "source_name": "example-3.p2dat",
+    "bytes": 261,
+    "sha256": "b1c509b89ecce8b1f0815f4682a3e04d4d32092e831e015259de178e0967a454"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/example-4.p2dat",
+    "source_name": "example-4.p2dat",
+    "bytes": 2112,
+    "sha256": "8623f0076c33cb98bd707773d248c6036262f58864aabd2332c8b29ef64a8583",
+    "encoding": "utf-8-converted-from-gbk"
+  },
+  {
+    "case": "fish-basics-pfc5-reference",
+    "file": "scripts/canonical/fish-basics-pfc5-reference/10-FISH常用标准函数/example-5.p2dat",
+    "source_name": "example-5.p2dat",
+    "bytes": 827,
+    "sha256": "469283907f829ad269b8ac800da6698f8e238708fad8a10bd133c6d53d9ad25c"
+  }
+]

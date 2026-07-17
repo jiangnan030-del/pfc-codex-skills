@@ -1,0 +1,20 @@
+new
+
+def factorial(n)
+    prc = 1
+    loop _i(1,n)
+        prc = prc * float(_i)
+    endloop
+end
+
+@factorial(25)
+list @prc
+
+@factorial(26)
+list @prc
+
+@factorial(65)
+list @prc
+
+@factorial(66)
+list @prc

@@ -1,0 +1,20 @@
+model new
+
+[a=string(1)]
+
+[b=2]
+
+[c=vector(1,1)]
+
+[d=vector(1,1,1)]
+[d="love "]
+[e="lobby"]
+
+define AddFunc(ina,inb)
+    AddFunc=ina+inb
+end
+
+def test
+    result=AddFunc(a,d)
+end
+@test

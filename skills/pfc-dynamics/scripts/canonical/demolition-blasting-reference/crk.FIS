@@ -1,0 +1,865 @@
+; Filename: crk.FIS
+;
+; PURPOSE:  Crack-tracking package for both PFC2D and PFC3D.
+;
+; Itasca Consulting Group, Inc.
+; ===================================================================
+; PACKAGE USE:
+;
+; 1) When ready for crack tracking to begin, execute [crk_init].
+;          All subsequent bond breakages will be tracked as cracks.
+;	2) At any later point, use [crk_num*] variables to determine
+;          number of cracks, and use [crk_item] and [crk_makeview] to
+;          display the cracks.
+; 3) The package can be reset at any time by calling [crk_init]
+;          again.  In this case, any current crack information will
+;          be lost; and all subsequent bond breakages will be tracked
+;          as cracks.
+; ===================================================================
+; TRACKING CRACK FORMATION
+;
+;Cracks may only form between initially bonded particles.  Each
+;crack has a datablock associated with it.  All datablocks are stored
+;in a linked list whose header is [crk_head].  When a bond breaks, a
+;datablock is created and added to the llist.  The current mechanism
+;assumes that there is either a contact bond or a parallel bond present
+;initially, not both.
+;
+;Whenever a ball is deleted, the list of cracks is checked to insure that
+;there are no dangling pointers.  If the deleted ball was part of a crack,
+;then that crack is deleted, all memory associated with it is freed, and
+;the value of [crk_num_inlist] is decremented.
+;
+;The contents of each crack-datablock follow:
+;
+;	(0 - crk_NEXT)  - ptr. to next datablock in llist
+;	(1 - crk_MARK ) - integer field used during traversals
+;	(2 - crk_BALL1) - ptr. to parent ball-1
+;	(3 - crk_BALL2) - ptr. to parent ball-2
+;	(4 - crk_FAIL)  - integer bond failure indicator
+;			  Assumes only one type of bond initially present.
+;			  (0=not set; 1=contact  bond failed normal;
+;				      2=contact  bond failed shear;
+;				      3=parallel bond failed normal;
+;				      4=parallel bond failed shear)
+;	(5 - crk_TM)    - float time of failure (time since call crk_init())
+;	(6 - crk_CYC)   - integer cycle number at failure
+; ===================================================================
+;
+;Global variables (public):
+;	crk_head    - head of llist of crack datablocks
+;	crk_time0   - problem time when crk-package was initialized
+;	crk_num     - total # of cracks
+;	crk_num_cnf - total # contact  bond failures in normal mode
+;	crk_num_csf - total # contact  bond failures in shear mode
+;	crk_num_pnf - total # parallel bond failures in normal mode
+;	crk_num_psf - total # parallel bond failures in shear mode
+; crk_num_inlist - total # cracks in the list of cracks
+;                    (some may have been deleted in [_crk_delball])
+;	crk_radmult - crack radius multiplier
+;
+;Related Functions (public) (in/out vars. designated by {}):
+;	crk_init
+;	crk_getdata
+;       crk_chk_crkdata
+;       crk_time_bounds
+;       crk_fil_reset
+;       crk_fil_all
+;       crk_fil_cyc_interval  {crk_fil_cyc_min, crk_fil_cyc_max}
+;       crk_item  {crk_icon, crk_iconmult, crk_ctype}
+;       crk_makeview
+;	crk_destroyview
+; ===================================================================
+def _crk_def
+;
+; Declare package variables.
+;
+  Array _crk_pt1(dim)     ; arrays used by [_crk_draw...] functions
+  Array _crk_pt2(dim)
+  Array _crk_poly(dim,8)
+end
+; ===================================================================
+; PUBLIC FUNCTIONS
+; ===================================================================
+;
+def crk_init
+;
+; ----- Initialize the crack tracking mechanism.  All subsequent bond
+;       breaks will be stored as a crack formation event.
+;       This function is re-entrant --- i.e., if the package has
+;       already been initialized, all subsequent calls result in
+;       deletion of existing crack-data and reinitialization.
+;
+; OUTPUT: crk_head   - head of llist of crack datablocks
+;         crk_num... - global crack number counters
+;         crk_time0  - problem time when crk-package was initialized
+;         crk_radmult - crack radius multiplier
+;
+  if _crk_reentrant = 1 then  ; will be zero upon first entrance
+    _crk_destroyllist
+  else
+    _crk_reentrant = 1
+    command
+      set fishcall #FC_BOND_DEL _crk_formcb
+      set fishcall #FC_PB_DEL   _crk_formpb
+      set fishcall #FC_BALL_DEL _crk_delball
+    end_command
+  ;
+  ; --- Define crack datablock entry offsets
+    crk_NEXT   = 0
+    crk_MARK   = 1
+    crk_BALL1  = 2
+    crk_BALL2  = 3
+    crk_FAIL   = 4
+    crk_TM     = 5
+    crk_CYC    = 6
+    crk_NUMDB  = 7  ; # entries in datablock
+  end_if
+
+;
+; --- Initialize global crack-related variables
+  crk_head = null
+  crk_time0 = time
+  crk_radmult = 1.0  ; default value, reset after calling crk_init()
+  crk_num = 0
+  crk_num_cnf = 0
+  crk_num_csf = 0
+  crk_num_pnf = 0
+  crk_num_psf = 0
+  crk_num_inlist = 0
+end
+; ===================================================================
+def crk_getdata
+;
+; ----- Computes crack data for [crkp] datablock.
+;       Each crack is assumed to be a cylinder.  The thickness equals
+;       the gap between the two parent particles.  The radius is given
+;       by the intersection of the cylinder bisection plane with a
+;       membrane stretched tightly between the two parent particles.
+;       The centroid lies along the line between the centers of the
+;       two parent particles and bisects the gap between the two
+;       parent particles.
+;
+; INPUT:  crkp - pointer to crack datablock
+;         crk_radmult - crack radius multiplier
+; OUTPUT: _crk_fail  - integer failure type (see crk_FAIL in datablock)
+;         _crk_mark  - integer used in traversals
+;         _crk_ball1 - pointer to parent ball-1
+;         _crk_ball2 - pointer to parent ball-2
+;         _crk_x     - x-coordinate of crack centroid
+;         _crk_y     - y_coordinate of crack centroid
+;         _crk_z     - z_coordinate of crack centroid (if dim=3)
+;         _crk_gap   - aperture of crack (thickness of cylinder)
+;         _crk_rad   - crack radius (adjusted by crk_radmult)
+;         _crk_normx - x_component of crack unit-normal (ball1 to ball2)
+;         _crk_normy - y_component of crack unit-normal (ball1 to ball2)
+;         _crk_normz - z_component of crack unit-normal (ball1 to ball2)
+;                      (if dim=3)
+;         _crk_time  - time when crack formed
+;                      (elapsed time since call to (crk_init())
+;         _crk_cycle - cycle number when crack formed
+; LOCAL:  vec12x, vec12y, vec12z - vector from ball1 to ball2
+;         bR1, bR2               - radii of balls 1 and 2
+;         dist                   - distance between ball centers
+;
+  _crk_ball1 = mem(crkp+crk_BALL1)
+  _crk_ball2 = mem(crkp+crk_BALL2)
+
+  bR1 = b_rad(_crk_ball1)
+  bR2 = b_rad(_crk_ball2)
+
+  vec12x = b_x(_crk_ball2) - b_x(_crk_ball1)
+  vec12y = b_y(_crk_ball2) - b_y(_crk_ball1)
+  case_of dim
+    case 2 :
+      dist = sqrt( vec12x*vec12x + vec12y*vec12y )
+      _crk_normx = vec12x / dist
+      _crk_normy = vec12y / dist
+    case 3 :
+      vec12z = b_z(_crk_ball2) - b_z(_crk_ball1)
+      dist = sqrt( vec12x*vec12x + vec12y*vec12y + vec12z*vec12z )
+      _crk_normx = vec12x / dist
+      _crk_normy = vec12y / dist
+      _crk_normz = vec12z / dist
+  end_case
+
+  _crk_gap = dist - bR1 - bR2
+
+  mult = bR1 + (_crk_gap / 2.0)
+  _crk_x = b_x(_crk_ball1) + mult * _crk_normx
+  _crk_y = b_y(_crk_ball1) + mult * _crk_normy
+  if dim = 3 then
+    _crk_z = b_z(_crk_ball1) + mult * _crk_normz
+  end_if
+
+  _crk_rad = bR1 + (bR2 - bR1) * (mult / dist)
+  _crk_rad = crk_radmult * _crk_rad
+
+  _crk_mark = int( mem(crkp+crk_MARK) )
+  _crk_fail = int( mem(crkp+crk_FAIL) )
+  _crk_time = float( mem(crkp+crk_TM) )
+  _crk_cycle = int( mem(crkp+crk_CYC) )
+end
+; ===================================================================
+def crk_chk_crkdata
+;
+; ----- Dumps crack datablock for crack (if it exists) between two
+;       given balls.
+;
+; INPUT: crk_chk_bid1, crk_chk_bid2 - parent balls of potential crack
+;
+   _crk_bid = crk_chk_bid1
+  crk_chk_ball1 = _crk_b_add
+   _crk_bid = crk_chk_bid2
+  crk_chk_ball2 = _crk_b_add
+  if _crk_chk_crack = 0 then
+    _txtstr = ''
+    _txtstr = _txtstr + 'No crack between balls '+string(crk_chk_bid1)
+    _txtstr = _txtstr + ' and '+string(crk_chk_bid2)
+    ii = out( _txtstr )
+    exit
+  else
+    _txtstr = ''
+    _txtstr = _txtstr + 'Data for crack between balls '+string(crk_chk_bid1)
+    _txtstr = _txtstr + ' and '+string(crk_chk_bid2)+' follows. . .'
+    ii = out( _txtstr )
+  end_if
+
+  crkp = _crk_chk_crkp
+  crk_getdata
+  ii = out('_crk_x = '+string(_crk_x))
+  ii = out('_crk_y = '+string(_crk_y))
+  ii = out('_crk_z = '+string(_crk_z))
+  ii = out('_crk_mark = '+string(_crk_mark))
+  ii = out('_crk_fail = '+string(_crk_fail))
+  ii = out('_crk_gap = '+string(_crk_gap))
+  ii = out('_crk_rad = '+string(_crk_rad))
+  ii = out('_crk_normx = '+string(_crk_normx))
+  ii = out('_crk_normy = '+string(_crk_normy))
+  ii = out('_crk_normz = '+string(_crk_normz))
+  ii = out('_crk_time = '+string(_crk_time))
+  ii = out('_crk_cycle = '+string(_crk_cycle))
+end
+; ===================================================================
+def crk_time_bounds
+;
+; ----- Determine min./max times stored in all cracks with mark-field
+;       set to 1.
+;
+; INPUT:  crk_head
+; OUTPUT: crk_mintime, crk_maxtime
+;
+  crk_mintime = 1e20
+  crk_maxtime = 0.0
+  crkp = crk_head
+  loop while crkp # null
+    crk_getdata
+    if _crk_mark = 1 then
+      if _crk_time > crk_maxtime then
+        crk_maxtime = _crk_time
+      end_if
+      if _crk_time < crk_mintime then
+        crk_mintime = _crk_time
+      end_if
+    end_if
+    crkp = mem(crkp+crk_NEXT)
+  end_loop
+end
+; ===================================================================
+def crk_item
+  plot_item
+;
+; ----- Generates a plotitem for visualizing the set of cracks in
+;       the model.  The input parameters to this function control
+;       the visualization mapping.  Only cracks with their mark-
+;       fields set to 1 are plotted.  Mark-fields are set via
+;       filter functions: [crk_fil_xxx].
+;       The plotitem is activated by typing: PLOT ADD CRK_ITEM
+;
+; Visualization Mapping
+;
+;	Two types of crack icons are supported for both 2D and 3D.
+; For 2D:
+;	If [crk_icon=0], each crack is drawn as a straight line of
+;       length [_crk_len] centered at the crack location and
+;       perpendicular to [_crk_norm].  If [crk_icon=1], then each
+;       crack is drawn as a solid circle of diameter [_crk_len] and
+;       centered at the crack location.
+; For 3D:
+;       If [crk_icon=0], each crack is drawn as a 8-sided polygon
+;       inscribed in circle of radius [_crk_rad] and centered at
+;       crack centroid and perpendicular to [_crk_norm].
+;       If [crk_icon=1], each crack is drawn as a sphere centered
+;       at crack centroid.
+;
+;       The color of each icon indicates either bond failure type or
+;       time of failure.  If [crk_ctype=0] then color index of each
+;       icon is set in the range [1,4] such that:
+;       1-contact  bond normal failure; 2-contact  bond shear failure;
+;       3-parallel bond normal failure; 4-parallel bond shear failure.
+;       If [crk_ctype=1] then color index of each icon is set in the
+;       range [1,16] (green to red) to indicate the time of crack
+;       formation (early is green, late is red).
+;
+; INPUT:  crk_head   - head of llist of crack datablocks
+;         crk_icon   - display icon
+;                        (if =0, lines; if =1, filled circles)
+;         crk_iconmult - multiplier for size of icons
+;                        (if =0.0, defaults to 1.0)
+;         crk_ctype  - color mapping for icon
+;                        (if =0, failure type; if =1, failure time)
+;
+  if crk_iconmult = 0.0 then
+    crk_iconmult = 1.0
+  end_if
+
+  if crk_ctype = 1 then
+    _plt_numcon = 16
+    crk_time_bounds
+    _plt_incr = (crk_maxtime - crk_mintime) / _plt_numcon
+  end_if
+
+  stat=set_line_width(1)  ; for 2D, and [crk_icon]=0
+
+  crkp = crk_head
+  loop while crkp # null
+    crk_getdata
+    if _crk_mark = 1 then
+
+      case_of crk_ctype
+        case 0  ; color based on failure type
+          _cindex = _crk_fail - 1
+        case 1  ; color based on time of failure
+          if _plt_incr = 0.0 then
+            _cindex = 0
+          else
+            _cindex = int( (_crk_time - crk_mintime) / _plt_incr )
+          end_if
+      end_case
+      stat = set_color( _cindex )
+
+      case_of crk_icon
+        case 0  ; lines (2D) / near-circular polygons (3D)
+          case_of dim
+            case 2
+              stat = _crk_draw2d_line
+            case 3
+              stat = _crk_draw3d_polygon
+          end_case
+        case 1  ; filled circles (2D) / filled spheres (3D)
+          case_of dim
+            case 2
+              stat = _crk_draw2d_circle
+            case 3
+              stat = _crk_draw3d_sphere
+          end_case
+      end_case
+    end_if  ; mark-field set to 1
+
+    if stat = -1 then  ; terminate plot
+      exit
+    end_if
+
+    crkp = mem(crkp+crk_NEXT)
+  end_loop
+end
+; ===================================================================
+def crk_fil_reset
+;
+; ----- Crack-display filter.  Sets mark field to 0 for all cracks.
+;
+  crkp = crk_head
+  loop while crkp # null
+    mem(crkp+crk_MARK) = int(0)
+    crkp = mem(crkp+crk_NEXT)
+  end_loop
+end
+; ===================================================================
+def crk_fil_all
+;
+; ----- Crack-display filter.  Sets mark field to 1 for all cracks.
+;
+  crkp = crk_head
+  loop while crkp # null
+    mem(crkp+crk_MARK) = int(1)
+    crkp = mem(crkp+crk_NEXT)
+  end_loop
+end
+; ===================================================================
+def crk_fil_cyc_interval
+;
+; ----- Crack-display filter.  Sets mark field to 1 for all cracks
+;       that were formed (inclusively) btn. cycles [crk_fil_cyc_min]
+;       and [crk_fil_cyc_max].
+;
+; INPUT: crk_fil_cyc_min, crk_fil_cyc_max
+;
+  crkp = crk_head
+  loop while crkp # null
+    crk_getdata
+
+    _hit = 0
+    if _crk_cycle >= crk_fil_cyc_min then
+      if _crk_cycle <= crk_fil_cyc_max then
+        _hit = 1
+      end_if
+    end_if
+
+    if _hit = 1 then
+      mem(crkp+crk_MARK) = int(1)
+    end_if
+    crkp = mem(crkp+crk_NEXT)
+  end_loop
+end
+; ===================================================================
+def crk_makeview
+;
+; ----- Creates a plot-view called "view_of_cracks" that contains the
+;       [crk_item] plotitem with text and colors set to current values
+;       of the crack plotting parameters {[crk_icon], [crk_iconmult],
+;       [crk_ctype].  If the settings are changed, [crk_makeview] should
+;       be called again: it will update itself.
+;
+; NOTE: Do not destroy this view manually, rather use [crk_destroyview].
+;
+; INPUT: crk_ctype, crk_icon, crk_iconmult (see [crk_item] for descrip.)
+;
+  if crk_iconmult = 0.0 then
+    crk_iconmult = 1.0
+  end_if
+
+  if _crk_viewexists = 1 then
+    crk_destroyview
+  end_if
+
+  _txtstr = 'micro-cracks (' + string(_crk_num_mark) + ')'
+  command
+    plot create view_of_cracks
+    plot add fish crk_item
+    plot mod 1 alias @_txtstr
+    plot cur view_of_cracks
+  end_command
+  _crk_viewexists = 1
+
+  case_of crk_ctype
+    case 0
+      command
+        macro '_plt_spectrum' 'yellow black yellow black'
+      end_command
+      case_of crk_icon
+        case 0
+          case_of dim
+            case 2
+              _txtstr = 'Cracks (lines): '
+            case 3
+              _txtstr = 'Cracks (polygons): '
+          end_case
+        case 1
+          case_of dim
+            case 2
+              _txtstr = 'Cracks (circles): '
+            case 3
+              _txtstr = 'Cracks (spheres): '
+          end_case
+      end_case
+      _txtstr = _txtstr + '[yellow/black]=normal/shear fail '
+    case 1
+       _plt_numcon = 16
+      _plt_init  ; {_plt_spectrum}
+      _txtstr = 'Micro-cracks: '
+      _txtstr = _txtstr + '16 grays [light/dark]=early/late] '
+  end_case
+  _txtstr = _txtstr + '(mag='+string(crk_iconmult)+')'
+
+  command
+    plot mod 1 #_plt_spectrum
+    plot set title text @_txtstr
+  end_command
+end
+; ===================================================================
+def crk_destroyview
+;
+; ----- Destroys the plot-view created by [crk_makeview].
+;
+  if _crk_viewexists = 1 then
+    command
+      plot cur 0
+      plot destroy view_of_cracks
+    end_command
+  end_if
+  _crk_viewexists = 0
+end
+;
+; ===================================================================
+; PRIVATE FUNCTIONS
+; ===================================================================
+;
+def _crk_newblock
+;
+; ----- Creates and initializes a new crack datablock and adds it
+;       to end of llist.
+;
+; OUTPUT: crkp - pointer to the new block
+; EFFECT: crk_head
+;
+  crkp = get_mem(crk_NUMDB)
+
+; --- Initialize datablock entries
+  mem(crkp+crk_NEXT)  = null
+  mem(crkp+crk_MARK)  = int(1)
+  mem(crkp+crk_BALL1) = null
+  mem(crkp+crk_BALL2) = null
+  mem(crkp+crk_FAIL)  = int(0)
+  mem(crkp+crk_TM)    = float(0.0)
+  mem(crkp+crk_CYC)   = int(0)
+
+  mem(crkp+crk_NEXT) = crk_head
+  crk_head = crkp
+end
+; ===================================================================
+def _crk_destroyllist
+;
+; ----- Destroy entire llist of crack datablocks and free the memory.
+;
+; INPUT: crk_head
+;
+ii=out('[_crk_destroyllist]: Destroying all crack datablocks.')
+  crkp = crk_head
+  loop while crkp # null
+    crkpnxt = mem(crkp+crk_NEXT)
+    kk = lose_mem(crk_NUMDB,crkp)
+    crkp = crkpnxt
+  end_loop
+end
+; ===================================================================
+def _crk_formcb
+;
+; ----- Form crack as result of contact bond breakage.
+;       Create crack datablock.
+;       (Register via "set fishcall #FC_BOND_DEL _crk_formcb".)
+;
+  cp = fc_arg(0)
+  failmode = fc_arg(1)
+
+  _crk_newblock
+  mem(crkp+crk_BALL1) = c_ball1(cp)
+  mem(crkp+crk_BALL2) = c_ball2(cp)
+
+  crk_num = crk_num + 1
+  if failmode = 0 then  ; normal failure
+    mem(crkp+crk_FAIL) = 1
+    crk_num_cnf = crk_num_cnf + 1
+  end_if
+  if failmode = 1 then  ; shear failure
+    mem(crkp+crk_FAIL) = 2
+    crk_num_csf = crk_num_csf + 1
+  end_if
+  crk_num_inlist = crk_num_inlist + 1
+
+  mem(crkp+crk_TM) = float( time - crk_time0 )
+  mem(crkp+crk_CYC) = int( step )
+end
+; ===================================================================
+def _crk_formpb
+;
+; ----- Form crack as result of parallel bond breakage.
+;       Create crack datablock.
+;       (Register via "set fishcall #FC_PB_DEL _crk_formpb".)
+;
+  cp = fc_arg(0)
+  failmode = fc_arg(1)
+
+  _crk_newblock
+  mem(crkp+crk_BALL1) = c_ball1(cp)
+  mem(crkp+crk_BALL2) = c_ball2(cp)
+
+  crk_num = crk_num + 1
+  if failmode = 0 then  ; normal failure
+    mem(crkp+crk_FAIL) = 3
+    crk_num_pnf = crk_num_pnf + 1
+  end_if
+  if failmode = 1 then  ; shear failure
+    mem(crkp+crk_FAIL) = 4
+    crk_num_psf = crk_num_psf + 1
+  end_if
+  crk_num_inlist = crk_num_inlist + 1
+
+  mem(crkp+crk_TM) = float( time - crk_time0 )
+  mem(crkp+crk_CYC) = int( step )
+end
+;=================================================================
+def _crk_delball
+;
+; ----- A ball has been deleted.  If it is the parent of any cracks, then
+;         delete such cracks and free memory associated with them.
+;
+; EFFECTS: delete some crack datablocks,
+;          decrement [crk_num_inlist]
+;
+  bp_del = fc_arg(0)
+  ;
+  crkp = crk_head
+  loop while crkp # null
+    crkpnxt = mem(crkp+crk_NEXT)
+    crk_getdata
+    ;
+    _crk_delete = 0
+    if _crk_ball1 = bp_del then
+      _crk_delete = 1
+    else
+      if _crk_ball2 = bp_del then
+        _crk_delete = 1
+      end_if
+    end_if
+    ;
+    if _crk_delete = 1 then
+       _txtstr1 = '*** [_crk_delball]: Deleting crack datablock.'
+       _txtstr2 = '                    parent ball (id='+string(b_id(bp_del))
+       _txtstr2 = _txtstr2 + ') has been deleted.'
+      ii=out( _txtstr1 )
+      ii=out( _txtstr2 )
+      ;
+      crk_num_inlist = crk_num_inlist - 1
+      ;
+      if crkp = crk_head then
+        crk_head = mem(crkp+crk_NEXT)
+      else
+        mem(crkprev+crk_NEXT) = mem(crkp+crk_NEXT)
+      end_if
+      kk = lose_mem(crk_NUMDB,crkp)
+    else
+      crkprev = crkp
+    end_if
+    ;
+    crkp = crkpnxt
+  end_loop
+  crkprev = null  ; clean up dangling addresses
+end
+;=================================================================
+def _crk_num_mark
+;
+; ----- Returns number of cracks with their mark-fields set to 1.
+;
+  _crk_num_mark_ = 0
+  crkp = crk_head
+  loop while crkp # null
+    crk_getdata
+    if _crk_mark = 1 then
+      _crk_num_mark_ = _crk_num_mark_ + 1
+    end_if
+    crkp = mem(crkp+crk_NEXT)
+  end_loop
+  _crk_num_mark = _crk_num_mark_
+end
+;=================================================================
+def _crk_b_add
+;
+; ----- Returns pointer to given ball.  If ball does not exist,
+;       returns null-pointer.
+;
+; INPUT: _crk_bid - id number of ball
+;
+  _crk_b_add = null
+  bp = ball_head
+  loop while bp # null
+    if b_id(bp) = _crk_bid then
+      _crk_b_add = bp
+      exit
+    endif
+    bp = b_next(bp)
+  end_loop
+end
+;=================================================================
+def _crk_chk_crack
+;
+; ----- Returns (1) if a crack exists between the two given balls;
+;       else returns (0).  Also, returns crack-pointer if crack exists.
+;
+; INPUT: crk_chk_ball1, crk_chk_ball2 - ptrs. to balls to check
+;
+; OUTPUT: _crk_chk_crkp - crack-pointer
+;
+  exist = 0
+ section
+  crkp = crk_head
+  loop while crkp # null
+    crk_getdata
+    if _crk_ball1 = crk_chk_ball1 then
+      if _crk_ball2 = crk_chk_ball2 then
+        exist = 1
+        exit section
+      end_if
+    end_if
+
+    if _crk_ball2 = crk_chk_ball1 then
+      if _crk_ball1 = crk_chk_ball2 then
+        exist = 1
+        exit section
+      end_if
+    end_if
+
+    crkp = mem(crkp+crk_NEXT)
+  end_loop
+ end_section
+
+  _crk_chk_crkp = crkp
+  _crk_chk_crack = exist
+end
+; ===================================================================
+def _plt_init
+;
+; ----- Initialize the spectrum of colors for given number of contour
+;       intervals [_plt_numcon].  Current spectrum is for GREEN-RED.
+;
+; INPUT: _plt_numcon - number of contour intervals
+;
+; OUTPUT: _plt_spectrum - macro of [_plt_numcon] colors to be
+;                         used as: "plot add ball _plt_spectrum"
+;
+  num_col = _plt_numcon - 1
+  all_col = ' '
+  loop nn (0,num_col)
+    mcol = 'c'+ string(nn)
+    rat  = 0.95*(1.0 - float(nn) / float(num_col))
+    ggg = 'gray '+string(rat)
+    command
+      macro @mcol @ggg
+    end_command
+    all_col = all_col + mcol + ' '
+  end_loop
+  command
+    macro '_plt_spectrum' @all_col
+  end_command
+end
+;=================================================================
+def _crk_draw2d_line
+;
+; ----- Draws 2D crack as a straight line of length [_crk_len]
+;       centered at the crack location and perpendicular to
+;       Returns status of draw command.
+;
+; INPUT: crk_getdata - has been called for this crack
+;        crk_iconmult
+;
+  _crk_pt1(1) = _crk_x - crk_iconmult*_crk_rad * _crk_normy
+  _crk_pt1(2) = _crk_y + crk_iconmult*_crk_rad * _crk_normx
+  _crk_pt2(1) = _crk_x + crk_iconmult*_crk_rad * _crk_normy
+  _crk_pt2(2) = _crk_y - crk_iconmult*_crk_rad * _crk_normx
+  _crk_draw2d_line = draw_line( _crk_pt1, _crk_pt2 )
+end
+; ===================================================================
+def _crk_draw2d_circle
+;
+; ----- Draws 2D crack as a solid circle of diameter [_crk_len]
+;	and centered at the crack location.
+;       Returns status of draw command.
+;
+; INPUT: crk_getdata - has been called for this crack
+;        crk_iconmult
+;
+  _crk_pt1(1) = _crk_x
+  _crk_pt1(2) = _crk_y
+  _rad = crk_iconmult * _crk_rad
+  _crk_draw2d_circle = fill_circle( _crk_pt1, _rad )
+end
+;=================================================================
+def _crk_draw3d_polygon
+;
+; ----- Draws 3D crack as a 8-sided polygon inscribed in circle
+;       of radius [_crk_rad] and centered at crack centroid and
+;       perpendicular to [_crk_norm].
+;       Returns status of draw command.
+;
+; INPUT: crk_getdata - has been called for this crack
+;        crk_iconmult
+;
+  _zerotol = 1e-6
+
+  _nx = _crk_normx
+  _ny = _crk_normy
+  _nz = _crk_normz
+  n_parallel = 0
+  if abs(_nx - _ny) < _zerotol then
+    if abs(_nx - _nz) < _zerotol then  ; n = alpha*(1,1,1)
+      n_parallel = 1
+      _tx =  1.0
+      _ty = -1.0
+      _tz =  0.0
+    end_if
+  end_if
+  if n_parallel = 0 then
+    _tx = _ny - _nz
+    _ty = _nz - _nx
+    _tz = _nx - _ny
+  end_if
+  dist = sqrt(_tx*_tx + _ty*_ty + _tz*_tz)
+  _tx = _tx / dist
+  _ty = _ty / dist
+  _tz = _tz / dist
+
+  _sx = _ny * _tz - _nz * _ty
+  _sy = _nz * _tx - _nx * _tz
+  _sz = _nx * _ty - _ny * _tx
+
+  _vx = _tx + _sx
+  _vy = _ty + _sy
+  _vz = _tz + _sz
+  dist = sqrt(_vx*_vx + _vy*_vy + _vz*_vz)
+  _vx = _vx / dist
+  _vy = _vy / dist
+  _vz = _vz / dist
+
+  _wx = _tx - _sx
+  _wy = _ty - _sy
+  _wz = _tz - _sz
+  dist = sqrt(_wx*_wx + _wy*_wy + _wz*_wz)
+  _wx = _wx / dist
+  _wy = _wy / dist
+  _wz = _wz / dist
+
+  _rad = crk_iconmult * _crk_rad
+  _crk_poly(1,1) = _crk_x + _rad * _tx
+  _crk_poly(2,1) = _crk_y + _rad * _ty
+  _crk_poly(3,1) = _crk_z + _rad * _tz
+  _crk_poly(1,2) = _crk_x + _rad * _vx
+  _crk_poly(2,2) = _crk_y + _rad * _vy
+  _crk_poly(3,2) = _crk_z + _rad * _vz
+  _crk_poly(1,3) = _crk_x + _rad * _sx
+  _crk_poly(2,3) = _crk_y + _rad * _sy
+  _crk_poly(3,3) = _crk_z + _rad * _sz
+  _crk_poly(1,4) = _crk_x - _rad * _wx
+  _crk_poly(2,4) = _crk_y - _rad * _wy
+  _crk_poly(3,4) = _crk_z - _rad * _wz
+  _crk_poly(1,5) = _crk_x - _rad * _tx
+  _crk_poly(2,5) = _crk_y - _rad * _ty
+  _crk_poly(3,5) = _crk_z - _rad * _tz
+  _crk_poly(1,6) = _crk_x - _rad * _vx
+  _crk_poly(2,6) = _crk_y - _rad * _vy
+  _crk_poly(3,6) = _crk_z - _rad * _vz
+  _crk_poly(1,7) = _crk_x - _rad * _sx
+  _crk_poly(2,7) = _crk_y - _rad * _sy
+  _crk_poly(3,7) = _crk_z - _rad * _sz
+  _crk_poly(1,8) = _crk_x + _rad * _wx
+  _crk_poly(2,8) = _crk_y + _rad * _wy
+  _crk_poly(3,8) = _crk_z + _rad * _wz
+
+  _crk_draw3d_polygon = fill_poly( _crk_poly, 8 )
+end
+;=================================================================
+def _crk_draw3d_sphere
+;
+; ----- Draws 3D crack as a sphere centered at crack centroid.
+;       Returns status of draw command.
+;
+; INPUT: crk_getdata - has been called for this crack
+;        crk_iconmult
+;
+  _crk_pt1(1) = _crk_x
+  _crk_pt1(2) = _crk_y
+  _crk_pt1(3) = _crk_z
+  _rad = crk_iconmult * _crk_rad
+  _crk_draw3d_sphere = fill_circle( _crk_pt1, _rad )
+end
+;=================================================================
+return
+; END OF Filename:  crk.FIS

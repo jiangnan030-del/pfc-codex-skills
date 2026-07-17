@@ -1,0 +1,49 @@
+model restore "weiya"
+
+def addVel
+    
+    if global.step-time_record >sevro_freq then
+        Get_zonggang
+        time_record=global.step
+        vel_r=(trr-wsrr)*gr
+    
+        if trr>wsrr then
+            loop foreach vt wall.vertexlist(wp_rr)
+                pos_normal=math.unit(wall.vertex.pos(vt))
+                wall.vertex.vel(vt)=(-1)*pos_normal*math.abs(vel_r)
+            endloop
+        else
+            loop foreach vt wall.vertexlist(wp_rr)
+                pos_normal=math.unit(wall.vertex.pos(vt))
+                wall.vertex.vel(vt)=pos_normal*math.abs(vel_r)
+            endloop
+        endif        
+    endif
+    
+    
+end
+
+[strainrate=1e-1]
+
+[final_strain=2e-2]
+wall attribute vel-z [strainrate*wlz] range id 3
+wall attribute vel-z [-strainrate*wlz] range id 2
+
+[Iz0=wlz]
+def jiance
+    whilestepping
+    wlz=wall.pos.z(wp_up)-wall.pos.z(wp_down)
+    wezz=(wlz-Iz0)/Iz0
+    wszz=(wall.force.contact.z(wp_up)-wall.force.contact.z(wp_down))*0.5/(math.pi*wlr*wlr)
+end
+
+program call "fracture.p3fis"
+@track_init
+
+history delete
+history id 1 @wszz
+history id 2 @wezz
+
+model solve time [final_strain/strainrate]
+
+model save "result"

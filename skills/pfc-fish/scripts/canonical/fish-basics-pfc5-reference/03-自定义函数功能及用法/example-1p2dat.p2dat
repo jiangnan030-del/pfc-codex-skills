@@ -1,0 +1,38 @@
+new
+
+def fred
+    fred = 3.0
+    cnt = cnt + 1
+end
+def george
+    argument one
+    argument two
+    george = one * two
+end
+
+def fun_1
+    fun_1 = 1.0
+    io.out('fun_1')
+    io.out(string(5.5000))
+end
+
+def fun_2(arg1)
+    fun_2 = 2.0
+    ii = io.out('fun_2')
+    ii = io.out(string(arg1))
+end
+
+def fun_3(arg1,arg2)
+    fun_3 = 3.0
+    ii = io.out('fun_3')
+    ii = io.out(string(arg1))
+    ii = io.out(string(arg2))
+end
+
+def execute
+    fun_1 fun_2(1.0) fun_3(1.0,2.0)
+end
+
+list @george(@fred,2.0) @fred
+
+@execute

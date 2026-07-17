@@ -1,0 +1,15 @@
+new
+
+def test2
+    testmap = map('first',1,'second',2,'third',3)
+    map.remove(testmap,'first')
+    map.add(testmap,'fourth',4)
+    testmap('second') = 8
+    ; values are now fourth->4, second->8, third->3
+    local output = 0
+    loop foreach n testmap
+        output = output + n
+    endloop
+    test2 = output
+end
+[test2]

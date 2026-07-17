@@ -1,0 +1,10 @@
+model new
+
+geometry import "22.stl" 
+
+
+rblock template create from-geometry 
+            
+            
+model save "rblock_template"
+

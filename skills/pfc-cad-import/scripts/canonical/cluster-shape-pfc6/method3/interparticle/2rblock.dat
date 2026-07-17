@@ -1,0 +1,29 @@
+model restore "sample"
+
+rblock construct from-balls
+
+def GetGroupName
+    rd=math.random.uniform
+    if rd <0.2 then
+        GetGroupName="changshi"
+        exit
+    endif
+    if rd <0.6 then
+        GetGroupName="shiying"
+        exit
+    endif
+    GetGroupName="yunmu"
+    exit
+end
+
+def applyGroup
+    loop foreach rb rblock.list
+        gpName=GetGroupName()
+        rblock.group(rb)=gpName
+    endloop
+end
+@applyGroup
+
+ball delete
+wall delete
+model save "rb_geo"

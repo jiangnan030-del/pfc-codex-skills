@@ -1,0 +1,311 @@
+; Filename: flt.FIS
+;
+; PURPOSE:  These functions used when attempting to eliminate
+;           "floaters" (particles with less than [flt_def] contacts)
+;           from the initial packed assembly.
+;
+; Itasca Consulting Group, Inc.
+; ===================================================================
+;
+; ===================================================================
+; PUBLIC FUNCTIONS
+; ===================================================================
+;
+def flt_eliminate
+;
+; ----- Entry-level call to invoke floater-reduction algorithm.
+;
+; INPUT: flt_def    - balls with < [flt_def] contacts are "floaters"
+;        flt_remain - proportion of total balls that can be floaters
+;
+  _debug = 1  ; always dump run-tracking info. to screen
+  pc_zap_floaters
+  ;
+  command
+    prop color 0  ; reset all ball color indices to 0
+  end_command
+end
+
+; ===================================================================
+def pc_zap_floaters
+;
+; ----- Eliminate the floaters in the assembly.
+;
+;    CAUTION:  Friction will be set to zero! ... re-specify at end
+;              Ball color indices will be changed!
+;              All balls will be freed
+;              Set bonds immediately after exit.
+;
+; Can monitor via internal variables:
+;    _pc_n_float  ; Number of floaters
+;    _pc_n_active ; Number of floaters being adjusted
+;    _pc_max_act_force    ; Max floater force
+;    _pc_av_contact_force ; Average contact force
+;
+; INPUT: flt_remain - proportion of total balls that can be floaters
+;        flt_def    - balls with < [flt_def] contacts are "floaters"
+;
+;--- parameters ---
+  _pc_r_mult = 1.3  ; Initial radius multiplier
+  _pc_f_tol  = 0.1  ; Fraction of mean contact force to aim for
+  _pc_ncut   = flt_def  ; Number contacts to qualify as a floater
+  _pc_relax  = 1.5  ; ... account for Kn in series
+  _pc_hyst   = 0.9  ; Hysteresis factor on force reduction
+;------------------
+  _pc_remain = int(flt_remain * md_numballs)
+;
+  command
+    history reset             ; remove _tm_isostr from history list,
+                              ;   it should not be being sampled now
+    hist _pc_n_float          ; Number of floaters (internal to this alg.)
+    hist _pc_n_active         ; Number of floaters being adjusted
+    hist _pc_max_act_force    ; Max floater force
+    hist _pc_av_contact_force ; Average contact force
+  end_command
+  _pc_old_count = 0
+  loop _pc_outer (1,10)
+    if flt_num <= _pc_remain then
+      _pc_rif
+      exit
+    endif
+    _pc_flag_floaters  ; flag and expand floaters
+    if _pc_outer > 1 then  ; skip this check on first pass
+      if _pc_n_float >= _pc_old_count ; (got itself into a corner)
+        _pc_ncut = max(2,_pc_ncut-1)
+        flt_def = _pc_ncut
+      end_if
+    end_if
+    command
+      cyc 200 ; get clusters to equilibrium
+    endCommand
+    section
+      loop _pc_n (1,100)
+        _pc_shrink
+        if _debug = 1 then
+          _s_flt = string(_pc_n_float)
+          _s_alt = string(_pc_n_active)
+          oo = out(' floaters: '+_s_flt+' active: '+_s_alt)
+        end_if
+        if _pc_n_active = 0
+          _pc_old_count = _pc_n_float
+          exit section
+        endif
+        command
+          cycle 100
+        endCommand
+      endLoop
+    endSection
+    _pc_rif
+  endLoop
+  _pc_rif
+end
+; ===================================================================
+def flt_num
+;
+; ----- Returns number of floaters (balls with < [flt_def] contacts)
+;       in model.
+;
+; INPUT:  flt_def - balls with < [flt_def] contacts are "floaters"
+; OUTPUT: flt_num - number of floaters
+;
+  flt_num_ = 0
+  bp = ball_head
+  loop while bp # null
+    if md_numcon_bp < flt_def then
+      flt_num_ = flt_num_ + 1
+    endif
+    bp = b_next(bp)
+  end_loop
+  flt_num = flt_num_
+end
+; ===================================================================
+def flt_item
+  plot_item
+;
+; ----- Generates a plotitem for visualizing the floaters.
+;
+; Visualization Mapping:
+;    Floaters are outlined by filled circles that use color(0).
+;
+  Array _flt_pt1(dim)
+
+  stat = set_line_width(0)
+  stat = set_color( 0 )
+
+  bp = ball_head
+  loop while bp # null
+    if md_numcon_bp < flt_def then
+      _flt_pt1(1) = b_x(bp)
+      _flt_pt1(2) = b_y(bp)
+      if dim=3 then
+        _flt_pt1(3) = b_z(bp)
+      end_if
+      stat = fill_circle( _flt_pt1, b_rad(bp) )
+    end_if
+    bp = b_next(bp)
+  end_loop
+end
+;
+; ===================================================================
+; PRIVATE FUNCTIONS
+; ===================================================================
+;
+def _pc_rif
+  cp = contact_head ; remove inhibit flags
+  loop while cp # null
+     c_inhibit(cp) = 0
+     cp = c_next(cp)
+  endLoop
+
+  case_of dim
+    case 2 :
+      command
+        free x y spin
+      end_command
+    case 3 :
+      command
+        free x y z xspin yspin zspin
+      end_command
+  end_case
+end
+; ===================================================================
+def _pc_flag_floaters ; Flag floaters & expand
+;
+  cp       = contact_head ; ... get mean contact force
+  _pc_mcf  = 0.0
+  _pc_n_cf = 0
+  loop while cp # null
+    _pc_mcf  = _pc_mcf + abs(c_nforce(cp))
+    _pc_n_cf = _pc_n_cf + 1
+    cp       = c_next(cp)
+  endLoop
+  if _pc_n_cf > 0
+    _pc_mcf = _pc_mcf / float(_pc_n_cf)
+  endif
+  _pc_av_contact_force = _pc_mcf
+  _pc_target           = _pc_f_tol * _pc_mcf
+  _pc_n_float          = 0
+  bp = ball_head    ; ... identify floaters
+  loop while bp # null
+    b_color(bp) = 0
+
+    case_of dim
+      case 2 :
+        b_xvel(bp)  = 0.0
+        b_yvel(bp)  = 0.0
+        b_rvel(bp)  = 0.0
+        b_xfix(bp)  = 0
+        b_yfix(bp)  = 0
+        b_rfix(bp)  = 0
+      case 3 :
+        b_xvel(bp)  = 0.0
+        b_yvel(bp)  = 0.0
+        b_zvel(bp)  = 0.0
+        b_rxvel(bp)  = 0.0
+        b_ryvel(bp)  = 0.0
+        b_rzvel(bp)  = 0.0
+        b_xfix(bp)  = 0
+        b_yfix(bp)  = 0
+        b_zfix(bp)  = 0
+        b_rxfix(bp)  = 0
+        b_ryfix(bp)  = 0
+        b_rzfix(bp)  = 0
+    end_case
+
+    _pc_count   = 0
+    cp          = b_clist(bp)
+    loop while cp # null
+      if c_nforce(cp) # 0.0
+        _pc_count = _pc_count + 1
+      endif
+      b1    = c_ball1(cp)
+      if b1 = bp
+        cp = c_b1clist(cp)
+      else
+        cp = c_b2clist(cp)
+      endif
+    endLoop
+    if _pc_count < _pc_ncut
+      b_color(bp) = 1
+      b_fric(bp)  = 0.0
+      b_rad(bp)   = b_rad(bp) * _pc_r_mult
+      _pc_n_float = _pc_n_float + 1
+    else
+      case_of dim
+        case 2 :
+          b_xfix(bp) = 1
+          b_yfix(bp) = 1
+          b_rfix(bp) = 1
+        case 3 :
+          b_xfix(bp)  = 1
+          b_yfix(bp)  = 1
+          b_zfix(bp)  = 1
+          b_rxfix(bp)  = 1
+          b_ryfix(bp)  = 1
+          b_rzfix(bp)  = 1
+      end_case
+    endif
+    bp = b_next(bp)
+  endLoop
+;--- set inhibit flags ---
+  cp = contact_head
+  loop while cp # null
+    b1 = c_ball1(cp)
+    b2 = c_ball2(cp)
+    if pointer_type(b2) = 100 then  ; ball-ball contact
+      case_of dim
+        case 2 :
+          if b_rfix(b1) = 1
+            if b_rfix(b2) = 1
+              c_inhibit(cp) = 1
+            endif
+          endif
+        case 3 :
+          if b_rxfix(b1) = 1
+            if b_rxfix(b2) = 1
+              c_inhibit(cp) = 1
+            endif
+          endif
+      end_case
+    end_if
+    cp = c_next(cp)
+  endLoop
+end
+; ===================================================================
+def _pc_shrink ; shrink active balls
+  _pc_max_act_force = 0.0
+  _pc_n_active      = 0
+  bp                = ball_head
+  loop while bp # null
+    if b_color(bp) = 1
+      _pc_count = 0
+      _pc_sum   = 0.0
+      cp        = b_clist(bp)
+      loop while cp # null
+        if c_nforce(cp) > 0.0
+          _pc_sum   = _pc_sum + c_nforce(cp)
+          _pc_count = _pc_count + 1
+        endif
+        b1    = c_ball1(cp)
+        if b1 = bp
+          cp = c_b1clist(cp)
+        else
+          cp = c_b2clist(cp)
+        endif
+      endLoop
+      if _pc_count > 1
+        _pc_sum = _pc_sum / float(_pc_count)
+        if _pc_sum > _pc_target
+          _pc_delta_r  = _pc_relax*(_pc_sum-_pc_hyst*_pc_target)/b_kn(bp)
+          b_rad(bp)    = b_rad(bp) - _pc_delta_r
+          _pc_n_active = _pc_n_active + 1
+        endif
+      endif
+    endif
+    _pc_max_act_force = max(_pc_max_act_force,_pc_sum)
+    bp                = b_next(bp)
+  endLoop
+end
+; ===================================================================
+return
+; END OF Filename: flt.FIS

@@ -1,0 +1,8 @@
+model new
+model domain extent -1000000 1000000
+
+wall import filename 'slope.stl' nothrow id 100
+
+wall rotate axis 1 0 0 angle 180 point 0 0 0
+
+wall group 'gear' range set id 100

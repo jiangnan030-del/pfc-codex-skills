@@ -1,0 +1,13 @@
+model new
+model domain extent -10.0 10.0 condition periodic
+model cmat default model linear property fric 0.25 method deformability emod 1e6 kratio 1.25 
+
+model random 10001 
+
+;ball generate radius 0.5 0.7 number 130 box -5.0  0.0 -5.0 5.0 hex
+ball generate radius 0.5 0.7 number 130 box -5.0  0.0 -5.0 5.0 
+
+ball generate radius 1.0 1.4 number 100 box  0.0  5.0 -5.0 5.0 
+;ball create radius 0.5 0.7 number 130 box -5.0  0.0 -5.0 5.0  
+
+model save '11.2.2.f3sav'

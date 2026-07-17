@@ -1,0 +1,40 @@
+campaign_name: b30_d20_readonly_validation
+workspace_dir: ./campaign_outputs/b30_d20_readonly_validation
+random_seed: 42
+
+parameters:
+  - name: noop
+    lower: 0.0
+    upper: 1.0
+    scale: linear
+    integer: false
+
+targets:
+  - name: ucs
+    value: 0.168270172
+    tolerance: 0.01
+    weight: 1.0
+    direction: match
+  - name: peak_strain
+    value: 0.089791994
+    tolerance: 0.01
+    weight: 1.0
+    direction: match
+
+runner:
+  kind: command
+  timeout_sec: 120
+  workdir: .
+  command_template: "python .codex\\skills\\pfc-workflow\\scripts\\runner_existing_case.py --params-file \"{params_file}\" --metrics-file \"{metrics_file}\" --case-dir \"<CASE_DIR>/b30_d20\""
+
+budget:
+  n_init: 1
+  n_iter: 0
+  max_failures: 1
+
+optimizer:
+  mode: bayes
+  acquisition: ei
+  engine: gp_ei
+  candidate_pool: 32
+  seed: 42

@@ -1,0 +1,14 @@
+model new
+model domain extent -10 10  
+ball create position -0.5 0 radius 0.5
+ball create position 1 0 radius 1
+
+ball attribute velocity -1 0 range id 1
+ball attribute velocity 1 0 range id 2
+ball attribute density 2e3
+
+model mech timestep fix 1e-4
+;model cycle 10000
+model solve time 2
+
+model save "likai"

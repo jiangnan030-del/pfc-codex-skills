@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC AE Energy"
+  short_description: "Add AE hits/events, macro energy, moment tensor, and source-mechanism analysis to a PFC workflow"
+  default_prompt: "Use $pfc-ae-energy to add acoustic-emission monitoring, event clustering, macro energy post-processing, and moment-tensor source-mechanism outputs to a calibrated PFC bonded-particle model."

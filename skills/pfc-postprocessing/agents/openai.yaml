@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Postprocessing"
+  short_description: "Public PFC6.0-first post-processing skill with runnable examples, animation export, rose diagrams, field plots, and legacy plugin migration helpers."
+  default_prompt: "Use $pfc-postprocessing to teach or implement a public PFC post-processing workflow from zero: explain the data contracts, run the minimal examples, generate curves/fields/rose plots/animations, and bridge legacy Chapter-22 or PFC5 export tools into reproducible Python scripts."

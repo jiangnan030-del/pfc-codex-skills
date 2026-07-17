@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC CAD Import"
+  short_description: "PFC6.0-first CAD/FEM import skill built from the 17 plugin folders using documented interfaces and replaceable scripts."
+  default_prompt: "Use $pfc-cad-import to answer or implement PFC CAD Import tasks with a PFC6.0-first, self-contained workflow."

@@ -1,0 +1,26 @@
+[
+  {
+    "file": "scripts/canonical/extract_macro_metrics.py",
+    "bytes": 3362,
+    "sha256": "6f0a2ad439f49a46478e1e5d6579efe23e1ab20ebe58fd401db8db7df4b8cf9e",
+    "kind": "python-helper"
+  },
+  {
+    "file": "scripts/canonical/improved_lpbm_assign.p3fis",
+    "bytes": 3377,
+    "sha256": "d2b348e82abd02006bd320d23a7a2a17ebe7bfca870a9e5aac5d6f89fd65c698",
+    "kind": "pfc-template"
+  },
+  {
+    "file": "scripts/canonical/orthogonal_design_13params.csv",
+    "bytes": 1358,
+    "sha256": "a91e8223cef2ffd86a59ea8aa99224ee5bcc1603185afc9da948b39b782b055e",
+    "kind": "orthogonal-design-table"
+  },
+  {
+    "file": "scripts/canonical/regression_fast_calibration.py",
+    "bytes": 4142,
+    "sha256": "0c1001189ed350345dcd33a03cb6e8a507e42b66d00ff1f4dfe2356d4b301bc5",
+    "kind": "python-helper"
+  }
+]

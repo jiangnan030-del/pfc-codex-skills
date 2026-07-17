@@ -1,0 +1,23 @@
+new
+
+def sum
+    count = 0
+    sum = 0
+    _i = 0
+    section
+        loop while 1 # 0
+            _i = _i + 1
+            count = count + _i
+            if _i >=3 then
+                ;exit loop
+                exit section
+            else
+                continue
+            endif
+            count = count - 1
+        endloop
+        count = -count
+    endsection
+    sum = count
+end
+list @sum

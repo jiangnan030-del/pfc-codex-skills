@@ -1,0 +1,41 @@
+model restore "xiezai"
+
+def liewen_par
+    liewen_len=width*0.5
+    liewen_hou=liewen_len*0.2    
+    liewen_dirt=30 
+    
+    dirt_houdu=vector(math.sin(liewen_dirt*math.pi/180.0),math.cos(liewen_dirt*math.pi/180.0))
+    dirt_changdu=vector(math.cos(liewen_dirt*math.pi/180.0),-math.sin(liewen_dirt*math.pi/180.0))
+    
+end
+@liewen_par
+
+[origion_pos=vector(0,0)]
+;def cal_plane_pos
+;    pos1=origion_pos-dirt_houdu*liewen_hou*0.5
+;    pos2=origion_pos+dirt_houdu*liewen_hou*0.5
+;    pos3=origion_pos-dirt_changdu*liewen_len*0.5
+;    pos4=origion_pos+dirt_changdu*liewen_len*0.5
+;end
+;@cal_plane_pos
+;
+;ball delete range plane origin @pos1 normal @dirt_houdu ...
+;         plane origin @pos2 normal [-dirt_houdu] ... 
+;        plane origin @pos3 normal [dirt_changdu] ... 
+;        plane origin @pos4 normal [-dirt_changdu]
+def cal_vertices_pos
+    pos1=origion_pos-dirt_houdu*liewen_hou*0.5-dirt_changdu*liewen_len*0.5
+    pos2=origion_pos-dirt_houdu*liewen_hou*0.5+dirt_changdu*liewen_len*0.5
+    
+    pos3=origion_pos+dirt_houdu*liewen_hou*0.5+dirt_changdu*liewen_len*0.5
+    pos4=origion_pos+dirt_houdu*liewen_hou*0.5-dirt_changdu*liewen_len*0.5
+end
+@cal_vertices_pos
+
+ball delete range polygon vertices @pos1 @pos2 @pos3 @pos4
+
+model cycle 1
+model solve
+
+model save "liewen"

@@ -1,0 +1,9 @@
+new
+def long_sum  ;example of a sum of many things
+    v12 = 56
+    
+    temp1 = 'v1 + v2 + v3 + v4 + v5 + v6'
+    temp2 = temp1 + ' + v7 + v8 + v9 + v10'
+    long_sum = temp2 + ' + v' + string(11.0e5) + ' + ' + string(v12)
+end
+list @long_sum

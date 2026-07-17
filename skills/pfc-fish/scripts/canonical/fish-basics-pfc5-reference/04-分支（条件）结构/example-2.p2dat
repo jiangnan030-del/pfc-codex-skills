@@ -1,0 +1,23 @@
+new
+
+def if_test(input_num)
+    _n = input_num
+    caseof _n
+        case 1
+            _n = 'test1'
+        case 'test2'
+            _n =2
+        case 3
+            _n = 'test3'
+        case 'test4'
+            _n = 4
+    endcase
+end
+@if_test(1)
+list @_n
+@if_test(3)
+list @_n
+@if_test('test2')
+list @_n
+@if_test('test4')
+list @_n

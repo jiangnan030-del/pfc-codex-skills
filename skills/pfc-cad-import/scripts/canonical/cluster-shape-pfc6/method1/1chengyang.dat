@@ -1,0 +1,48 @@
+model new
+
+def par
+    tb=table.create("jipei")
+    table(tb,0.01)=0.2
+    table(tb,0.015)=0.8
+    table(tb,0.045)=0.95
+    table(tb,0.05)=1.0
+    
+    poro=0.16
+    
+    width=3.0
+    height=0.2
+end
+@par
+
+
+model domain extent [-width] [width] [-height] [height]
+
+def createBall
+    size_jipei=table.size(tb)
+    V=width*height
+    Vs=V*(1-poro)
+    loop n(3,size_jipei)
+        zhanbi=table.y(tb,1)
+        if n>1 then
+            zhanbi=table.y(tb,n)-table.y(tb,n-1)
+        endif
+        v_lijing=Vs*zhanbi
+        poro_lijing=(V-v_lijing)/V
+        command
+            ball distribute radius [table.x(tb,n)*0.5] porosity @poro_lijing  box [-width*0.5] [width*0.5] [-height*0.5] [height*0.5]
+        endcommand
+    endloop
+end
+@createBall
+
+wall generate box [-width*0.5] [width*0.5] [-height*0.5] [height*0.5]
+
+ball attribute density 3e3 damp 0.7
+
+cmat default model linear property kn 1e7
+
+model cycle 2000 calm 20
+
+model solve
+
+model save "sample"

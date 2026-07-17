@@ -1,0 +1,962 @@
+ New
+ set random ;;;;reset random-number generator
+ set disk on
+ macro wall_kn_ks 'kn 1e10 ks 0.0e9 fric 0.0' 
+ macro zero 'ini xvel 0 yvel 0 xdisp 0 ydisp 0 spin 0'
+wall id     1  nodes         43.3688       363.9948        47.1429       364.5223
+wall id     2  nodes         47.0346       364.5086        54.3118       365.3817
+wall id     3  nodes         54.1736       365.3521        60.9907       367.4933
+wall id     4  nodes         60.8673       367.4483        66.6290       369.9015
+wall id     5  nodes         66.5367       369.8456        70.1886       373.0888
+wall id     6  nodes         70.0932       372.9988        76.1710       378.9323
+wall id     7  nodes         76.0689       378.8270        80.3992       383.6296
+wall id     8  nodes         80.2899       383.5265        87.1142       389.2353
+wall id     9  nodes         86.9858       389.1046        93.2538       396.7305
+wall id    10  nodes         93.1536       396.5766        97.1108       404.6516
+wall id    11  nodes         97.2013       404.5723        84.0087       404.5905
+wall id    12  nodes         84.1576       404.6335        82.1640       400.2199
+wall id    13  nodes         82.2598       400.3159        74.4856       394.9474
+wall id    14  nodes         74.6124       395.0400        69.4483       390.9600
+wall id    15  nodes         69.5154       391.0150        67.8284       389.4850
+wall id    16  nodes         67.8692       389.5300        65.3974       386.4700
+wall id    17  nodes         65.4594       386.5350        61.6082       382.9650
+wall id    18  nodes         61.6827       383.0500        57.9357       377.9500
+wall id    19  nodes         57.9948       378.0300        55.7169       374.9700
+wall id    20  nodes         55.7662       375.0300        53.0119       371.9700
+wall id    21  nodes         53.0547       372.0100        51.4433       370.9900
+wall id    22  nodes         51.5396       371.0700        43.3253       363.9300
+ save wall.sav   ;;;;;;刚性墙建立完毕
+  wall id        1         wall_kn_ks 
+ 
+  wall id        2         wall_kn_ks 
+ 
+  wall id        3         wall_kn_ks 
+ 
+  wall id        4         wall_kn_ks 
+ 
+  wall id        5         wall_kn_ks 
+ 
+  wall id        6         wall_kn_ks 
+ 
+  wall id        7         wall_kn_ks 
+ 
+  wall id        8         wall_kn_ks 
+ 
+  wall id        9         wall_kn_ks 
+ 
+  wall id       10         wall_kn_ks 
+ 
+  wall id       11         wall_kn_ks 
+ 
+  wall id       12         wall_kn_ks 
+ 
+  wall id       13         wall_kn_ks 
+ 
+  wall id       14         wall_kn_ks 
+ 
+  wall id       15         wall_kn_ks 
+ 
+  wall id       16         wall_kn_ks 
+ 
+  wall id       17         wall_kn_ks 
+ 
+  wall id       18         wall_kn_ks 
+ 
+  wall id       19         wall_kn_ks 
+ 
+  wall id       20         wall_kn_ks 
+ 
+  wall id       21         wall_kn_ks 
+ 
+  wall id       22         wall_kn_ks 
+ 
+def assemble_sc
+ array mult2(100),mult3(100),mult4(100),mult5(100),mult6(100)
+ array mult7(100),mult8(100),mult9(100),mult10(100),mult11(100)
+ sum=0.0
+ bp=ball_head
+ loop while bp # null
+  ;if b_id(bp)>= num_begin
+  ;if b_id(bp)<= num_end
+ sum=sum+pi*b_rad(bp)^2
+ ;end_if
+ ;end_if
+ bp=b_next(bp)
+ end_loop
+ pmeas=1.0-sum/tot_vol
+ mult1=sqrt((1.0-poros)/(1.0-pmeas))
+ mult2(mat_flag)=mult1^0.6
+ mult3(mat_flag)=mult1^0.2
+ mult4(mat_flag)=mult1^0.1
+ mult5(mat_flag)=mult1^0.05
+ mult6(mat_flag)=mult1^0.05
+ end
+    
+  gen id=     1   396 rad=    0.0371    0.0741 x    84.4837   92.1460 y   395.7787  403.7623
+   group     1           range id          1       396
+  gen id=   397   792 rad=    0.0371    0.0741 x    76.6286   84.2909 y   387.4506  395.4341
+   group     1           range id        397       792
+  gen id=   793  1188 rad=    0.0371    0.0741 x    68.2933   75.9556 y   380.9902  388.9737
+   group     1           range id        793      1188
+  gen id=  1189  1584 rad=    0.0371    0.0741 x    60.3313   67.9936 y   371.9207  379.9042
+   group     1           range id       1189      1584
+  gen id=  1585  1756 rad=    0.0371    0.0741 x    51.4256   59.0879 y   367.1466  370.7234
+   group     1           range id       1585      1756
+  gen id=  1757  1820 rad=    0.0371    0.0741 x    46.7654   53.6221 y   365.2881  366.9357
+   group     1           range id       1757      1820
+  gen id=  1821  1892 rad=    0.0371    0.0741 x    55.8050   59.5418 y   371.1149  374.1577
+   group     1           range id       1821      1892
+  gen id=  1893  1964 rad=    0.0371    0.0741 x    69.7670   73.5037 y   376.2422  379.2850
+   group     1           range id       1893      1964
+  gen id=  1965  2036 rad=    0.0371    0.0741 x    63.0835   66.8202 y   380.7080  383.7508
+   group     1           range id       1965      2036
+  gen id=  2037  2108 rad=    0.0371    0.0741 x    76.6200   80.3568 y   383.4964  386.5392
+   group     1           range id       2037      2108
+  gen id=  2109  2180 rad=    0.0371    0.0741 x    72.2189   75.9556 y   388.7090  391.7518
+   group     1           range id       2109      2180
+  gen id=  2181  2252 rad=    0.0371    0.0741 x    85.1231   88.8599 y   391.2985  394.3413
+   group     1           range id       2181      2252
+  gen id=  2253  2324 rad=    0.0371    0.0741 x    80.7469   84.4837 y   395.6926  398.7354
+   group     1           range id       2253      2324
+      prop dens 3000. kn 1.e9 ks 0e9 fri 0.0 range gr     1
+prop c_index         1        range group     1
+  set mat_flag=    1  tot_vol=          646.0000
+  gen id=  2325  2489 rad=    0.0741    0.1483 x    84.4837   92.1460 y   395.7787  403.7623
+   group     2           range id       2325      2489
+  gen id=  2490  2654 rad=    0.0741    0.1483 x    76.6286   84.2909 y   387.4506  395.4341
+   group     2           range id       2490      2654
+  gen id=  2655  2819 rad=    0.0741    0.1483 x    68.2933   75.9556 y   380.9902  388.9737
+   group     2           range id       2655      2819
+  gen id=  2820  2984 rad=    0.0741    0.1483 x    60.3313   67.9936 y   371.9207  379.9042
+   group     2           range id       2820      2984
+  gen id=  2985  3055 rad=    0.0741    0.1483 x    51.4256   59.0879 y   367.1466  370.7234
+   group     2           range id       2985      3055
+  gen id=  3056  3081 rad=    0.0741    0.1483 x    46.7654   53.6221 y   365.2881  366.9357
+   group     2           range id       3056      3081
+  gen id=  3082  3111 rad=    0.0741    0.1483 x    55.8050   59.5418 y   371.1149  374.1577
+   group     2           range id       3082      3111
+  gen id=  3112  3141 rad=    0.0741    0.1483 x    69.7670   73.5037 y   376.2422  379.2850
+   group     2           range id       3112      3141
+  gen id=  3142  3171 rad=    0.0741    0.1483 x    63.0835   66.8202 y   380.7080  383.7508
+   group     2           range id       3142      3171
+  gen id=  3172  3201 rad=    0.0741    0.1483 x    76.6200   80.3568 y   383.4964  386.5392
+   group     2           range id       3172      3201
+  gen id=  3202  3231 rad=    0.0741    0.1483 x    72.2189   75.9556 y   388.7090  391.7518
+   group     2           range id       3202      3231
+  gen id=  3232  3261 rad=    0.0741    0.1483 x    85.1231   88.8599 y   391.2985  394.3413
+   group     2           range id       3232      3261
+  gen id=  3262  3291 rad=    0.0741    0.1483 x    80.7469   84.4837 y   395.6926  398.7354
+   group     2           range id       3262      3291
+      prop dens 3000. kn 1.e9 ks 0e9 fri 0.0 range gr     2
+prop c_index         2        range group     2
+  set mat_flag=    1  tot_vol=          646.0000
+  gen id=  3292  3314 rad=    0.1483    0.2224 x    84.4837   92.1460 y   395.7787  403.7623
+   group     3           range id       3292      3314
+  gen id=  3315  3337 rad=    0.1483    0.2224 x    76.6286   84.2909 y   387.4506  395.4341
+   group     3           range id       3315      3337
+  gen id=  3338  3360 rad=    0.1483    0.2224 x    68.2933   75.9556 y   380.9902  388.9737
+   group     3           range id       3338      3360
+  gen id=  3361  3383 rad=    0.1483    0.2224 x    60.3313   67.9936 y   371.9207  379.9042
+   group     3           range id       3361      3383
+  gen id=  3384  3393 rad=    0.1483    0.2224 x    51.4256   59.0879 y   367.1466  370.7234
+   group     3           range id       3384      3393
+  gen id=  3394  3396 rad=    0.1483    0.2224 x    46.7654   53.6221 y   365.2881  366.9357
+   group     3           range id       3394      3396
+  gen id=  3397  3400 rad=    0.1483    0.2224 x    55.8050   59.5418 y   371.1149  374.1577
+   group     3           range id       3397      3400
+  gen id=  3401  3404 rad=    0.1483    0.2224 x    69.7670   73.5037 y   376.2422  379.2850
+   group     3           range id       3401      3404
+  gen id=  3405  3408 rad=    0.1483    0.2224 x    63.0835   66.8202 y   380.7080  383.7508
+   group     3           range id       3405      3408
+  gen id=  3409  3412 rad=    0.1483    0.2224 x    76.6200   80.3568 y   383.4964  386.5392
+   group     3           range id       3409      3412
+  gen id=  3413  3416 rad=    0.1483    0.2224 x    72.2189   75.9556 y   388.7090  391.7518
+   group     3           range id       3413      3416
+  gen id=  3417  3420 rad=    0.1483    0.2224 x    85.1231   88.8599 y   391.2985  394.3413
+   group     3           range id       3417      3420
+  gen id=  3421  3424 rad=    0.1483    0.2224 x    80.7469   84.4837 y   395.6926  398.7354
+   group     3           range id       3421      3424
+      prop dens 3000. kn 1.e9 ks 0e9 fri 0.0 range gr     3
+prop c_index         3        range group     3
+  set mat_flag=    1  tot_vol=          646.0000
+ set poros=  0.15
+ assemble_sc
+pl wall ball blue  green cyan  red   
+  pl wall ball group 
+ set dt dscale
+ plot wall ball
+ def expand1
+ x=mult2(           1)
+ command
+ ini rad mul x
+ endcommand
+ end
+ expand1
+ cyc        10000
+ def expand2
+ x=mult3(           1)
+ command
+ ini rad mul x
+ endcommand
+ end
+ expand2
+ cyc        10000
+ def expand3
+ x=mult4(           1)
+ command
+ ini rad mul x
+ endcommand
+ end
+ expand3
+ cyc        10000
+ def expand4
+ x=mult5(           1)
+ command
+ ini rad mul x
+ endcommand
+ end
+ expand4
+ cyc        10000
+ def expand5
+ x=mult6(           1)
+ command
+ ini rad mul x
+ endcommand
+ end
+ expand5
+ cyc        50000
+ save geo.sav
+def wall_addr ;wall地址
+  wadd1= find_wall( 1 )
+  wadd2= find_wall( 2 )
+  wadd3= find_wall( 3 )
+  wadd4= find_wall( 4 )
+  wadd5= find_wall( 5 )
+  wadd6= find_wall( 6 )
+  wadd7= find_wall( 7 )
+  wadd8= find_wall( 8 )
+  wadd9= find_wall( 9 )
+  wadd10= find_wall(10 )
+  wadd11= find_wall(11 )
+  wadd12= find_wall(12 )
+  wadd13= find_wall(13 )
+  wadd14= find_wall(14 )
+  wadd15= find_wall(15 )
+  wadd16= find_wall(16 )
+  wadd17= find_wall(17 )
+  wadd18= find_wall(18 )
+  wadd19= find_wall(19 )
+  wadd20= find_wall(20 )
+  wadd21= find_wall(21 )
+  wadd22= find_wall(22 )
+end
+wall_addr
+def get_ss  ;;;;每个wall上的应力
+ xdif1  =w_x(wadd1 )
+ ydif1  =w_y(wadd1 )
+ xdif2  =w_x(wadd2 )
+ ydif2  =w_y(wadd2 )
+ xdif3  =w_x(wadd3 )
+ ydif3  =w_y(wadd3 )
+ xdif4  =w_x(wadd4 )
+ ydif4  =w_y(wadd4 )
+ xdif5  =w_x(wadd5 )
+ ydif5  =w_y(wadd5 )
+ xdif6  =w_x(wadd6 )
+ ydif6  =w_y(wadd6 )
+ xdif7  =w_x(wadd7 )
+ ydif7  =w_y(wadd7 )
+ xdif8  =w_x(wadd8 )
+ ydif8  =w_y(wadd8 )
+ xdif9  =w_x(wadd9 )
+ ydif9  =w_y(wadd9 )
+ xdif10  =w_x(wadd10 )
+ ydif10  =w_y(wadd10 )
+ xdif11  =w_x(wadd11 )
+ ydif11  =w_y(wadd11 )
+ xdif12  =w_x(wadd12 )
+ ydif12  =w_y(wadd12 )
+ xdif13  =w_x(wadd13 )
+ ydif13  =w_y(wadd13 )
+ xdif14  =w_x(wadd14 )
+ ydif14  =w_y(wadd14 )
+ xdif15  =w_x(wadd15 )
+ ydif15  =w_y(wadd15 )
+ xdif16  =w_x(wadd16 )
+ ydif16  =w_y(wadd16 )
+ xdif17  =w_x(wadd17 )
+ ydif17  =w_y(wadd17 )
+ xdif18  =w_x(wadd18 )
+ ydif18  =w_y(wadd18 )
+ xdif19  =w_x(wadd19 )
+ ydif19  =w_y(wadd19 )
+ xdif20  =w_x(wadd20 )
+ ydif20  =w_y(wadd20 )
+ xdif21  =w_x(wadd21 )
+ ydif21  =w_y(wadd21 )
+ xdif22  =w_x(wadd22 )
+ ydif22  =w_y(wadd22 )
+ndif1=sqrt(xdif1 ^2+ydif1 ^2)
+ndif2=sqrt(xdif2 ^2+ydif2 ^2)
+ndif3=sqrt(xdif3 ^2+ydif3 ^2)
+ndif4=sqrt(xdif4 ^2+ydif4 ^2)
+ndif5=sqrt(xdif5 ^2+ydif5 ^2)
+ndif6=sqrt(xdif6 ^2+ydif6 ^2)
+ndif7=sqrt(xdif7 ^2+ydif7 ^2)
+ndif8=sqrt(xdif8 ^2+ydif8 ^2)
+ndif9=sqrt(xdif9 ^2+ydif9 ^2)
+ndif10=sqrt(xdif10 ^2+ydif10 ^2)
+ndif11=sqrt(xdif11 ^2+ydif11 ^2)
+ndif12=sqrt(xdif12 ^2+ydif12 ^2)
+ndif13=sqrt(xdif13 ^2+ydif13 ^2)
+ndif14=sqrt(xdif14 ^2+ydif14 ^2)
+ndif15=sqrt(xdif15 ^2+ydif15 ^2)
+ndif16=sqrt(xdif16 ^2+ydif16 ^2)
+ndif17=sqrt(xdif17 ^2+ydif17 ^2)
+ndif18=sqrt(xdif18 ^2+ydif18 ^2)
+ndif19=sqrt(xdif19 ^2+ydif19 ^2)
+ndif20=sqrt(xdif20 ^2+ydif20 ^2)
+ndif21=sqrt(xdif21 ^2+ydif21 ^2)
+ndif22=sqrt(xdif22 ^2+ydif22 ^2)
+wnst1=sqrt(w_xfob(wadd1 )^2+w_yfob(wadd1 )^2)
+wnst2=sqrt(w_xfob(wadd2 )^2+w_yfob(wadd2 )^2)
+wnst3=sqrt(w_xfob(wadd3 )^2+w_yfob(wadd3 )^2)
+wnst4=sqrt(w_xfob(wadd4 )^2+w_yfob(wadd4 )^2)
+wnst5=sqrt(w_xfob(wadd5 )^2+w_yfob(wadd5 )^2)
+wnst6=sqrt(w_xfob(wadd6 )^2+w_yfob(wadd6 )^2)
+wnst7=sqrt(w_xfob(wadd7 )^2+w_yfob(wadd7 )^2)
+wnst8=sqrt(w_xfob(wadd8 )^2+w_yfob(wadd8 )^2)
+wnst9=sqrt(w_xfob(wadd9 )^2+w_yfob(wadd9 )^2)
+wnst10=sqrt(w_xfob(wadd10 )^2+w_yfob(wadd10 )^2)
+wnst11=sqrt(w_xfob(wadd11 )^2+w_yfob(wadd11 )^2)
+wnst12=sqrt(w_xfob(wadd12 )^2+w_yfob(wadd12 )^2)
+wnst13=sqrt(w_xfob(wadd13 )^2+w_yfob(wadd13 )^2)
+wnst14=sqrt(w_xfob(wadd14 )^2+w_yfob(wadd14 )^2)
+wnst15=sqrt(w_xfob(wadd15 )^2+w_yfob(wadd15 )^2)
+wnst16=sqrt(w_xfob(wadd16 )^2+w_yfob(wadd16 )^2)
+wnst17=sqrt(w_xfob(wadd17 )^2+w_yfob(wadd17 )^2)
+wnst18=sqrt(w_xfob(wadd18 )^2+w_yfob(wadd18 )^2)
+wnst19=sqrt(w_xfob(wadd19 )^2+w_yfob(wadd19 )^2)
+wnst20=sqrt(w_xfob(wadd20 )^2+w_yfob(wadd20 )^2)
+wnst21=sqrt(w_xfob(wadd21 )^2+w_yfob(wadd21 )^2)
+wnst22=sqrt(w_xfob(wadd22 )^2+w_yfob(wadd22 )^2)
+wnst1=-wnst1 /         3.7361
+wnst2=-wnst2 /         7.1857
+wnst3=-wnst3 /         7.0053
+wnst4=-wnst4 /         6.1394
+wnst5=-wnst5 /         4.7883
+wnst6=-wnst6 /         8.3273
+wnst7=-wnst7 /         6.3397
+wnst8=-wnst8 /         8.7228
+wnst9=-wnst9 /         9.6777
+wnst10=-wnst10 /         8.8163
+wnst11=-wnst11 /        12.9339
+wnst12=-wnst12 /         4.7480
+wnst13=-wnst13 /         9.2624
+wnst14=-wnst14 /         6.4524
+wnst15=-wnst15 /         2.2328
+wnst16=-wnst16 /         3.8565
+wnst17=-wnst17 /         5.1484
+wnst18=-wnst18 /         6.2044
+wnst19=-wnst19 /         3.7399
+wnst20=-wnst20 /         4.0363
+wnst21=-wnst21 /         1.8697
+wnst22=-wnst22 /        10.6703
+end
+def get_gain
+   alpha = 0.5
+;;;x方向
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd1
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd1
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx1= alpha *    3.7361  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd2
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd2
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx2= alpha *    7.1857  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd3
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd3
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx3= alpha *    7.0053  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd4
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd4
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx4= alpha *    6.1394  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd5
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd5
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx5= alpha *    4.7883  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd6
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd6
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx6= alpha *    8.3273  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd7
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd7
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx7= alpha *    6.3397  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd8
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd8
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx8= alpha *    8.7228  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd9
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd9
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx9= alpha *    9.6777  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd10
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd10
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx10= alpha *    8.8163  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd11
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd11
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx11= alpha *   12.9339  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd12
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd12
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx12= alpha *    4.7480  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd13
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd13
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx13= alpha *    9.2624  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd14
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd14
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx14= alpha *    6.4524  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd15
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd15
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx15= alpha *    2.2328  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd16
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd16
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx16= alpha *    3.8565  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd17
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd17
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx17= alpha *    5.1484  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd18
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd18
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx18= alpha *    6.2044  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd19
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd19
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx19= alpha *    3.7399  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd20
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd20
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx20= alpha *    4.0363  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd21
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd21
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx21= alpha *    1.8697  / (avg_stiff * nxcount * tdel)
+  count = 0
+  avg_stiff = 0
+  cp = contact_head
+  loop while cp # null
+  if c_ball1(cp) = wadd22
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+  end_if
+  if c_ball2(cp) = wadd22
+  count = count + 1
+  avg_stiff = avg_stiff + c_kn(cp)
+   end_if
+  cp = c_next(cp)
+  end_loop
+   nxcount = count 
+    avg_stiff = avg_stiff / count
+  gx22= alpha *   10.6703  / (avg_stiff * nxcount * tdel)
+end
+ ;;;伺服
+def servo
+   while_stepping
+  get_ss
+udv1=gx1*(wnst1-sssreg)
+udx1=udv1*( -0.138429 )
+udy1=udv1*(  0.990372 )
+w_xvel(wadd1)=udx1
+w_yvel(wadd1)=udy1
+ 
+udv2=gx2*(wnst2-sssreg)
+udx2=udv2*( -0.119120 )
+udy2=udv2*(  0.992880 )
+w_xvel(wadd2)=udx2
+w_yvel(wadd2)=udy2
+ 
+udv3=gx3*(wnst3-sssreg)
+udx3=udv3*( -0.299660 )
+udy3=udv3*(  0.954046 )
+w_xvel(wadd3)=udx3
+w_yvel(wadd3)=udy3
+ 
+udv4=gx4*(wnst4-sssreg)
+udx4=udv4*( -0.391746 )
+udy4=udv4*(  0.920074 )
+w_xvel(wadd4)=udx4
+w_yvel(wadd4)=udy4
+ 
+udv5=gx5*(wnst5-sssreg)
+udx5=udv5*( -0.664021 )
+udy5=udv5*(  0.747714 )
+w_xvel(wadd5)=udx5
+w_yvel(wadd5)=udy5
+ 
+udv6=gx6*(wnst6-sssreg)
+udx6=udv6*( -0.698565 )
+udy6=udv6*(  0.715547 )
+w_xvel(wadd6)=udx6
+w_yvel(wadd6)=udy6
+ 
+udv7=gx7*(wnst7-sssreg)
+udx7=udv7*( -0.742677 )
+udy7=udv7*(  0.669650 )
+w_xvel(wadd7)=udx7
+w_yvel(wadd7)=udy7
+ 
+udv8=gx8*(wnst8-sssreg)
+udx8=udv8*( -0.641632 )
+udy8=udv8*(  0.767013 )
+w_xvel(wadd8)=udx8
+w_yvel(wadd8)=udy8
+ 
+udv9=gx9*(wnst9-sssreg)
+udx9=udv9*( -0.772538 )
+udy9=udv9*(  0.634969 )
+w_xvel(wadd9)=udx9
+w_yvel(wadd9)=udy9
+ 
+udv10=gx10*(wnst10-sssreg)
+udx10=udv10*( -0.897971 )
+udy10=udv10*(  0.440054 )
+w_xvel(wadd10)=udx10
+w_yvel(wadd10)=udy10
+ 
+udv11=gx11*(wnst11-sssreg)
+udx11=udv11*( -0.001376 )
+udy11=udv11*( -0.999999 )
+w_xvel(wadd11)=udx11
+w_yvel(wadd11)=udy11
+ 
+udv12=gx12*(wnst12-sssreg)
+udx12=udv12*(  0.911342 )
+udy12=udv12*( -0.411649 )
+w_xvel(wadd12)=udx12
+w_yvel(wadd12)=udy12
+ 
+udv13=gx13*(wnst13-sssreg)
+udx13=udv13*(  0.568233 )
+udy13=udv13*( -0.822868 )
+w_xvel(wadd13)=udx13
+w_yvel(wadd13)=udy13
+ 
+udv14=gx14*(wnst14-sssreg)
+udx14=udv14*(  0.619928 )
+udy14=udv14*( -0.784658 )
+w_xvel(wadd14)=udx14
+w_yvel(wadd14)=udy14
+ 
+udv15=gx15*(wnst15-sssreg)
+udx15=udv15*(  0.671794 )
+udy15=udv15*( -0.740738 )
+w_xvel(wadd15)=udx15
+w_yvel(wadd15)=udy15
+ 
+udv16=gx16*(wnst16-sssreg)
+udx16=udv16*(  0.777912 )
+udy16=udv16*( -0.628374 )
+w_xvel(wadd16)=udx16
+w_yvel(wadd16)=udy16
+ 
+udv17=gx17*(wnst17-sssreg)
+udx17=udv17*(  0.679828 )
+udy17=udv17*( -0.733372 )
+w_xvel(wadd17)=udx17
+w_yvel(wadd17)=udy17
+ 
+udv18=gx18*(wnst18-sssreg)
+udx18=udv18*(  0.805875 )
+udy18=udv18*( -0.592086 )
+w_xvel(wadd18)=udx18
+w_yvel(wadd18)=udy18
+ 
+udv19=gx19*(wnst19-sssreg)
+udx19=udv19*(  0.802152 )
+udy19=udv19*( -0.597120 )
+w_xvel(wadd19)=udx19
+w_yvel(wadd19)=udy19
+ 
+udv20=gx20*(wnst20-sssreg)
+udx20=udv20*(  0.743252 )
+udy20=udv20*( -0.669011 )
+w_xvel(wadd20)=udx20
+w_yvel(wadd20)=udy20
+ 
+udv21=gx21*(wnst21-sssreg)
+udx21=udv21*(  0.534844 )
+udy21=udv21*( -0.844951 )
+w_xvel(wadd21)=udx21
+w_yvel(wadd21)=udy21
+ 
+udv22=gx22*(wnst22-sssreg)
+udx22=udv22*(  0.656027 )
+udy22=udv22*( -0.754737 )
+w_xvel(wadd22)=udx22
+w_yvel(wadd22)=udy22
+ 
+end
+ ;伺服收敛退出
+def iterate
+     loop while 1 # 0
+  get_gain
+ iflag=1 ;;;默认收敛
+    if abs((wnst1 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst2 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst3 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst4 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst5 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst6 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst7 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst8 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst9 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst10 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst11 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst12 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst13 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst14 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst15 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst16 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst17 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst18 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst19 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst20 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst21 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+    if abs((wnst22 -sssreg)/sssreg) > sig_tol then
+       iflag=0 ;;;不收敛 
+    end_if
+   if iflag = 1 then
+        exit
+  end_if
+    command
+      cycle 100
+    end_command
+  end_loop
+end
+ set sssreg -1e5 sig_tol 0.001
+ iterate ;get all stress to require
+save ini_state.sav

@@ -1,0 +1,39 @@
+model new
+model restore '2'
+  
+def rb
+loop foreach rp rblock.list
+rv = rblock.ball.pos(rp)
+ bp = ball.near(rv)
+ b_group = ball.group(bp)
+ 
+        if b_group = 'Default=shiying' then
+            rblock.group(rp) = 'shiying'
+            mineral_a = mineral_a+1
+          endif
+        if b_group = 'Default=xiechangshi' then
+         rblock.group(rp) = 'xiechangshi'
+            mineral_b =mineral_b+1
+         endif
+        if b_group = 'Default=zhengchangshi' then
+            rblock.group(rp) = 'zhengchangshi'
+           mineral_c = mineral_c + 1
+         endif 
+        if b_group = 'Default=yunmu' then
+            rblock.group(rp) = 'yunmu'
+           mineral_d = mineral_d + 1
+         endif 
+ endloop
+end
+@rb
+
+geometry delete set 'rock'
+rblock export to-geometry 'shiying'  range group 'shiying'
+rblock export to-geometry 'xiechangshi'  range group 'xiechangshi'
+rblock export to-geometry 'zhengchangshi'  range group 'zhengchangshi'
+rblock export to-geometry 'yunmu'  range group 'yunmu'
+
+rblock delete
+ball delete
+wall delete
+model save '3'

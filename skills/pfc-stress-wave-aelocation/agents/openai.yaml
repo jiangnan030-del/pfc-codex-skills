@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Stress Wave AE Location"
+  short_description: "Stress-wave propagation, Ricker excitation, dispersion checks, absorbing boundaries, and velocity-free AE source localization in PFC."
+  default_prompt: "Use $pfc-stress-wave-aelocation to design or implement PFC stress-wave propagation and velocity-free AE source localization with dispersion checks, Ricker sources, absorbing boundaries, cross-correlation time delays, and handoff to pfc-workflow."

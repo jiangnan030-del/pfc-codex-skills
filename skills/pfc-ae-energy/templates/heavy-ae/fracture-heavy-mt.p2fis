@@ -1,0 +1,244 @@
+; fname: fracture.p2fis
+;
+; Heavy AE route for PFC 6.0:
+; cache bonded-contact force/moment state before break, then export
+; pseudo moment-tensor components at bond failure.
+;
+;=============================================================================
+
+fish define cache_bond_state
+    loop foreach local cp contact.list
+        if contact.model(cp) = 'linearpbond'
+            local cid = contact.id(cp)
+            if cid > 0
+                if cid <= ae_cache_capacity
+                    if contact.prop(cp,'pb_state') = 3
+                        local pb_force = contact.prop(cp,'pb_force')
+                        local pb_moment = contact.prop(cp,'pb_moment')
+                        ae_cache_valid(cid) = 1
+                        ae_cache_fx(cid) = comp.x(pb_force)
+                        ae_cache_fy(cid) = comp.y(pb_force)
+                        ae_cache_fz(cid) = 0.0
+                        ae_cache_mx(cid) = 0.0
+                        ae_cache_my(cid) = 0.0
+                        ae_cache_mz(cid) = pb_moment
+                    else
+                        ae_cache_valid(cid) = 0
+                    endif
+                endif
+            endif
+        endif
+    endloop
+end
+
+fish define add_crack(entries)
+    local contact = entries(1)
+    local mode = entries(2)
+    local break_strength = entries(3)
+    local pbstrain_energy = entries(4)
+    local frac_pos = contact.pos(contact)
+    local norm = contact.normal(contact)
+    local dfn_label = 'crack'
+    local frac_size
+    local bp1 = contact.end1(contact)
+    local bp2 = contact.end2(contact)
+    local ret = math.min(ball.radius(bp1),ball.radius(bp2))
+    frac_size = ret
+    local inDir = vector(-comp.y(norm),comp.x(norm))
+    local vert1 = frac_pos + inDir * frac_size
+    local vert2 = frac_pos - inDir * frac_size
+    local arg = array.create(4)
+    arg(1) = 'vertices'
+    arg(2) = 2
+    arg(3) = vert1
+    arg(4) = vert2
+    crack_num = crack_num + 1
+
+    if mode = 1 then
+        dfn_label = dfn_label + '_tension'
+        crack_tension_num = crack_tension_num + 1
+    else if mode = 2 then
+        dfn_label = dfn_label + '_shear'
+        crack_shear_num = crack_shear_num + 1
+    endif
+    add_ae_event(contact, bp1, bp2, frac_pos, mode, frac_size, break_strength, pbstrain_energy)
+
+    global dfn = dfn.find(dfn_label)
+    if dfn = null then
+        dfn = dfn.create(dfn_label)
+    endif
+    local fnew = fracture.create(dfn,arg)
+    fracture.prop(fnew,'age') = mech.time.total
+    fracture.extra(fnew,1) = bp1
+    fracture.extra(fnew,2) = bp2
+    crack_accum += 1
+    if crack_accum > 50
+        if frag_time < mech.time.total
+            frag_time = mech.time.total
+            crack_accum = 0
+            command
+                fragment compute
+            endcommand
+            loop for (local i = 0, i < 2, i = i + 1)
+                local name = 'crack_tension'
+                if i = 1
+                    name = 'crack_shear'
+                endif
+                dfn = dfn.find(name)
+                if dfn # null
+                    loop foreach local frac dfn.fracturelist(dfn)
+                        local ball1 = fracture.extra(frac,1)
+                        local ball2 = fracture.extra(frac,2)
+                        if ball1 # null
+                            if ball2 # null
+                                local len = fracture.len(frac) / 2.0
+                                local pos = (ball.pos(ball1) + ball.pos(ball2)) / 2.0
+                                if comp.x(pos) - len > xmin
+                                    if comp.x(pos) + len < xmax
+                                        if comp.y(pos) - len > ymin
+                                            if comp.y(pos) + len < ymax
+                                                fracture.pos(frac) = pos
+                                            endif
+                                        endif
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endloop
+                endif
+            endloop
+        endif
+    endif
+end
+
+fish define add_ae_event(cp, bp1, bp2, frac_pos, mode, frac_size, break_strength, pbstrain_energy)
+    if ae_event_count < ae_event_capacity then
+        ae_event_count = ae_event_count + 1
+        ae_event_time(ae_event_count) = mech.time.total
+        ae_event_strain(ae_event_count) = math.abs(weyy)
+        ae_event_stress(ae_event_count) = math.abs(wsyy) / 1.0e6
+        ae_event_x(ae_event_count) = comp.x(frac_pos)
+        ae_event_y(ae_event_count) = comp.y(frac_pos)
+        ae_event_mode(ae_event_count) = mode
+        ae_event_radius(ae_event_count) = frac_size
+        ae_event_strength(ae_event_count) = break_strength
+        ae_event_pbstrain_energy(ae_event_count) = pbstrain_energy
+
+        local cid = contact.id(cp)
+        local pos1 = ball.pos(bp1)
+        local pos2 = ball.pos(bp2)
+        local center = (pos1 + pos2) / 2.0
+        local r1 = pos1 - center
+        local r2 = pos2 - center
+        local force_local = vector(0.0,0.0)
+        local pmz = 0.0
+        if cid > 0
+            if cid <= ae_cache_capacity
+                if ae_cache_valid(cid) = 1
+                    force_local = vector(ae_cache_fx(cid),ae_cache_fy(cid))
+                    pmz = ae_cache_mz(cid)
+                endif
+            endif
+        endif
+
+        local force_global = contact.to.global(cp,force_local)
+        local fx = comp.x(force_global)
+        local fy = comp.y(force_global)
+        local raw_xx = fx * comp.x(r1) + (-fx) * comp.x(r2)
+        local raw_xy = fx * comp.y(r1) + (-fx) * comp.y(r2)
+        local raw_yx = fy * comp.x(r1) + (-fy) * comp.x(r2)
+        local raw_yy = fy * comp.y(r1) + (-fy) * comp.y(r2)
+
+        local branch = pos2 - pos1
+        local blen = math.sqrt(comp.x(branch) * comp.x(branch) + comp.y(branch) * comp.y(branch))
+        if blen > 1.0e-12
+            local fm = pmz / blen
+            local fmx = -comp.y(branch) / blen * fm
+            local fmy = comp.x(branch) / blen * fm
+            raw_xx = raw_xx + fmx * comp.x(r1) + (-fmx) * comp.x(r2)
+            raw_xy = raw_xy + fmx * comp.y(r1) + (-fmx) * comp.y(r2)
+            raw_yx = raw_yx + fmy * comp.x(r1) + (-fmy) * comp.x(r2)
+            raw_yy = raw_yy + fmy * comp.y(r1) + (-fmy) * comp.y(r2)
+        endif
+
+        ae_event_mt_xx(ae_event_count) = raw_xx
+        ae_event_mt_yy(ae_event_count) = raw_yy
+        ae_event_mt_zz(ae_event_count) = 0.0
+        ae_event_mt_xy(ae_event_count) = 0.5 * (raw_xy + raw_yx)
+        ae_event_mt_xz(ae_event_count) = 0.0
+        ae_event_mt_yz(ae_event_count) = 0.0
+    endif
+end
+
+fish define export_ae_events
+    local fname = 'ae_events.csv'
+    local status = file.open(fname, 1, 1)
+    local arr = array.create(ae_event_count + 2)
+    arr(1) = 'id,time,strain,stress_mpa,x,y,mode,mode_label,radius_model,break_strength,pbstrain_energy,mt_xx,mt_yy,mt_zz,mt_xy,mt_xz,mt_yz'
+    local idx = 1
+    loop local i (1, ae_event_count)
+        local mode_label = 'mixed'
+        if ae_event_mode(i) = 1 then
+            mode_label = 'tension'
+        else if ae_event_mode(i) = 2 then
+            mode_label = 'shear'
+        endif
+        idx = idx + 1
+        arr(idx) = string(i) + ',' + string(ae_event_time(i)) + ',' + string(ae_event_strain(i)) + ',' + string(ae_event_stress(i)) + ',' + string(ae_event_x(i)) + ',' + string(ae_event_y(i)) + ',' + string(ae_event_mode(i)) + ',' + mode_label + ',' + string(ae_event_radius(i)) + ',' + string(ae_event_strength(i)) + ',' + string(ae_event_pbstrain_energy(i)) + ',' + string(ae_event_mt_xx(i)) + ',' + string(ae_event_mt_yy(i)) + ',' + string(ae_event_mt_zz(i)) + ',' + string(ae_event_mt_xy(i)) + ',' + string(ae_event_mt_xz(i)) + ',' + string(ae_event_mt_yz(i))
+    endloop
+    status = file.write(arr, idx + 1)
+    status = file.close()
+end
+
+fish define track_init
+    command
+        fracture delete
+        fragment clear
+        fragment register ball-ball
+    endcommand
+    command
+        fish callback remove @cache_bond_state
+        fish callback add @cache_bond_state 39.9
+        fish callback remove @add_crack
+        fish callback add @add_crack event bond_break
+    endcommand
+    global crack_accum = 0
+    global crack_num = 0
+    global crack_tension_num = 0
+    global crack_shear_num = 0
+    global track_time0 = mech.time.total
+    global frag_time = mech.time.total
+    global xmin = domain.min.x()
+    global ymin = domain.min.y()
+    global xmax = domain.max.x()
+    global ymax = domain.max.y()
+    global ae_event_capacity = 250000
+    global ae_event_count = 0
+    global ae_event_time = array.create(ae_event_capacity)
+    global ae_event_strain = array.create(ae_event_capacity)
+    global ae_event_stress = array.create(ae_event_capacity)
+    global ae_event_x = array.create(ae_event_capacity)
+    global ae_event_y = array.create(ae_event_capacity)
+    global ae_event_mode = array.create(ae_event_capacity)
+    global ae_event_radius = array.create(ae_event_capacity)
+    global ae_event_strength = array.create(ae_event_capacity)
+    global ae_event_pbstrain_energy = array.create(ae_event_capacity)
+    global ae_event_mt_xx = array.create(ae_event_capacity)
+    global ae_event_mt_yy = array.create(ae_event_capacity)
+    global ae_event_mt_zz = array.create(ae_event_capacity)
+    global ae_event_mt_xy = array.create(ae_event_capacity)
+    global ae_event_mt_xz = array.create(ae_event_capacity)
+    global ae_event_mt_yz = array.create(ae_event_capacity)
+    global ae_cache_capacity = 100000
+    global ae_cache_valid = array.create(ae_cache_capacity)
+    global ae_cache_fx = array.create(ae_cache_capacity)
+    global ae_cache_fy = array.create(ae_cache_capacity)
+    global ae_cache_fz = array.create(ae_cache_capacity)
+    global ae_cache_mx = array.create(ae_cache_capacity)
+    global ae_cache_my = array.create(ae_cache_capacity)
+    global ae_cache_mz = array.create(ae_cache_capacity)
+    cache_bond_state
+end
+
+;=============================================================================
+; eof: fracture.p2fis

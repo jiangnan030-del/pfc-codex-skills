@@ -1,0 +1,8 @@
+model new
+
+model domain extent -25.0 25.0 condition periodic
+model cmat default model linear method deformability emod 1e6 kratio 1.25 property fric 0.25
+
+ball distribute radius 1.0 1.6 porosity 0.80
+
+model save '11.2.3.f3sav'

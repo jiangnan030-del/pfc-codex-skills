@@ -1,0 +1,10 @@
+model restore "jiaojie"
+
+[trr=1e6]
+[tzz=1e6]
+
+
+
+model cycle 2000
+model solve 
+model save "weiya"

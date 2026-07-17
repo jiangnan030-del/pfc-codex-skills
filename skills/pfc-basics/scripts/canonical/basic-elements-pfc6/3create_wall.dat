@@ -1,0 +1,13 @@
+model new
+
+model domain extent -10 10  
+
+wall generate box -5 5 -8 8
+
+ball create position 0 7 radius 1
+ball attribute density 2e3 damp 0.1
+model gravity 9.8
+contact cmat default model linear property kn 1e7
+model mech timestep fix 5e-4
+
+model solve time 10

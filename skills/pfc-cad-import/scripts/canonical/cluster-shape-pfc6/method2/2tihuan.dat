@@ -1,0 +1,27 @@
+model restore "sample"
+wall attribute vel 0 0 
+
+
+clump template import "11.p2clp"           
+            
+contact cmat default type pebble-facet model linear property kn 1e9 ks 1e7 
+def tihuan
+    loop foreach bp ball.list
+        rd=ball.radius(bp)
+        posX=ball.pos.x(bp)
+        posY=ball.pos.y(bp)       
+        
+        ag=math.random.uniform*360
+        command
+            clump replicate name "11" position  @posX @posY  diameter [rd*2.0] angle @ag
+        endcommand
+        
+        ball.delete(bp)
+    endloop
+end
+@tihuan
+clump attribute density 3e3 damp 0.7
+model cycle 1
+model solve
+
+model save "clump_tihuan"

@@ -1,0 +1,324 @@
+[
+  {
+    "case": "biaxial",
+    "file": "scripts/canonical/biaxial/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 713,
+    "sha256": "4b87bad10d7e496dce911a3304e1d14d921ffc64d17c80c24e6619573d9340fc"
+  },
+  {
+    "case": "biaxial",
+    "file": "scripts/canonical/biaxial/2yuya.dat",
+    "source_name": "2yuya.dat",
+    "bytes": 2091,
+    "sha256": "55438af83ee8730f6960d07a7dd68eb8deae7109b28a49cfb0d1bfb3713cb023"
+  },
+  {
+    "case": "biaxial",
+    "file": "scripts/canonical/biaxial/3jiaojiaojie.dat",
+    "source_name": "3jiaojiaojie.dat",
+    "bytes": 569,
+    "sha256": "c19ca44aefa963b3d57128329d2b684644c4085305bbecb7a2c7f801bd85f4e3"
+  },
+  {
+    "case": "biaxial",
+    "file": "scripts/canonical/biaxial/4weiya.dat",
+    "source_name": "4weiya.dat",
+    "bytes": 101,
+    "sha256": "bbc2e906ff65391b217992052fa8ee0a39f55373dd6753ceb4c58988bc682852"
+  },
+  {
+    "case": "biaxial",
+    "file": "scripts/canonical/biaxial/5.1循环加载.dat",
+    "source_name": "5.1循环加载.dat",
+    "bytes": 466,
+    "sha256": "49e0a5cfb004ad316c1f078ec0faec79aef4693f14923a5dc84468249ae88c57"
+  },
+  {
+    "case": "biaxial",
+    "file": "scripts/canonical/biaxial/5jiazai.dat",
+    "source_name": "5jiazai.dat",
+    "bytes": 827,
+    "sha256": "e3b512322338f2ffbb57bbee9fb00f9bdcb8d32508028ba471ca70efdeb65192"
+  },
+  {
+    "case": "biaxial",
+    "file": "scripts/canonical/biaxial/readme.dat",
+    "source_name": "readme.dat",
+    "bytes": 291,
+    "sha256": "02afeac922b76787148eaac9bd7d3c10688876725a5830dc4298c6902ecf06a9"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 713,
+    "sha256": "4b87bad10d7e496dce911a3304e1d14d921ffc64d17c80c24e6619573d9340fc"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/2yuya.dat",
+    "source_name": "2yuya.dat",
+    "bytes": 2091,
+    "sha256": "55438af83ee8730f6960d07a7dd68eb8deae7109b28a49cfb0d1bfb3713cb023"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/3jiaojiaojie.dat",
+    "source_name": "3jiaojiaojie.dat",
+    "bytes": 593,
+    "sha256": "ae28169c4cfd952b2dd1b141c85cee864677076e52fffc6181321e853e4210a0"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/3liewen.dat",
+    "source_name": "3liewen.dat",
+    "bytes": 1092,
+    "sha256": "4f8465b67521dca6dc8684e58c8c1ab2facbcab57a53b3be224f4bd702373619"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/4jialiewen.dat",
+    "source_name": "4jialiewen.dat",
+    "bytes": 1319,
+    "sha256": "c621dc514779b7a9b753396811c9dbf2ba18c466b39ff455ffe0339772a84c1f"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/4xiezai.dat",
+    "source_name": "4xiezai.dat",
+    "bytes": 103,
+    "sha256": "013069ee2db0cafff4de20f3925dc86176a1935bc2bc571b329f80f5904a131d"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/5jiazai.dat",
+    "source_name": "5jiazai.dat",
+    "bytes": 650,
+    "sha256": "25f10a2bf5da95a03e4c46cb855132df2c1b12e4fa5831e9434c3a7edc25fa75"
+  },
+  {
+    "case": "ucs",
+    "file": "scripts/canonical/ucs/fracture.p2fis",
+    "source_name": "fracture.p2fis",
+    "bytes": 3922,
+    "sha256": "58ca3b8d1f8700813d34b7803e558e7a1f6a8cc2bcad2b0e3077a362e2f6b715"
+  },
+  {
+    "case": "brazilian",
+    "file": "scripts/canonical/brazilian/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 568,
+    "sha256": "41cde5ae644305362d08ffb13e8575fa8546766195a25d6e2c4ef2c42e6a468c"
+  },
+  {
+    "case": "brazilian",
+    "file": "scripts/canonical/brazilian/2yuya.dat",
+    "source_name": "2yuya.dat",
+    "bytes": 1437,
+    "sha256": "3653631a7662734d0d94ac152265877049bd8473080c07a1e47f3bc3e4faf601"
+  },
+  {
+    "case": "brazilian",
+    "file": "scripts/canonical/brazilian/3jiajiaojie.dat",
+    "source_name": "3jiajiaojie.dat",
+    "bytes": 1028,
+    "sha256": "46e1ab0265945cf26bb2ed5ed53cb37e39fbe15b0242e5e77484c952e0ff1d8d"
+  },
+  {
+    "case": "brazilian",
+    "file": "scripts/canonical/brazilian/4xiezai.dat",
+    "source_name": "4xiezai.dat",
+    "bytes": 149,
+    "sha256": "820a6f812f118b7f66b0d460df99292f86002eea0e3e354cd962d69a72fa0420"
+  },
+  {
+    "case": "brazilian",
+    "file": "scripts/canonical/brazilian/5jiazai.dat",
+    "source_name": "5jiazai.dat",
+    "bytes": 811,
+    "sha256": "75217c79e9ee315ce2cde155f10e7a1f3c0e3e7a81f84b67d1a71c1799fe7c0e"
+  },
+  {
+    "case": "brazilian",
+    "file": "scripts/canonical/brazilian/fracture.p2fis",
+    "source_name": "fracture.p2fis",
+    "bytes": 3922,
+    "sha256": "58ca3b8d1f8700813d34b7803e558e7a1f6a8cc2bcad2b0e3077a362e2f6b715"
+  },
+  {
+    "case": "direct-shear",
+    "file": "scripts/canonical/direct-shear/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 1318,
+    "sha256": "236831c8c9786e814dff76aaad04b537150c155352d521f4fdae00d27fab892c"
+  },
+  {
+    "case": "direct-shear",
+    "file": "scripts/canonical/direct-shear/2yuya.dat",
+    "source_name": "2yuya.dat",
+    "bytes": 1275,
+    "sha256": "3ff4f49918fa904ef81bb32443b2d89e14af303a3ea370407b3a6d31337d658a"
+  },
+  {
+    "case": "direct-shear",
+    "file": "scripts/canonical/direct-shear/3jiajiaojie.dat",
+    "source_name": "3jiajiaojie.dat",
+    "bytes": 569,
+    "sha256": "c19ca44aefa963b3d57128329d2b684644c4085305bbecb7a2c7f801bd85f4e3"
+  },
+  {
+    "case": "direct-shear",
+    "file": "scripts/canonical/direct-shear/4jiazhouya.dat",
+    "source_name": "4jiazhouya.dat",
+    "bytes": 90,
+    "sha256": "8acdf957b3f3bee34faeb078fc08347901d474663854928a995b14eabb335313"
+  },
+  {
+    "case": "direct-shear",
+    "file": "scripts/canonical/direct-shear/5jiazai.dat",
+    "source_name": "5jiazai.dat",
+    "bytes": 616,
+    "sha256": "02712b9154fd14ff4f6136ed49ec22802a51d4bb645bbd9fa7b82d085ae8c64f"
+  },
+  {
+    "case": "direct-shear",
+    "file": "scripts/canonical/direct-shear/fracture.p2fis",
+    "source_name": "fracture.p2fis",
+    "bytes": 3922,
+    "sha256": "58ca3b8d1f8700813d34b7803e558e7a1f6a8cc2bcad2b0e3077a362e2f6b715"
+  },
+  {
+    "case": "three-point-bending",
+    "file": "scripts/canonical/three-point-bending/11.dxf",
+    "source_name": "11.dxf",
+    "bytes": 56295,
+    "sha256": "80a5a9fec3d4710503accab53f739d58a888c8209b86cbfbca1561797f01b0bf"
+  },
+  {
+    "case": "three-point-bending",
+    "file": "scripts/canonical/three-point-bending/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 999,
+    "sha256": "d6bed71388e1471d42ce72943b063146a7de5bc8c96bc5c8249c10e9993d9751"
+  },
+  {
+    "case": "three-point-bending",
+    "file": "scripts/canonical/three-point-bending/2tihuan.dat",
+    "source_name": "2tihuan.dat",
+    "bytes": 704,
+    "sha256": "f1e5ac8c6055180fa6a40f6921cce58edbb73c37d09bee943457532a0450f793"
+  },
+  {
+    "case": "three-point-bending",
+    "file": "scripts/canonical/three-point-bending/3jiajiaojie.dat",
+    "source_name": "3jiajiaojie.dat",
+    "bytes": 1229,
+    "sha256": "f0a318f784759b725d1a537ab45816f64d9d0aeb670012db746c7832f04e5dd8"
+  },
+  {
+    "case": "three-point-bending",
+    "file": "scripts/canonical/three-point-bending/4addjiazai.dat",
+    "source_name": "4addjiazai.dat",
+    "bytes": 401,
+    "sha256": "f102929cfcf4407f6bc9f03f4750b57511469618fc76551fb63b0e826056bfb1"
+  },
+  {
+    "case": "three-point-bending",
+    "file": "scripts/canonical/three-point-bending/5jiazai.dat",
+    "source_name": "5jiazai.dat",
+    "bytes": 302,
+    "sha256": "d4a4a34b069141f5a1e8b0cfbf8a32379a517333c3eeabe1a1c7b4772ba676b8"
+  },
+  {
+    "case": "three-point-bending",
+    "file": "scripts/canonical/three-point-bending/fracture.p2fis",
+    "source_name": "fracture.p2fis",
+    "bytes": 4496,
+    "sha256": "071ddd9283c27c7babaceff240c4d86ca2a13371fea86105dd34b2bc46fa1302"
+  },
+  {
+    "case": "triaxial-rigid",
+    "file": "scripts/canonical/triaxial-rigid/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 1247,
+    "sha256": "ae14dd7b1e0866ed8aca29413d44212b4ae6c5819fd2d4d31acdd53dd03e7e2a"
+  },
+  {
+    "case": "triaxial-rigid",
+    "file": "scripts/canonical/triaxial-rigid/2yuya.dat",
+    "source_name": "2yuya.dat",
+    "bytes": 2323,
+    "sha256": "4de77f5407321fb709b0df4e6a95fb2e3779979bcabe7aa9fc87a8431a37b672"
+  },
+  {
+    "case": "triaxial-rigid",
+    "file": "scripts/canonical/triaxial-rigid/3jiajiaojie.dat",
+    "source_name": "3jiajiaojie.dat",
+    "bytes": 588,
+    "sha256": "46e0e45a1fee37d6d76211fe21ea8907dbf10759f980c0255ab5b3ca152af6d1"
+  },
+  {
+    "case": "triaxial-rigid",
+    "file": "scripts/canonical/triaxial-rigid/4weiya.dat",
+    "source_name": "4weiya.dat",
+    "bytes": 107,
+    "sha256": "84609d6190fd0ec98a07aa764bb39e783391cad7354b334f0de939fe4aa649e4"
+  },
+  {
+    "case": "triaxial-rigid",
+    "file": "scripts/canonical/triaxial-rigid/5jiazai.dat",
+    "source_name": "5jiazai.dat",
+    "bytes": 1198,
+    "sha256": "b6f458a9e3bf56ca13c823cc6cb47451952e8467516515671b8a71ad82616c81"
+  },
+  {
+    "case": "triaxial-rigid",
+    "file": "scripts/canonical/triaxial-rigid/fracture.p3fis",
+    "source_name": "fracture.p3fis",
+    "bytes": 4252,
+    "sha256": "2ec43c90010a1b7b0b9c22bd86254ae24cd190bcf03659e2a0cba22a78c75d9e"
+  },
+  {
+    "case": "triaxial-flexible-membrane",
+    "file": "scripts/canonical/triaxial-flexible-membrane/1chengyang.dat",
+    "source_name": "1chengyang.dat",
+    "bytes": 1247,
+    "sha256": "ae14dd7b1e0866ed8aca29413d44212b4ae6c5819fd2d4d31acdd53dd03e7e2a"
+  },
+  {
+    "case": "triaxial-flexible-membrane",
+    "file": "scripts/canonical/triaxial-flexible-membrane/2yuya.dat",
+    "source_name": "2yuya.dat",
+    "bytes": 2323,
+    "sha256": "4de77f5407321fb709b0df4e6a95fb2e3779979bcabe7aa9fc87a8431a37b672"
+  },
+  {
+    "case": "triaxial-flexible-membrane",
+    "file": "scripts/canonical/triaxial-flexible-membrane/3jiajiaojie.dat",
+    "source_name": "3jiajiaojie.dat",
+    "bytes": 588,
+    "sha256": "46e0e45a1fee37d6d76211fe21ea8907dbf10759f980c0255ab5b3ca152af6d1"
+  },
+  {
+    "case": "triaxial-flexible-membrane",
+    "file": "scripts/canonical/triaxial-flexible-membrane/4jiarouxing.dat",
+    "source_name": "4jiarouxing.dat",
+    "bytes": 5385,
+    "sha256": "8eaeb6fd34319d5acd288ca13263b11283d6aaf8a76ab8ef8e58a7e9d0d91d77"
+  },
+  {
+    "case": "triaxial-flexible-membrane",
+    "file": "scripts/canonical/triaxial-flexible-membrane/5jiazai.dat",
+    "source_name": "5jiazai.dat",
+    "bytes": 580,
+    "sha256": "431af0eede77704a800a9288bff03eccbba80666bcd3f96bf2fb2749e0e69dee"
+  },
+  {
+    "case": "triaxial-flexible-membrane",
+    "file": "scripts/canonical/triaxial-flexible-membrane/fracture.p3fis",
+    "source_name": "fracture.p3fis",
+    "bytes": 4252,
+    "sha256": "2ec43c90010a1b7b0b9c22bd86254ae24cd190bcf03659e2a0cba22a78c75d9e"
+  }
+]

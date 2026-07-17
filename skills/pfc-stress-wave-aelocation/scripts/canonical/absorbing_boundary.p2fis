@@ -1,0 +1,25 @@
+; Absorbing boundary dashpot template.
+; Assign boundary balls to group 'absorbing_boundary' before use.
+
+[abs_radius = 1.0]
+[abs_density = 2000.0]
+[abs_kn = 1.0e8]
+
+fish define absorbing_coeff
+    absorbing_coeff = (2.0 / 3.0) * math.pi * abs_radius^2 * abs_density * math.sqrt(3.0 * abs_kn / (2.0 * math.pi * abs_radius * abs_density))
+end
+
+fish define apply_absorbing_boundary
+    local c = absorbing_coeff
+    loop foreach local bp ball.list
+        if ball.group(bp) = 'absorbing_boundary' then
+            ball.force.app.x(bp) = ball.force.app.x(bp) - c * ball.vel.x(bp)
+            ball.force.app.y(bp) = ball.force.app.y(bp) - c * ball.vel.y(bp)
+            if global.dim = 3 then
+                ball.force.app.z(bp) = ball.force.app.z(bp) - c * ball.vel.z(bp)
+            endif
+        endif
+    endloop
+end
+
+fish callback add @apply_absorbing_boundary -1.0

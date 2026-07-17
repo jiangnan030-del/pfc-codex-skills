@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Workflow"
+  short_description: "Generic PFC workflow for modeling, calibration, Bayesian optimization, DOE, and post-processing"
+  default_prompt: "Use $pfc-workflow to design or implement a complete PFC workflow covering modeling, calibration, LHS-based DOE, surrogate-assisted Bayesian optimization, solve control, post-processing, and reproducible delivery."

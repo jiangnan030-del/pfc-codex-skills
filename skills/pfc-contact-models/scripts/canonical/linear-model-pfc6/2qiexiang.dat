@@ -1,0 +1,16 @@
+model restore "faxiang"
+
+ball attribute vel 0.1 0 range id 1 
+
+def jiance
+    faxiang_force=contact.force.normal(ct)
+    qiexiang_force=contact.force.shear(ct)
+    
+    qiexiang_fengzhi=faxiang_force*0.5
+end
+
+history delete
+history id 1 @faxiang_force
+history id 2 @qiexiang_force
+history id 3 @qiexiang_fengzhi
+model solve time 1

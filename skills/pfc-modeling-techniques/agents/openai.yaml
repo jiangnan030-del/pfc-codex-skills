@@ -1,0 +1,4 @@
+interface:
+  display_name: "PFC Modeling Techniques"
+  short_description: "Practical PFC geotechnical modeling guidance"
+  default_prompt: "Use $pfc-modeling-techniques to guide practical PFC geotechnical model building and parameter extraction."

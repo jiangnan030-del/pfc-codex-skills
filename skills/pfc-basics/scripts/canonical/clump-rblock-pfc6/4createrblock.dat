@@ -1,0 +1,18 @@
+model restore "rblock_template"
+
+
+model domain extent -5 5
+
+;rblock replicate "22" position  0 0  diameter 0.8 
+
+
+;rblock generate  number 10 size 0.8 2.0 diameter
+
+rblock distribute porosity 0.12 diameter size 0.8 2.0 box -4 4
+rblock attribute density 3e3 damp 0.7
+wall generate box -4 4
+
+cmat default type rblock-rblock model linear property kn 1e7 ks 1e7
+cmat default type rblock-Facet model linear property kn 1e8 ks 1e7
+model cycle 2000 calm 50
+model solve

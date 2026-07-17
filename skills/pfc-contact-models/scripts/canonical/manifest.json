@@ -1,0 +1,42 @@
+[
+  {
+    "case": "linear-model-pfc6",
+    "file": "scripts/canonical/linear-model-pfc6/1faxiang.dat",
+    "source_name": "1faxiang.dat",
+    "bytes": 575,
+    "sha256": "6349160cac87593aeef059ad234b6e0661574298ffb1aaef15102266dd92746a",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "linear-model-pfc6",
+    "file": "scripts/canonical/linear-model-pfc6/2qiexiang.dat",
+    "source_name": "2qiexiang.dat",
+    "bytes": 347,
+    "sha256": "9f6affb573835ae152a1817ad3edd08be2016c5ab83bdc7db992ed45d329195a",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "linearpbond-model-pfc6",
+    "file": "scripts/canonical/linearpbond-model-pfc6/1faxiang.dat",
+    "source_name": "1faxiang.dat",
+    "bytes": 1194,
+    "sha256": "eac112564c99cefab160a962a2709715cc860f3632a740ca96e24d52f1e26d90",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "linearpbond-model-pfc6",
+    "file": "scripts/canonical/linearpbond-model-pfc6/2qiexiang.dat",
+    "source_name": "2qiexiang.dat",
+    "bytes": 945,
+    "sha256": "6353cccf31ee40b5c88940527e94904ccb53b4c3ae6da0bffe03dc039d20d351",
+    "encoding": "utf-8"
+  },
+  {
+    "case": "linearpbond-model-pfc6",
+    "file": "scripts/canonical/linearpbond-model-pfc6/3qiexiang_2.dat",
+    "source_name": "3qiexiang_2.dat",
+    "bytes": 524,
+    "sha256": "dc001bce9cf69562a40d00e565776cad5f0c35c7742a43a90a61d67647240ba3",
+    "encoding": "utf-8"
+  }
+]

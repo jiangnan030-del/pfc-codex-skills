@@ -1,0 +1,8 @@
+history interval 10
+history id 99 @monitor
+history id 1 @wsyy
+history id 2 @weyy
+history id 3 @crack_num
+history id 4 @crack_tension_num
+history id 5 @crack_shear_num
+model history id 6 mechanical cycles-total

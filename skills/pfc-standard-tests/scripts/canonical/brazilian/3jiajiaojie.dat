@@ -1,0 +1,46 @@
+model restore "yuya"
+
+
+contact cmat default type ball-facet model linear method deform emod 1e9 kratio 1.5 property fric 0.5
+
+contact cmat default type ball-ball model linearpbond method deform emod 1e9 kratio 1.5 ...
+                                pb_deform emod 1e9 kratio 1.5 ...
+                                property pb_coh 10e6 pb_ten 10e6 pb_fa 50 fric 0.5
+                                
+contact cmat apply
+
+model clean
+
+
+model cycle 1
+model solve
+
+
+contact method bond gap [rdmax*1.5]
+
+model cycle 1
+model solve
+
+
+
+model save "jiaojie"
+
+def delete_float
+    loop foreach bp ball.list
+        ct_num=0
+        loop foreach ct ball.contactmap(bp)
+            if contact.model(ct) # "linearpbond" then
+                continue
+            endif
+            if contact.prop(ct,"pb_state")==3 then
+                ct_num+=1
+            endif
+        endloop
+        
+        if ct_num==0 then
+            ball.delete(bp)
+        endif
+        
+    endloop
+end
+@delete_float

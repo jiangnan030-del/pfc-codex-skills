@@ -1,0 +1,92 @@
+model restore "sample"
+
+[trr=1e5]
+[tzz=1e5]
+[sevro_factor=0.4]
+
+def wall_init
+    wp_rr=wall.find(1)
+    wp_down=wall.find(3)
+    wp_up=wall.find(2)
+end
+@wall_init
+
+def Get_zonggang
+    cal_chicun
+    zonggang_r=0
+    wsrr=0
+    zonggang_z=0
+    loop foreach ct wall.contactmap(wp_rr)
+        zonggang_r=zonggang_r+contact.prop(ct,"kn")
+        wsrr+= math.mag(contact.force.global(ct))
+    endloop
+    loop foreach ct wall.contactmap(wp_up)
+        zonggang_z=zonggang_z+contact.prop(ct,"kn")
+    endloop
+    loop foreach ct wall.contactmap(wp_down)
+        zonggang_z=zonggang_z+contact.prop(ct,"kn")
+    endloop
+    
+    zhouchang=2*math.pi*wlr    
+    wsrr=wsrr/(zhouchang*sample_height)
+    wszz=(wall.force.contact.z(wp_up)-wall.force.contact.z(wp_down))*0.5/(math.pi*wlr*wlr)
+     
+    if zonggang_r==0 then
+        zonggang_r=1e9
+    endif
+    gz=sevro_factor*(math.pi*wlr*wlr)/(zonggang_z*global.timestep)
+    gr= sevro_factor*(zhouchang*sample_height)/(zonggang_r*global.timestep) 
+end
+
+[wpVert=wall.vertex.find(1)]
+def cal_chicun
+    pos_xy=wall.vertex.pos(wpVert)
+    comp.z(pos_xy)=0
+    wlr= math.mag(pos_xy)
+    wlz=wall.pos.z(wp_up)-wall.pos.z(wp_down)
+end
+
+
+[sevro_freq=50]
+
+[time_record=global.step-sevro_freq-1]
+
+def addVel
+    whilestepping    
+    
+    if global.step-time_record >sevro_freq then
+        Get_zonggang
+        time_record=global.step
+        vel_r=(trr-wsrr)*gr
+    
+        if trr>wsrr then
+            loop foreach vt wall.vertexlist(wp_rr)
+                pos_normal=math.unit(wall.vertex.pos(vt))
+                wall.vertex.vel(vt)=(-1)*pos_normal*math.abs(vel_r)
+            endloop
+        else
+            loop foreach vt wall.vertexlist(wp_rr)
+                pos_normal=math.unit(wall.vertex.pos(vt))
+                wall.vertex.vel(vt)=pos_normal*math.abs(vel_r)
+            endloop
+        endif
+        vel_z=(tzz-wszz)*gz
+        if tzz>wszz then
+            wall.vel.z(wp_down)=math.abs(vel_z)
+            wall.vel.z(wp_up)=-math.abs(vel_z)
+        else
+            wall.vel.z(wp_down)=-math.abs(vel_z)
+            wall.vel.z(wp_up)=math.abs(vel_z)
+        endif
+        
+    endif
+    
+    
+end
+
+history id 1 @wsrr
+history id 2 @wszz
+
+model cycle 1
+model solve 
+model save "yuya"

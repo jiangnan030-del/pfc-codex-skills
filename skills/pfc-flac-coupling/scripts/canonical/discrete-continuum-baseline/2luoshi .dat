@@ -1,0 +1,17 @@
+model restore "diji"
+
+model domain extent -20 20 
+
+wall-zone create range pos-z -0.1 0.1
+
+ball generate radius 0.1 0.3 number 100 box -2 2 -2 2 0 2
+
+ball attribute density 2.7e4 damp 0.7
+
+cmat default model linear property kn 1e7 ks 1e7 fric 0.5
+
+
+model cycle 1
+model solve
+
+

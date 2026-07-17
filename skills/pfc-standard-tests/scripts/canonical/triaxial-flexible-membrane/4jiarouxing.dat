@@ -1,0 +1,166 @@
+
+model restore "jiaojie"
+
+wall delete
+def addVel
+end
+[n_scale=1.01]
+contact cmat default type ball-facet model linear method deform emod 2e8 kratio 1.5 property fric 0.5
+wall generate id 1 cylinder base 0 0 [wlz*0.5] axis 0 0 1 height [wlz*0.2] radius [wlr*n_scale]  ...
+            resolution 0.3 one-wall
+wall generate id 2 cylinder base 0 0 [-wlz*0.5] axis 0 0 -1 height [wlz*0.2] radius [wlr*n_scale]  ...
+            resolution 0.3 one-wall
+
+[tzz=1e6]
+[trr=1e6]
+
+[segments = 6]
+[wlr_multi=wlr*n_scale]
+geometry edge create by-arc origin (0,0,[-sample_height*0.5*1.4]) ...
+   start ([wlr_multi*(-1)],0,[-sample_height*0.5*1.4]) end (0,[wlr_multi*(-1)],[-sample_height*0.5*1.4]) ...
+   segments [segments]
+geometry edge create by-arc origin (0,0,[-sample_height*0.5*1.4]) ...
+   start (0,[wlr_multi*(-1)],[-sample_height*0.5*1.4]) end ([wlr_multi],0,[-sample_height*0.5*1.4]) ...
+   segments [segments]
+geometry edge create by-arc origin (0,0,[-sample_height*0.5*1.4]) ...
+   start ([wlr_multi],0,[-sample_height*0.5*1.4]) end (0,[wlr_multi],[-sample_height*0.5*1.4]) ...
+   segments [segments]
+geometry edge create by-arc origin (0,0,[-sample_height*0.5*1.4]) ...
+   start (0,[wlr_multi],[-sample_height*0.5*1.4]) end ([wlr_multi*(-1)],0,[-sample_height*0.5*1.4]) ...
+   segments [segments]
+   
+geometry generate from-edges extrude (0,0,[sample_height*1.4]) segments [segments*4]
+
+structure shell import from-geometry 'Default' element-type dkt-cst 
+
+structure shell property isotropic (1e6, 0.0) thick 0.25 density 930.0
+
+structure node group 'middle' range position-z [-sample_height*0.5] [sample_height*0.5]
+structure node group 'top' range position-z [sample_height*0.5] [100]
+structure node group 'bot' range position-z [-100] [-sample_height*0.5]
+structure shell group 'middle' range position-z [-sample_height*0.5] [sample_height*0.5]
+
+fish define setLocalSystem
+    loop foreach local s struct.node.list()
+        local p = struct.node.pos(s)
+        local nid = struct.node.id.component(s)
+        local mvec = vector(0,0,comp.z(p))
+        zdir = math.unit(p-mvec)
+        ydir = vector(0,0,1)
+        command
+            structure node system-local z [zdir] y [ydir] ...
+                      range component-id [nid]
+        endcommand
+    endloop
+	command
+	  structure node fix system-local
+	endcommand
+end
+@setLocalSystem
+
+wall-structure create
+structure node fix velocity rotation range group 'top'
+structure node fix velocity rotation range group 'bot'
+structure shell apply [-trr] range group 'middle'
+
+
+def wall_init
+    wp_down=wall.find(2)
+    wp_up=wall.find(1)
+end
+@wall_init
+
+def Get_zonggang
+    cal_chicun   
+    zonggang_z=0   
+    loop foreach ct wall.contactmap(wp_up)
+        zonggang_z=zonggang_z+contact.prop(ct,"kn")
+    endloop
+    loop foreach ct wall.contactmap(wp_down)
+        zonggang_z=zonggang_z+contact.prop(ct,"kn")
+    endloop 
+     wszz=(wall.force.contact.z(wp_up)-wall.force.contact.z(wp_down))*0.5/(math.pi*wlr*wlr)
+    gz=sevro_factor*(math.pi*wlr*wlr)/(zonggang_z*global.timestep)
+end
+
+def cal_chicun    
+    wlz=wall.pos.z(wp_up)-wall.pos.z(wp_down)
+end
+
+
+[sevro_freq=20]
+[time_record=global.step-sevro_freq-1]
+def addVel       
+    
+    if global.step-time_record >sevro_freq then
+        Get_zonggang
+        time_record=global.step
+       
+        vel_z=(tzz-wszz)*gz
+        if tzz>wszz then
+            wall.vel.z(wp_down)=math.abs(vel_z)
+            wall.vel.z(wp_up)=-math.abs(vel_z)
+           ; 
+;            loop foreach local s struct.node.list
+;                gpName=struct.node.group(s)
+;                idNode=struct.node.id(s)
+;                if gpName=="top" then
+;                    command
+;                        structure node initialize  velocity-z [math.abs(vel_z)]    range id  @idNode
+;                    endcommand
+;                endif
+;                if gpName=="bot" then
+;                    command
+;                        structure node initialize  velocity-z [-math.abs(vel_z)]    range id  @idNode
+;                    endcommand
+;                endif
+;            endloop
+            
+        else
+            wall.vel.z(wp_down)=-math.abs(vel_z)
+            wall.vel.z(wp_up)=math.abs(vel_z)
+            
+          ;  loop foreach local ss struct.node.list
+;                gpName=struct.node.group(ss)
+;                idNode=struct.node.id(ss)
+;                if gpName=="top" then
+;                     command
+;                        structure node initialize  velocity-z [-math.abs(vel_z)]    range id  @idNode
+;                    endcommand
+;                endif
+;                if gpName=="bot" then
+;                     command
+;                        structure node initialize  velocity-z [-math.abs(vel_z)]    range id  @idNode
+;                    endcommand
+;                endif
+;            endloop
+        endif
+        
+    endif
+    
+    
+end
+
+
+
+
+
+
+measure create position 0 0 0 radius [wlr*0.5]
+[mp=measure.find(1)]
+def jiance_rouxing
+    whilestepping
+    stressZZ=measure.stress.zz(mp)
+    stressXX=measure.stress.xx(mp)
+    stressYY=measure.stress.yy(mp)
+end
+
+history delete
+history id 1 @stressZZ
+history id 2 @stressXX
+history id 3 @stressYY
+
+model cycle 1
+model solve 
+
+model save "rouxing"

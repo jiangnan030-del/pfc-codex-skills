@@ -1,0 +1,50 @@
+model new
+model restore '5'
+
+[theta=45]
+[length=12e-3]
+[kaidu=2e-3]
+
+fish define position_liexi
+    pos11=-length/2*math.cos(theta*math.pi/180)...
+          +kaidu/2*math.sin(theta*math.pi/180)
+    pos12=-length/2*math.sin(theta*math.pi/180)...
+          -kaidu/2*math.cos(theta*math.pi/180)      
+          
+    pos21= length/2*math.cos(theta*math.pi/180)...
+          +kaidu/2*math.sin(theta*math.pi/180)
+    pos22= length/2*math.sin(theta*math.pi/180)...
+          -kaidu/2*math.cos(theta*math.pi/180)      
+          
+    pos31= length/2*math.cos(theta*math.pi/180)...
+          -kaidu/2*math.sin(theta*math.pi/180)      
+    pos32= length/2*math.sin(theta*math.pi/180)...
+          +kaidu/2*math.cos(theta*math.pi/180)      
+          
+    pos41=-length/2*math.cos(theta*math.pi/180)...
+          -kaidu/2*math.sin(theta*math.pi/180)      
+    pos42=-length/2*math.sin(theta*math.pi/180)...
+          +kaidu/2*math.cos(theta*math.pi/180)      
+end
+@position_liexi
+
+geometry set 'liewen1'
+geometry polygon create by-positions ...
+                    [pos11] [pos12] ...
+                    [pos21] [pos22] ...
+                    [pos31] [pos32] ...
+                    [pos41] [pos42]
+
+wall import from-geometry 'liewen1' 
+
+ball delete range geometry-space 'liewen1' count odd
+
+model cycle 2000 calm 20 
+
+ball delete range geometry-space 'liewen1' count odd
+
+model cycle 1
+
+model solve
+
+model save '6'

@@ -1,0 +1,142 @@
+[
+  {
+    "case": "discrete-continuum-baseline",
+    "file": "scripts/canonical/discrete-continuum-baseline/1dimian.dat",
+    "source_name": "1dimian.dat",
+    "bytes": 670,
+    "sha256": "692044cddc639e559fe6f4d25df8b15c970ad968aa3099eee5e15f7daf14d95e"
+  },
+  {
+    "case": "discrete-continuum-baseline",
+    "file": "scripts/canonical/discrete-continuum-baseline/2luoshi .dat",
+    "source_name": "2luoshi .dat",
+    "bytes": 293,
+    "sha256": "a650c6f35585c17b35c8c02b30f7eba42799dfcd8c8ea72419c9366d347472f1"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.1.txt",
+    "source_name": "11.1.txt",
+    "bytes": 380,
+    "sha256": "e43a574f72f6b939d256b49be9a4f89ce67e1fbfd9e1460b688a753e6e57480c"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.2.1.txt",
+    "source_name": "11.2.1.txt",
+    "bytes": 347,
+    "sha256": "9cb18e3cac2a00af68cad649d10881351d54463e0c1007c5065ef14b4c4e68e0"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.2.2.txt",
+    "source_name": "11.2.2.txt",
+    "bytes": 475,
+    "sha256": "3d092026c9002015202b6422a78cb47cd58545342b67774afd216c460821a5a2"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.2.3.txt",
+    "source_name": "11.2.3.txt",
+    "bytes": 235,
+    "sha256": "ad0f1df72b4c39d1f8c03868d19f4ab0e736376a8509086de72f385e1ecb5f8a"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.2.4.txt",
+    "source_name": "11.2.4.txt",
+    "bytes": 783,
+    "sha256": "edf176cb4ea37a5cc53795d479babd9dd09539b90518106e2b783bed6e680c0d"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.2.5.txt",
+    "source_name": "11.2.5.txt",
+    "bytes": 455,
+    "sha256": "8124a54329fb4e9abb0131e7971e6aed0d3cefef99cc5bf43df8b166d6b66a0a"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.2.6.txt",
+    "source_name": "11.2.6.txt",
+    "bytes": 2226,
+    "sha256": "b2fc2143cc6e5b6424098ba36ebc786ddf8d5cfe520257169e75d624619931e0"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.2.7.txt",
+    "source_name": "11.2.7.txt",
+    "bytes": 1887,
+    "sha256": "7118ddca3a34b310052e414ff6d9ef01cdb689071b144d0f45a9cfe368182a93"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.3.1.txt",
+    "source_name": "11.3.1.txt",
+    "bytes": 286,
+    "sha256": "720a3073407f8b7e479d4fefb73881c86aa4257303747039756b49c9f501d481"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.3.2.txt",
+    "source_name": "11.3.2.txt",
+    "bytes": 190,
+    "sha256": "6784fae2c9535fc701701db74b73da7c0cbb00a5cf16b9578d956734e9248f6f"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.3.3.txt",
+    "source_name": "11.3.3.txt",
+    "bytes": 186,
+    "sha256": "22e44e1fc1da0b3c1a1c647caedbcfececa23034971142bb5ebe8391819a88c0"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.3.4.txt",
+    "source_name": "11.3.4.txt",
+    "bytes": 727,
+    "sha256": "2a5ed0c0a22c8cbc246cdb7bb6def7f801eff4566390215a06412bc3ee9607d1"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.3.5.txt",
+    "source_name": "11.3.5.txt",
+    "bytes": 1366,
+    "sha256": "3b9d633d4ebc279b9cc385fedd08f31202a26b96a03658db32d0d074ada16848"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.3.6.txt",
+    "source_name": "11.3.6.txt",
+    "bytes": 908,
+    "sha256": "a40fddf43ba69ef8c2d55a8d665f68cf91ded2fe3fa15847e729f998656110ff"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.4.1.txt",
+    "source_name": "11.4.1.txt",
+    "bytes": 1240,
+    "sha256": "5a31cd965b77d001d94b201657e279a26bba3ae494de44caff80cca05e274513"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.4.2.txt",
+    "source_name": "11.4.2.txt",
+    "bytes": 1022,
+    "sha256": "27a7d6246c073ad54473ab3bf04fe2e2814b435fc06787ef71e7afad6303038f"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.5.1.txt",
+    "source_name": "11.5.1.txt",
+    "bytes": 2834,
+    "sha256": "28c8e16c03ca2878d6f2e87065a9ef549a61bb7e1fd79742140d5349785f70aa"
+  },
+  {
+    "case": "flac3d-pfc-chapter11",
+    "file": "scripts/canonical/flac3d-pfc-chapter11/11.5.2.txt",
+    "source_name": "11.5.2.txt",
+    "bytes": 7190,
+    "sha256": "bcde70391caec44e10287517a8c9050eb27d0291e607d839c47927c7cbf381ef"
+  }
+]

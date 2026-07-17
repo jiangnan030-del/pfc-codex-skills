@@ -1,0 +1,37 @@
+
+
+model restore "tihuan"
+
+cmat default type pebble-facet model linear method deform emod 20e8 kratio 2.0 ...
+                    property fric 0.5 lin_mode 1 
+cmat default type ball-facet model linear method deform emod 20e8 kratio 2.0 ...
+                    property fric 0.5 lin_mode 1 
+                    
+cmat default type pebble-pebble model linear method deform emod 20e8 kratio 2.0 ...
+                    property fric 0.5 lin_mode 1 
+
+cmat default type ball-pebble model linearpbond method deform emod 20e8 kratio 2.0 ...
+                    pb_deform emod 10e8 kratio 2.0 ...
+                    property pb_ten 10e6 pb_coh 10e6 pb_fa 50 fric 0.5 lin_mode 1 
+cmat default type ball-ball model linearpbond method deform emod 20e8 kratio 2.0 ...
+                    pb_deform emod 10e8 kratio 2.0 ...
+                    property pb_ten 10e6 pb_coh 10e6 pb_fa 50 fric 0.5 lin_mode 1 
+
+
+
+cmat apply
+
+
+model clean
+
+model calm
+contact method bond gap 0.01
+contact property lin_force 0.0 0.0 
+ball attribute force-contact multiply 0.0 moment-contact multiply 0.0 
+clump attribute force-contact multiply 0.0 moment-contact multiply 0.0 
+
+model cycle 1
+
+model solve
+
+model save "jiaojie"
