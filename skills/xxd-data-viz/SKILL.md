@@ -17,11 +17,9 @@ Use this skill when colors must encode data. It should not turn a poster palette
 
 ## Data Contract
 
-- Use the bundled references inside this skill:
-  - `references/chinese-color-master-list.md`: full 742-color Markdown source list.
-  - `references/chinese-color-harmony.csv`: complete machine-readable harmony table for all 742 colors.
-  - `references/chinese-color-harmony.md`: Markdown version of the same harmony relationships.
-- Do not treat all harmony colors as chart-ready; validate distinctness or ordering for the chart mode.
+- This public package is self-contained in `SKILL.md`; no external color-table files are required.
+- Use the proven palettes and color-selection rules documented below as the authoritative contract.
+- Do not treat poetic color harmony as chart-ready by default; validate distinctness or ordering for the chart mode.
 - Do not rely on hue alone. Add label, order, pattern, stroke, marker shape, direct labeling, or interaction guidance when needed.
 
 ## Chart Mode Workflow
@@ -120,5 +118,5 @@ Return a palette decision that includes:
 
 ## Local Contents
 
-This lightweight skill currently keeps its reusable palette rules in `SKILL.md`. If future releases add the full Chinese-color master tables, place them under `references/` and update the data contract accordingly.
+This lightweight skill keeps its reusable palette rules, proven UCS/error palette, input contract, and output contract entirely in this `SKILL.md`.
 

@@ -1014,6 +1014,7 @@ Ask for these if missing before running an AE/energy workflow:
 ## Local Contents
 
 - `references/`: AE theory, clustering, source-type plots, calibration notes, output contracts, and implementation details.
-- `scripts/`: reusable Python/FISH helpers and plotting pipelines where included.
+- `templates/heavy-ae/`: reusable FISH/PFC snippets and Python plotting pipelines for the heavy AE workflow.
+- `agents/openai.yaml`: optional agent configuration metadata for OpenAI-style execution.
 - Use this skill as a specialist child of `pfc-workflow`; return final artifacts and assumptions to the parent workflow.
 

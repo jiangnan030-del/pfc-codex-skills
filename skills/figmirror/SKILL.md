@@ -170,5 +170,5 @@ values are compared at grid points:
 
 ## Local Contents
 
-This distribution keeps the compact FigMirror workflow in `SKILL.md`. Optional Drawer/Reviewer/preprocessor prompts, three-dimensional routing modules, and scoring helpers may be added later under `references/` and `scripts/`; if they are absent, treat the workflow in this file as the authoritative portable contract.
+This distribution keeps the compact FigMirror workflow entirely in this `SKILL.md`. Optional Drawer/Reviewer/preprocessor prompts, three-dimensional routing modules, and scoring helpers are not bundled in this public package; treat the workflow in this file as the authoritative portable contract.
 
