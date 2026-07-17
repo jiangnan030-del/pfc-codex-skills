@@ -12,6 +12,20 @@ post-processing only. If the request spans calibration, solve control, full
 case orchestration, or AE/moment-tensor outputs, stay in `pfc-workflow` and
 use this skill only for the standard post-processing branch.
 
+## Non-Negotiable Script-First Rule
+
+Do **not** draw from the prose description alone. Before generating, adapting, or running any post-processing figure, read the actual bundled script that owns that figure route. The prose in this `SKILL.md` is only a router and contract summary; the executable script is the source of truth for columns, units, rcParams, output names, and QA behavior.
+
+Minimum read order for every task:
+
+1. Read `references/script-catalog.md` to choose the closest existing route.
+2. Read `scripts/README.md` for the maintained script order and public contract.
+3. Read the selected script in `scripts/` before writing or modifying plot code.
+4. If adapting a script, preserve its data contract and export contract unless the user explicitly asks to change them.
+5. If no script matches, state that no bundled script exists for the requested plot and either ask to add one or create a new script under the case/project, not an undocumented one-off figure.
+
+Random plotting from memory is forbidden because it breaks reproducibility and makes later GitHub users unable to trace how a figure was made.
+
 If you strip away all the jargon, post-processing is just this:
 
 1. export numbers from PFC
@@ -111,48 +125,24 @@ They answer: how did the scene evolve, step by step?
 
 ## Scripts
 
-### `plot_curves.py`
-- input: `stress_strain.csv`
-- output: stress-strain figure plus a small summary table
-- use when: you want a first, human-readable global response figure
+Always choose scripts through `references/script-catalog.md`, then read the script before use. The quick router is:
 
-### `plot_fields.py`
-- input: ball field, stress field, and porosity field CSV files
-- output: displacement, velocity, stress, and porosity figures
-- use when: you want to know where things changed inside the specimen
+| User asks for | Read and use | Must not skip |
+| --- | --- | --- |
+| stress-strain or global curve | `scripts/plot_curves.py` | `stress_strain.csv` contract and peak-summary output |
+| displacement/velocity/stress/porosity fields | `scripts/plot_fields.py` | actual accepted column aliases and SciPy dependency |
+| fracture/contact rose diagram | `scripts/plot_rose.py` | accepted angle column names and 0-180 degree folding |
+| unordered frame images | `scripts/export_animation_frames.py` | filename sorting and `frames_manifest.csv` |
+| GIF/MP4 from ordered frames | `scripts/export_animation.py` | `frame_*.png` input requirement |
+| PFC `.sav` to bitmap frames | `scripts/pfc_sav_to_frames_template.py` | PFC Python environment requirement |
+| legacy ball/contact exports | `scripts/convert_legacy_ball_export.py`, `scripts/convert_legacy_contact_export.py` | converter output CSV schema |
+| Nature displacement vectors | `scripts/plot_nature_ball_displacement_vectors.py` | six-stage CSV naming and shared colour scale |
+| Nature velocity vectors | `scripts/plot_nature_ball_velocity_vectors.py` | velocity unit conversion and six-stage CSV naming |
+| 3D porosity surface | `scripts/plot_porosity_3d_surface_zhongguo.py` | `plotdata_porosity.csv` columns and export suffixes |
+| 3D UCS surface/lollipop | `scripts/plot_ucs_3d_surface_lollipop.py` plus `references/ucs-3d-surface-lollipop.md` | inline `DATA` block and lollipop grammar |
+| public demo/smoke test | `scripts/run_demo.py` | generated example outputs under `examples/demo_outputs` |
 
-### `plot_rose.py`
-- input: fracture orientation CSV or contact-orientation CSV
-- output: rose diagram
-- use when: you want directional statistics instead of snapshots
-
-### `export_animation_frames.py`
-- input: a folder of frame images
-- output: ordered, validated frame sequence
-- use when: your exported filenames are messy or inconsistently numbered
-
-### `export_animation.py`
-- input: ordered PNG frames
-- output: GIF, and optional MP4 if the runtime supports it
-- use when: you want motion instead of separate static images
-
-### `run_demo.py`
-- input: built-in public examples
-- output: a complete example run under `examples/demo_outputs`
-- use when: you want to learn from zero
-
-### `plot_ucs_3d_surface_lollipop.py`
-- input: inline `DATA` records shaped as `(case, boundary_distance_mm, inclination_deg, experimental_UCS_MPa, simulated_UCS_MPa_or_None)`
-- output: `figure.svg`, `figure.png`, and `figure.pdf`
-- use when: reproducing a Nature-style 3D comparison where experimental UCS is a continuous surface and calibrated simulation points are discrete error lollipops
-- reference: `references/ucs-3d-surface-lollipop.md`
-
-### `plot_porosity_3d_surface_zhongguo.py`
-- input: case directory containing `plotdata_porosity.csv` with columns `x`, `y`, and `porosity`
-- output: `porosity_3d_surface_zhongguo.svg`, `.png`, `.pdf`, and `.tiff` by default
-- use when: drawing a smooth 3D porosity surface where both height and color encode porosity
-- visual contract: bicubic upsampling, Chinese-traditional sequential palette, no surface grid lines, precise colorbar endpoints, white publication background
-- command example: `python .codex/skills/pfc-postprocessing/scripts/plot_porosity_3d_surface_zhongguo.py Intact`
+Common arguments for scripts using `_common.make_argument_parser` are `--input-dir`, `--output-dir`, `--case-name`, and `--stage`. Script-specific arguments are documented in `references/script-catalog.md` and in each script's `argparse` block.
 
 ## Public rules
 
@@ -691,8 +681,12 @@ If the user says “I do not know where to start,” always start with `run_demo
 
 ## Local Contents
 
-- `references/`: data contracts, animation workflow, plugin migration, UCS 3D surface/lollipop plots, and overview notes.
-- `examples/`: minimal, animation, and PFC6 chapter-style post-processing cases.
-- `scripts/`: reusable Python/PFC post-processing helpers and README policy.
+- `references/script-catalog.md`: first-stop route map generated from the actual Python scripts; read this before selecting a plotting route.
+- `references/data-contract.md`: stable CSV contracts and required column meanings.
+- `references/animation-workflow.md`: `.sav`/frame/GIF bridge workflow.
+- `references/plugin-migration.md`: migration notes for legacy plugin-like exports.
+- `references/ucs-3d-surface-lollipop.md`: strict grammar for UCS surface plus error lollipops.
+- `examples/`: minimal, animation, and PFC6 chapter-style post-processing cases for smoke tests.
+- `scripts/`: executable Python/PFC post-processing helpers; these are the source of truth for plot generation.
 - Use this skill for non-AE figures and route AE-specific analysis to `pfc-ae-energy`.
 
