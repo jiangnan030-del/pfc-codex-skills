@@ -415,4 +415,32 @@ PFC 生成数据后必须：
 
 ### 13.4 后处理衔接测试
 
-使用脚手架导出的 `stress_
+使用脚手架导出的 `stress_strain.csv` 运行 `pfc-postprocessing/scripts/plot_curves.py`，确认数据契约和输出命名兼容。
+
+## 14. 验收标准
+
+实现完成必须满足：
+
+1. `pfc-workflow` 有强制的新手问诊规则。
+2. `templates/scope.md` 升级为 CPB2D intake 所需字段。
+3. 脚手架生成 intact 和至少一个直线裂隙 case。
+4. 项目/case/file/stage 命名统一。
+5. 每个 enabled case 有完整六文件和单入口 `run_all.dat`。
+6. 默认关闭 heavy AE，但保留 stage 和后续接口。
+7. 新手运行顺序固定为 intact 后 crack。
+8. 后处理遵守 script-first 规则。
+9. 静态测试和发布校验通过。
+10. 仓库不包含用户 `.sav`、生成图表、私有实验数据和本机路径。
+
+## 15. 后续扩展
+
+第二阶段可增加：
+
+- polyline 非线性裂隙切割/弱化；
+- Excel/CSV 实验曲线自动识别和标准化；
+- intact 参数标定向裂隙 case 的继承规则；
+- 自动参数扫描、LHS、代理模型和 Bayesian optimization；
+- heavy AE 模块按需接入；
+- flat-joint/GBM 路线；
+- PFC3D 项目工厂；
+- 更严格的 PFC 语法静态检查和 MCP smoke test。
