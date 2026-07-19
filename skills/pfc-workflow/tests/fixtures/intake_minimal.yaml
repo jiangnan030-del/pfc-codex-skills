@@ -1,0 +1,50 @@
+project:
+  slug: cpb_2d_ucs_demo
+  title: CPB 2D UCS demo
+  pfc_version: "6.0"
+  random_seed_base: 31000
+specimen:
+  width_mm: 40.0
+  height_mm: 40.0
+  particle_radius_min_mm: 0.30
+  particle_radius_max_mm: 0.50
+  target_porosity: 0.15
+  density_kg_m3: 1900.0
+  damping: 0.70
+contact_model:
+  family: linearpbond
+  linear_emod_pa: 2200000.0
+  bond_emod_pa: 1000000.0
+  kratio: 1.5
+  pb_ten_pa: 50000.0
+  pb_coh_pa: 80000.0
+  pb_fa_deg: 27.0
+  friction: 0.8
+loading:
+  wall_velocity_m_s: 0.10
+  peak_drop_fraction: 0.75
+  target_peak_strain_guess: 0.08
+  stage_fractions: [0.25, 0.50, 0.75, 0.90]
+  history_interval: 10
+outputs:
+  stress_strain: true
+  crack_counts: true
+  heavy_ae: false
+cases:
+  - case_name: intact
+    family: intact
+    enabled: true
+    experiment_file: data/experimental/intact.xlsx
+    crack_enabled: false
+  - case_name: b0_d20
+    family: straight_crack
+    enabled: true
+    experiment_file: data/experimental/b0_d20.xlsx
+    crack_enabled: true
+    crack_type: straight
+    angle_deg: 0.0
+    distance_mm: 20.0
+    length_mm: 20.0
+    width_mm: 3.0
+    center_x_mm: 0.0
+    center_y_mm: 0.0
