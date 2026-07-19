@@ -588,17 +588,25 @@ def crack_geometry(case: CaseConfig, specimen: SpecimenConfig) -> CrackGeometry:
 
     half_specimen_width_m = specimen.width_m / 2.0
     half_specimen_height_m = specimen.height_m / 2.0
+    normal_x_extent_m = result.radius_m * abs(math.sin(angle_rad))
+    normal_y_extent_m = result.radius_m * abs(math.cos(angle_rad))
+    tolerance_m = 1.0e-12
     for endpoint_name, (x_m, y_m) in (
         ("end1_m", result.end1_m),
         ("end2_m", result.end2_m),
     ):
-        if abs(x_m) > half_specimen_width_m or abs(y_m) > half_specimen_height_m:
+        if (
+            abs(x_m) > half_specimen_width_m + tolerance_m
+            or abs(y_m) > half_specimen_height_m + tolerance_m
+        ):
             raise ConfigError(
                 f"case {case.name}: crack endpoint {endpoint_name} is outside specimen"
             )
         if (
-            abs(x_m) + result.radius_m > half_specimen_width_m
-            or abs(y_m) + result.radius_m > half_specimen_height_m
+            abs(x_m) + normal_x_extent_m
+            > half_specimen_width_m + tolerance_m
+            or abs(y_m) + normal_y_extent_m
+            > half_specimen_height_m + tolerance_m
         ):
             raise ConfigError(
                 f"case {case.name}: crack cylinder radius at {endpoint_name} "
@@ -621,29 +629,34 @@ def _pfc_single_line_string(value: str, field: str) -> str:
 
 def render_context(
     config: ScaffoldConfig, case: CaseConfig, case_index: int
-) -> dict[str, object]:
+) -> dict[str, str | int | float]:
     """Build a deterministic, locale-independent, template-safe context."""
-    if isinstance(case_index, bool) or not isinstance(case_index, int) or case_index < 0:
-        raise ConfigError("case_index must be a non-negative integer")
+    errors = validate_config(config)
+    if errors:
+        raise ConfigError("Invalid render configuration:\n- " + "\n- ".join(errors))
 
-    _validate_slug(config.project.slug, "project.slug", slug_errors := [])
-    _validate_slug(case.name, "case.case_name", slug_errors)
-    if slug_errors:
-        raise ConfigError("Invalid render context:\n- " + "\n- ".join(slug_errors))
-    if config.project.pfc_version != "6.0":
-        raise ConfigError('project.pfc_version must be the string "6.0"')
-    if config.contact_model.family != "linearpbond":
-        raise ConfigError("contact_model.family must be linearpbond")
+    if (
+        isinstance(case_index, bool)
+        or not isinstance(case_index, int)
+        or not 0 <= case_index < len(config.cases)
+    ):
+        raise ConfigError("case_index must identify a configured case")
+    if case != config.cases[case_index]:
+        raise ConfigError("case must equal the configured case at case_index")
+
+    random_seed = config.project.random_seed_base + case_index
+    if not 1 <= random_seed <= 2_147_483_647:
+        raise ConfigError("random_seed must be in the PFC integer range [1, 2147483647]")
 
     specimen = config.specimen
     contact = config.contact_model
     loading = config.loading
-    context: dict[str, object] = {
+    context: dict[str, str | int | float] = {
         "project_slug": config.project.slug,
         "project_title": _pfc_single_line_string(config.project.title, "project.title"),
         "pfc_version": config.project.pfc_version,
         "case_name": case.name,
-        "random_seed": config.project.random_seed_base + case_index,
+        "random_seed": random_seed,
         "specimen_width_m": _scientific(specimen.width_m),
         "specimen_height_m": _scientific(specimen.height_m),
         "particle_radius_min_m": _scientific(specimen.radius_min_m),
@@ -669,7 +682,7 @@ def render_context(
             loading.target_peak_strain_guess * fraction
         )
 
-    warnings: list[str] = []
+    warning = ""
     if case.family == "intact" and not case.crack_enabled and case.crack_type is None:
         context["crack_command"] = "; intact case: no crack deletion"
     elif (
@@ -687,7 +700,7 @@ def render_context(
         width_mm = _require_finite_case_value(case, "width_mm")
         threshold_mm = 2.0 * specimen.radius_max_mm
         if width_mm < threshold_mm:
-            warnings.append(
+            warning = (
                 f"case {case.name}: crack width_mm {_scientific(width_mm)} is less "
                 "than twice particle_radius_max_mm "
                 f"{_scientific(threshold_mm)}"
@@ -695,5 +708,5 @@ def render_context(
     else:
         raise ConfigError(f"case {case.name}: unsupported render case state")
 
-    context["warnings"] = tuple(warnings)
+    context["warnings"] = warning
     return context

@@ -367,13 +367,35 @@ def test_crack_endpoint_outside_specimen_is_rejected(case):
         crack_geometry(bad, cfg.specimen)
 
 
-def test_crack_cylinder_radius_must_fit_inside_specimen():
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"angle_deg": 0.0, "center_x_mm": 14.0, "length_mm": 12.0,
+         "width_mm": 2.0},
+        {"angle_deg": 90.0, "center_y_mm": 14.0, "length_mm": 12.0,
+         "width_mm": 2.0},
+    ],
+)
+def test_axis_aligned_crack_uses_normal_half_width_projection(changes):
     cfg = load_intake(FIXTURE)
-    bad = replace(
-        cfg.cases[1], center_x_mm=14.0, length_mm=10.0, width_mm=4.0,
+    crack_geometry(replace(cfg.cases[1], **changes), cfg.specimen)
+
+
+def test_rotated_crack_half_width_projection_accepts_boundary_and_rejects_overflow():
+    cfg = load_intake(FIXTURE)
+    boundary_center = 20.0 - 6.0 / (2**0.5)
+    boundary = replace(
+        cfg.cases[1], angle_deg=45.0, length_mm=10.0, width_mm=2.0,
+        center_x_mm=boundary_center, center_y_mm=boundary_center,
+    )
+    crack_geometry(boundary, cfg.specimen)
+
+    outside = replace(
+        boundary, center_x_mm=boundary_center + 0.001,
+        center_y_mm=boundary_center + 0.001,
     )
     with pytest.raises(ConfigError, match=r"case b0_d20.*cylinder radius.*outside specimen"):
-        crack_geometry(bad, cfg.specimen)
+        crack_geometry(outside, cfg.specimen)
 
 
 def test_crack_geometry_rejects_intact_case_with_case_field():
@@ -382,14 +404,29 @@ def test_crack_geometry_rejects_intact_case_with_case_field():
         crack_geometry(cfg.cases[0], cfg.specimen)
 
 
-def test_case_seed_is_deterministic_and_negative_index_is_rejected():
+def test_case_seed_is_deterministic_and_index_is_strictly_bound():
     cfg = load_intake(FIXTURE)
     intact = render_context(cfg, cfg.cases[0], 0)
     crack = render_context(cfg, cfg.cases[1], 1)
     assert intact["random_seed"] == 31000
     assert crack["random_seed"] == 31001
-    with pytest.raises(ConfigError, match="case_index"):
-        render_context(cfg, cfg.cases[0], -1)
+
+    for case, index in [
+        (cfg.cases[0], -1),
+        (cfg.cases[0], len(cfg.cases)),
+        (cfg.cases[1], 0),
+        (replace(cfg.cases[0], experiment_file="data/experimental/fake.xlsx"), 0),
+    ]:
+        with pytest.raises(ConfigError, match="case_index|configured case"):
+            render_context(cfg, case, index)
+
+
+def test_render_context_rejects_seed_outside_pfc_integer_range():
+    cfg = load_intake(FIXTURE)
+    project = replace(cfg.project, random_seed_base=2_147_483_647)
+    overflow = replace(cfg, project=project)
+    with pytest.raises(ConfigError, match="random_seed"):
+        render_context(overflow, overflow.cases[1], 1)
 
 
 def test_render_context_formats_numbers_and_calculates_stage_strains():
@@ -416,19 +453,48 @@ def test_render_context_builds_only_known_safe_crack_commands():
     )
 
 
-def test_render_context_returns_testable_narrow_crack_warning():
+@pytest.mark.parametrize(
+    ("width_mm", "has_warning"),
+    [(0.999, True), (1.0, False), (1.001, False)],
+)
+def test_render_context_returns_scalar_narrow_crack_warning(width_mm, has_warning):
     cfg = load_intake(FIXTURE)
-    narrow = replace(cfg.cases[1], width_mm=0.9)
-    context = render_context(cfg, narrow, 1)
-    assert context["warnings"] == (
-        "case b0_d20: crack width_mm 9.000000e-01 is less than twice "
-        "particle_radius_max_mm 1.000000e+00",
-    )
-    assert render_context(cfg, cfg.cases[1], 1)["warnings"] == ()
+    changed = replace(cfg.cases[1], width_mm=width_mm)
+    changed_cfg = replace(cfg, cases=(cfg.cases[0], changed))
+    warning = render_context(changed_cfg, changed_cfg.cases[1], 1)["warnings"]
+    if has_warning:
+        assert warning == (
+            f"case b0_d20: crack width_mm {width_mm:.6e} is less than twice "
+            "particle_radius_max_mm 1.000000e+00"
+        )
+    else:
+        assert warning == ""
+
+
+def test_render_context_rejects_invalid_replaced_config_as_config_error():
+    cfg = load_intake(FIXTURE)
+    negative_specimen = replace(cfg.specimen, width_mm=-1.0)
+    invalid_specimen = replace(cfg, specimen=negative_specimen)
+    with pytest.raises(ConfigError, match="specimen.width_mm"):
+        render_context(invalid_specimen, invalid_specimen.cases[0], 0)
+
+    short_stages = replace(cfg.loading, stage_fractions=(0.25, 0.5, 0.75))
+    invalid_stages = replace(cfg, loading=short_stages)
+    with pytest.raises(ConfigError, match="stage_fractions"):
+        render_context(invalid_stages, invalid_stages.cases[0], 0)
+
+
+def test_render_context_rejects_forged_intact_case():
+    cfg = load_intake(FIXTURE)
+    forged = replace(cfg.cases[1], name="intact", family="intact", crack_enabled=False,
+                     crack_type=None)
+    with pytest.raises(ConfigError, match="configured case"):
+        render_context(cfg, forged, 1)
 
 
 def test_project_title_is_pfc_safe_single_line_text():
     cfg = load_intake(FIXTURE)
     quoted = replace(cfg.project, title="O'Brien's CPB")
-    context = render_context(replace(cfg, project=quoted), cfg.cases[0], 0)
+    quoted_cfg = replace(cfg, project=quoted)
+    context = render_context(quoted_cfg, quoted_cfg.cases[0], 0)
     assert context["project_title"] == "O''Brien''s CPB"
