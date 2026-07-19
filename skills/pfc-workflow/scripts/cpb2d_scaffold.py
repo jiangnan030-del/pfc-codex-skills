@@ -12,6 +12,17 @@ import yaml
 
 
 _SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
+_DRIVE_PATTERN = re.compile(r"^[a-zA-Z]:")
+_WINDOWS_DEVICES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *(f"com{number}" for number in range(1, 10)),
+    *(f"lpt{number}" for number in range(1, 10)),
+}
+_CASE_FAMILIES = {"intact", "straight_crack", "polyline_reserved"}
+_CRACK_TYPES = {"straight", "polyline_reserved"}
 _MISSING = object()
 
 
@@ -71,7 +82,7 @@ class LoadingConfig:
     wall_velocity_m_s: float
     peak_drop_fraction: float
     target_peak_strain_guess: float
-    stage_fractions: tuple[float, float, float, float]
+    stage_fractions: tuple[float, ...]
     history_interval: int
 
 
@@ -121,20 +132,28 @@ def _required(mapping: dict[str, Any], key: str, field: str) -> Any:
     return value
 
 
+def _has_forbidden_controls(value: str) -> bool:
+    return any(character in value for character in ("\r", "\n", "\x00"))
+
+
 def _string(mapping: dict[str, Any], key: str, field: str) -> str:
     value = _required(mapping, key, field)
+    qualified = f"{field}.{key}"
     if not isinstance(value, str) or not value:
-        raise ConfigError(f"{field}.{key} must be a non-empty string")
+        raise ConfigError(f"{qualified} must be a non-empty string")
+    if _has_forbidden_controls(value):
+        raise ConfigError(f"{qualified} may not contain CR, LF, or NUL")
     return value
 
 
 def _number(mapping: dict[str, Any], key: str, field: str) -> float:
     value = _required(mapping, key, field)
+    qualified = f"{field}.{key}"
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ConfigError(f"{field}.{key} must be a number")
+        raise ConfigError(f"{qualified} must be a number")
     result = float(value)
     if not math.isfinite(result):
-        raise ConfigError(f"{field}.{key} must be finite")
+        raise ConfigError(f"{qualified} must be finite")
     return result
 
 
@@ -166,13 +185,8 @@ def _boolean(mapping: dict[str, Any], key: str, field: str) -> bool:
 
 def _parse_project(data: dict[str, Any]) -> ProjectConfig:
     section = _mapping(data.get("project"), "project")
-    slug = _string(section, "slug", "project")
-    if not _SLUG_PATTERN.fullmatch(slug):
-        raise ConfigError(
-            "project.slug must contain lowercase letters, digits, and single underscores only"
-        )
     return ProjectConfig(
-        slug=slug,
+        slug=_string(section, "slug", "project"),
         title=_string(section, "title", "project"),
         pfc_version=_string(section, "pfc_version", "project"),
         random_seed_base=_integer(section, "random_seed_base", "project"),
@@ -181,13 +195,10 @@ def _parse_project(data: dict[str, Any]) -> ProjectConfig:
 
 def _parse_specimen(data: dict[str, Any]) -> SpecimenConfig:
     section = _mapping(data.get("specimen"), "specimen")
-    radius_min = _number(section, "particle_radius_min_mm", "specimen")
-    if radius_min <= 0:
-        raise ConfigError("specimen.particle_radius_min_mm must be positive")
     return SpecimenConfig(
         width_mm=_number(section, "width_mm", "specimen"),
         height_mm=_number(section, "height_mm", "specimen"),
-        radius_min_mm=radius_min,
+        radius_min_mm=_number(section, "particle_radius_min_mm", "specimen"),
         radius_max_mm=_number(section, "particle_radius_max_mm", "specimen"),
         porosity=_number(section, "target_porosity", "specimen"),
         density_kg_m3=_number(section, "density_kg_m3", "specimen"),
@@ -228,7 +239,7 @@ def _parse_loading(data: dict[str, Any]) -> LoadingConfig:
         target_peak_strain_guess=_number(
             section, "target_peak_strain_guess", "loading"
         ),
-        stage_fractions=tuple(parsed_fractions),  # type: ignore[arg-type]
+        stage_fractions=tuple(parsed_fractions),
         history_interval=_integer(section, "history_interval", "loading"),
     )
 
@@ -251,8 +262,11 @@ def _parse_cases(data: dict[str, Any]) -> tuple[CaseConfig, ...]:
         field = f"cases[{index}]"
         section = _mapping(raw_case, field)
         crack_type = section.get("crack_type")
-        if crack_type is not None and not isinstance(crack_type, str):
-            raise ConfigError(f"{field}.crack_type must be a string")
+        if crack_type is not None:
+            if not isinstance(crack_type, str) or not crack_type:
+                raise ConfigError(f"{field}.crack_type must be a non-empty string")
+            if _has_forbidden_controls(crack_type):
+                raise ConfigError(f"{field}.crack_type may not contain CR, LF, or NUL")
         cases.append(
             CaseConfig(
                 name=_string(section, "case_name", field),
@@ -272,45 +286,130 @@ def _parse_cases(data: dict[str, Any]) -> tuple[CaseConfig, ...]:
     return tuple(cases)
 
 
+def _windows_name_key(name: str) -> str:
+    return name.rstrip(" .").casefold()
+
+
+def _validate_slug(value: str, field: str, errors: list[str]) -> None:
+    if _has_forbidden_controls(value) or not _SLUG_PATTERN.fullmatch(value):
+        errors.append(f"{field} has an unsafe format")
+    if _windows_name_key(value) in _WINDOWS_DEVICES:
+        errors.append(f"{field} is a reserved Windows device name")
+
+
+def _validate_relative_path(value: str, field: str, errors: list[str]) -> None:
+    if _has_forbidden_controls(value):
+        errors.append(f"{field} may not contain CR, LF, or NUL")
+        return
+    normalized = value.replace("\\", "/")
+    parts = normalized.split("/")
+    if (
+        normalized.startswith("/")
+        or _DRIVE_PATTERN.match(normalized)
+        or any(part in {"", ".", ".."} for part in parts)
+    ):
+        errors.append(f"{field} must be a project-relative path without traversal")
+
+
+def _check_finite(field: str, value: float, errors: list[str]) -> bool:
+    if not math.isfinite(value):
+        errors.append(f"{field} must be finite")
+        return False
+    return True
+
+
 def validate_config(config: ScaffoldConfig) -> list[str]:
     """Return every domain validation error found in a typed configuration."""
     errors: list[str] = []
 
-    if not _SLUG_PATTERN.fullmatch(config.project.slug):
-        errors.append("project.slug has an unsafe format")
+    _validate_slug(config.project.slug, "project.slug", errors)
+    if _has_forbidden_controls(config.project.title):
+        errors.append("project.title may not contain CR, LF, or NUL")
     if config.project.pfc_version != "6.0":
         errors.append('project.pfc_version must be the string "6.0"')
+    if config.project.random_seed_base <= 0:
+        errors.append("project.random_seed_base must be a positive integer")
 
-    positive_specimen_fields = (
-        ("specimen.width_mm", config.specimen.width_mm),
-        ("specimen.height_mm", config.specimen.height_mm),
-        ("specimen.particle_radius_min_mm", config.specimen.radius_min_mm),
-        ("specimen.particle_radius_max_mm", config.specimen.radius_max_mm),
-        ("specimen.density_kg_m3", config.specimen.density_kg_m3),
+    specimen_values = (
+        ("specimen.width_mm", config.specimen.width_mm, True),
+        ("specimen.height_mm", config.specimen.height_mm, True),
+        ("specimen.particle_radius_min_mm", config.specimen.radius_min_mm, True),
+        ("specimen.particle_radius_max_mm", config.specimen.radius_max_mm, True),
+        ("specimen.target_porosity", config.specimen.porosity, False),
+        ("specimen.density_kg_m3", config.specimen.density_kg_m3, True),
+        ("specimen.damping", config.specimen.damping, False),
     )
-    for field, value in positive_specimen_fields:
-        if value <= 0:
+    for field, value, positive in specimen_values:
+        if _check_finite(field, value, errors) and positive and value <= 0:
             errors.append(f"{field} must be positive")
-    if config.specimen.radius_min_mm > config.specimen.radius_max_mm:
+    if (
+        math.isfinite(config.specimen.radius_min_mm)
+        and math.isfinite(config.specimen.radius_max_mm)
+        and config.specimen.radius_min_mm > config.specimen.radius_max_mm
+    ):
         errors.append(
             "specimen.particle_radius_min_mm must be less than or equal to "
             "specimen.particle_radius_max_mm"
         )
-    if not 0 < config.specimen.porosity < 1:
+    if math.isfinite(config.specimen.porosity) and not 0 < config.specimen.porosity < 1:
         errors.append("specimen.target_porosity must be between 0 and 1")
-    if not 0 <= config.specimen.damping <= 1:
+    if math.isfinite(config.specimen.damping) and not 0 <= config.specimen.damping <= 1:
         errors.append("specimen.damping must be between 0 and 1 inclusive")
 
-    if config.loading.wall_velocity_m_s <= 0:
+    contact = config.contact_model
+    if _has_forbidden_controls(contact.family) or contact.family != "linearpbond":
+        errors.append("contact_model.family must be linearpbond")
+    positive_contact = (
+        ("linear_emod_pa", contact.linear_emod_pa),
+        ("bond_emod_pa", contact.bond_emod_pa),
+        ("kratio", contact.kratio),
+        ("pb_ten_pa", contact.pb_ten_pa),
+        ("pb_coh_pa", contact.pb_coh_pa),
+    )
+    for name, value in positive_contact:
+        field = f"contact_model.{name}"
+        if _check_finite(field, value, errors) and value <= 0:
+            errors.append(f"{field} must be positive")
+    if _check_finite("contact_model.friction", contact.friction, errors):
+        if contact.friction < 0:
+            errors.append("contact_model.friction must be non-negative")
+    if _check_finite("contact_model.pb_fa_deg", contact.pb_fa_deg, errors):
+        if not 0 <= contact.pb_fa_deg < 90:
+            errors.append("contact_model.pb_fa_deg must be in [0, 90)")
+
+    loading = config.loading
+    loading_floats = (
+        ("wall_velocity_m_s", loading.wall_velocity_m_s),
+        ("peak_drop_fraction", loading.peak_drop_fraction),
+        ("target_peak_strain_guess", loading.target_peak_strain_guess),
+    )
+    for name, value in loading_floats:
+        _check_finite(f"loading.{name}", value, errors)
+    if math.isfinite(loading.wall_velocity_m_s) and loading.wall_velocity_m_s <= 0:
         errors.append("loading.wall_velocity_m_s must be positive")
-    if not 0 < config.loading.peak_drop_fraction < 1:
+    if math.isfinite(loading.peak_drop_fraction) and not 0 < loading.peak_drop_fraction < 1:
         errors.append("loading.peak_drop_fraction must be between 0 and 1")
-    fractions = config.loading.stage_fractions
+    if (
+        math.isfinite(loading.target_peak_strain_guess)
+        and loading.target_peak_strain_guess <= 0
+    ):
+        errors.append("loading.target_peak_strain_guess must be positive")
+    if loading.history_interval <= 0:
+        errors.append("loading.history_interval must be a positive integer")
+
+    fractions = loading.stage_fractions
+    fractions_finite = True
+    for index, value in enumerate(fractions):
+        fractions_finite &= _check_finite(
+            f"loading.stage_fractions[{index}]", value, errors
+        )
     if len(fractions) != 4:
         errors.append("loading.stage_fractions must contain exactly four values")
-    elif not all(0 < value < 1 for value in fractions):
+    elif fractions_finite and not all(0 < value < 1 for value in fractions):
         errors.append("loading.stage_fractions values must be between 0 and 1")
-    elif not all(left < right for left, right in zip(fractions, fractions[1:])):
+    elif fractions_finite and not all(
+        left < right for left, right in zip(fractions, fractions[1:])
+    ):
         errors.append("loading.stage_fractions must be strictly increasing")
 
     enabled_cases = [case for case in config.cases if case.enabled]
@@ -320,15 +419,75 @@ def validate_config(config: ScaffoldConfig) -> list[str]:
     seen_names: set[str] = set()
     for index, case in enumerate(config.cases):
         field = f"cases[{index}]"
-        if case.name in seen_names:
+        _validate_slug(case.name, f"{field}.case_name", errors)
+        collision_key = _windows_name_key(case.name)
+        if collision_key in seen_names:
             errors.append(f"{field}.case_name duplicates case name {case.name!r}")
-        seen_names.add(case.name)
+        seen_names.add(collision_key)
 
-        if case.name == "intact" and case.crack_enabled:
-            errors.append(f"{field}.crack_enabled must be false for intact")
+        if _has_forbidden_controls(case.family) or case.family not in _CASE_FAMILIES:
+            errors.append(f"{field}.family must be intact, straight_crack, or polyline_reserved")
+        if case.crack_type is not None and (
+            _has_forbidden_controls(case.crack_type) or case.crack_type not in _CRACK_TYPES
+        ):
+            errors.append(f"{field}.crack_type must be straight or polyline_reserved")
+        _validate_relative_path(case.experiment_file, f"{field}.experiment_file", errors)
+
+        geometry = (
+            ("angle_deg", case.angle_deg),
+            ("distance_mm", case.distance_mm),
+            ("length_mm", case.length_mm),
+            ("width_mm", case.width_mm),
+            ("center_x_mm", case.center_x_mm),
+            ("center_y_mm", case.center_y_mm),
+        )
+        for name, value in geometry:
+            if value is not None:
+                _check_finite(f"{field}.{name}", value, errors)
+
+        is_intact_state = (
+            case.name == "intact"
+            or case.family == "intact"
+            or (case.name == "intact" and not case.crack_enabled)
+        )
+        if is_intact_state and not (
+            case.name == "intact"
+            and case.family == "intact"
+            and not case.crack_enabled
+            and case.crack_type is None
+        ):
+            errors.append(
+                f"{field}: intact requires case_name=intact, family=intact, "
+                "crack_enabled=false, and no crack_type"
+            )
+
+        is_polyline = (
+            case.family == "polyline_reserved" or case.crack_type == "polyline_reserved"
+        )
+        if is_polyline:
+            if case.enabled:
+                errors.append(f"{field}.enabled must be false for polyline_reserved")
+            if not (
+                case.family == "polyline_reserved"
+                and case.crack_type == "polyline_reserved"
+                and case.crack_enabled
+            ):
+                errors.append(
+                    f"{field}: polyline_reserved requires matching family and "
+                    "crack_type with crack_enabled=true"
+                )
 
         is_straight = case.family == "straight_crack" or case.crack_type == "straight"
         if is_straight:
+            if not (
+                case.family == "straight_crack"
+                and case.crack_type == "straight"
+                and case.crack_enabled
+            ):
+                errors.append(
+                    f"{field}: straight_crack requires family=straight_crack, "
+                    "crack_type=straight, and crack_enabled=true"
+                )
             required_geometry = (
                 ("angle_deg", case.angle_deg),
                 ("length_mm", case.length_mm),
@@ -339,9 +498,20 @@ def validate_config(config: ScaffoldConfig) -> list[str]:
             for name, value in required_geometry:
                 if value is None:
                     errors.append(f"{field}.{name} is required for a straight crack")
+            if case.length_mm is not None and math.isfinite(case.length_mm):
+                if case.length_mm <= 0:
+                    errors.append(f"{field}.length_mm must be positive")
+            if case.width_mm is not None and math.isfinite(case.width_mm):
+                if case.width_mm <= 0:
+                    errors.append(f"{field}.width_mm must be positive")
 
-        if case.crack_type == "polyline_reserved" and case.enabled:
-            errors.append(f"{field}.enabled must be false for polyline_reserved")
+        known_enabled_state = (
+            case.family == "intact"
+            or is_straight
+            or is_polyline
+        )
+        if case.enabled and not known_enabled_state:
+            errors.append(f"{field}.family is not a supported enabled case type")
 
     return errors
 
@@ -357,14 +527,6 @@ def load_intake(path: Path) -> ScaffoldConfig:
         raise ConfigError(f"intake YAML is invalid: {exc}") from exc
 
     data = _mapping(raw, "intake")
-
-    # Report an explicitly supplied invalid radius before unrelated missing fields.
-    raw_specimen = data.get("specimen")
-    if isinstance(raw_specimen, dict) and "particle_radius_min_mm" in raw_specimen:
-        radius_min = _number(raw_specimen, "particle_radius_min_mm", "specimen")
-        if radius_min <= 0:
-            raise ConfigError("specimen.particle_radius_min_mm must be positive")
-
     config = ScaffoldConfig(
         project=_parse_project(data),
         specimen=_parse_specimen(data),
