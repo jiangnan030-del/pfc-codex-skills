@@ -7,6 +7,7 @@ ball attribute force-contact multiply 0.0 moment-contact multiply 0.0
 [stage_b_strain = ${stage_b_strain}]
 [stage_c_strain = ${stage_c_strain}]
 [stage_d_strain = ${stage_d_strain}]
+[max_abs_strain = ${max_abs_strain}]
 [stage_a_saved = 0]
 [stage_b_saved = 0]
 [stage_c_saved = 0]
@@ -44,6 +45,8 @@ model mechanical timestep automatic
 
 [peak_stress = 0.0]
 [previous_stress = 0.0]
+[stress_initialized = 0]
+[decline_count = 0]
 [peak_saved = 0]
 fish define peak_drop_halt
     peak_drop_halt = 0
@@ -51,6 +54,7 @@ fish define peak_drop_halt
     local abs_strain = math.abs(weyy)
     if abs_stress > peak_stress
         peak_stress = abs_stress
+        decline_count = 0
     end_if
     if stage_a_saved = 0
         if abs_strain >= stage_a_strain
@@ -84,16 +88,26 @@ fish define peak_drop_halt
             stage_d_saved = 1
         end_if
     end_if
-    if peak_saved = 0
-        if stage_d_saved = 1
-            if abs_stress < previous_stress * 0.995
-                if previous_stress >= peak_stress * 0.995
-                    command
-                        model save 'peak'
-                    endcommand
-                    peak_saved = 1
-                end_if
+    if stress_initialized = 1
+        if abs_stress <= peak_stress * 0.995
+            if abs_stress < previous_stress
+                decline_count = decline_count + 1
+            else
+                decline_count = 0
             end_if
+        else
+            decline_count = 0
+        end_if
+    else
+        stress_initialized = 1
+    end_if
+    if peak_saved = 0
+        if decline_count >= 3
+            ; Saves the confirmed post-peak decline state, not an exact peak rollback.
+            command
+                model save 'peak'
+            endcommand
+            peak_saved = 1
         end_if
     end_if
     previous_stress = abs_stress
@@ -101,6 +115,9 @@ fish define peak_drop_halt
         if abs_stress <= peak_stress * peak_drop_fraction
             peak_drop_halt = 1
         end_if
+    end_if
+    if abs_strain >= max_abs_strain
+        peak_drop_halt = 1
     end_if
 end
 

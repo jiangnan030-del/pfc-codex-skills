@@ -661,6 +661,13 @@ def render_context(
     specimen = config.specimen
     contact = config.contact_model
     loading = config.loading
+    stage_d_strain = (
+        loading.target_peak_strain_guess * loading.stage_fractions[3]
+    )
+    max_abs_strain = max(
+        loading.target_peak_strain_guess * 2.0,
+        stage_d_strain * 1.25,
+    )
     context: dict[str, str | int | float] = {
         "project_slug": config.project.slug,
         "project_title": _pfc_single_line_string(config.project.title, "project.title"),
@@ -690,6 +697,7 @@ def render_context(
         "wall_velocity_m_s": _scientific(loading.wall_velocity_m_s),
         "peak_drop_fraction": _scientific(loading.peak_drop_fraction),
         "target_peak_strain_guess": _scientific(loading.target_peak_strain_guess),
+        "max_abs_strain": _scientific(max_abs_strain),
         "history_interval": loading.history_interval,
     }
     for label, fraction in zip("abcd", loading.stage_fractions, strict=True):

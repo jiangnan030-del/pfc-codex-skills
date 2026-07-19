@@ -1,4 +1,4 @@
-; Minimal PFC2D linear parallel-bond fracture tracking.
+; Minimal PFC2D linear parallel-bond fracture tracking derived from canonical UCS.
 fish define add_crack(entries)
     local contact = entries(1)
     local mode = entries(2)
@@ -7,47 +7,87 @@ fish define add_crack(entries)
     local dfn_label = 'crack'
     local bp1 = contact.end1(contact)
     local bp2 = contact.end2(contact)
-    local frac_size = math.min(ball.radius(bp1), ball.radius(bp2))
-    local in_dir = vector(-comp.y(norm), comp.x(norm))
-    local vertices = array.create(4)
-    vertices(1) = 'vertices'
-    vertices(2) = 2
-    vertices(3) = frac_pos + in_dir * frac_size
-    vertices(4) = frac_pos - in_dir * frac_size
-
+    local frac_size = math.min(ball.radius(bp1),ball.radius(bp2))
+    local inDir = vector(-comp.y(norm),comp.x(norm))
+    local vert1 = frac_pos + inDir * frac_size
+    local vert2 = frac_pos - inDir * frac_size
+    local arg = array.create(4)
+    arg(1) = 'vertices'
+    arg(2) = 2
+    arg(3) = vert1
+    arg(4) = vert2
     crack_num = crack_num + 1
+
     local record_index = 0
     if crack_record_count < crack_record_max then
         crack_record_count = crack_record_count + 1
         record_index = crack_record_count
-        crack_angle_record(record_index) = math.atan2(comp.y(in_dir), comp.x(in_dir)) * 180.0 / math.pi
-    end_if
+        crack_angle_record(record_index) = math.atan2(comp.y(inDir),comp.x(inDir)) * 180.0 / math.pi
+    endif
     if mode = 1 then
         dfn_label = dfn_label + '_tension'
         crack_tension_num = crack_tension_num + 1
         if record_index > 0 then
             crack_type_record(record_index) = 'tension'
-        end_if
+        endif
     else if mode = 2 then
         dfn_label = dfn_label + '_shear'
         crack_shear_num = crack_shear_num + 1
         if record_index > 0 then
             crack_type_record(record_index) = 'shear'
-        end_if
+        endif
     else
         if record_index > 0 then
             crack_type_record(record_index) = 'unknown'
-        end_if
-    end_if
+        endif
+    endif
 
-    local dfn_pointer = dfn.find(dfn_label)
-    if dfn_pointer = null then
-        dfn_pointer = dfn.create(dfn_label)
-    end_if
-    local new_fracture = fracture.create(dfn_pointer, vertices)
-    fracture.prop(new_fracture, 'age') = mech.time.total
-    fracture.extra(new_fracture, 1) = bp1
-    fracture.extra(new_fracture, 2) = bp2
+    global dfn = dfn.find(dfn_label)
+    if dfn = null then
+        dfn = dfn.create(dfn_label)
+    endif
+    local fnew = fracture.create(dfn,arg)
+    fracture.prop(fnew,'age') = mech.time.total
+    fracture.extra(fnew,1) = bp1
+    fracture.extra(fnew,2) = bp2
+    crack_accum += 1
+    if crack_accum > 50
+        if frag_time < mech.time.total
+            frag_time = mech.time.total
+            crack_accum = 0
+            command
+                fragment compute
+            endcommand
+            loop for (local i = 0, i < 2, i = i + 1)
+                local name = 'crack_tension'
+                if i = 1
+                    name = 'crack_shear'
+                endif
+                dfn = dfn.find(name)
+                if dfn # null
+                    loop foreach local frac dfn.fracturelist(dfn)
+                        local ball1 = fracture.extra(frac,1)
+                        local ball2 = fracture.extra(frac,2)
+                        if ball1 # null
+                            if ball2 # null
+                                local len = fracture.len(frac)/2.0
+                                local pos = (ball.pos(ball1)+ball.pos(ball2))/2.0
+                                if comp.x(pos)-len > xmin
+                                    if comp.x(pos)+len < xmax
+                                        if comp.y(pos)-len > ymin
+                                            if comp.y(pos)+len < ymax
+                                                fracture.pos(frac) = pos
+                                            endif
+                                        endif
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endloop
+                endif
+            endloop
+        endif
+    endif
 end
 
 fish define track_init
@@ -55,9 +95,12 @@ fish define track_init
         fracture delete
         fragment clear
         fragment register ball-ball
+    endcommand
+    command
         fish callback remove @add_crack
         fish callback add @add_crack event bond_break
     endcommand
+    global crack_accum = 0
     global crack_num = 0
     global crack_tension_num = 0
     global crack_shear_num = 0
@@ -65,4 +108,10 @@ fish define track_init
     global crack_record_max = 200000
     global crack_angle_record = array.create(crack_record_max)
     global crack_type_record = array.create(crack_record_max)
+    global track_time0 = mech.time.total
+    global frag_time = mech.time.total
+    global xmin = domain.min.x()
+    global ymin = domain.min.y()
+    global xmax = domain.max.x()
+    global ymax = domain.max.y()
 end

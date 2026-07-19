@@ -579,3 +579,40 @@ def test_fracture_template_has_minimal_mode_counts_and_orientation_records():
     assert "crack_angle_record" in text
     assert "crack_type_record" in text
     assert "bond_break" in text
+
+
+def test_peak_detection_is_independent_of_stage_d_and_confirms_decline():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["3load.dat"]
+    peak_logic = text.split("if peak_saved = 0", 1)[1].split("previous_stress", 1)[0]
+    assert "stage_d_saved" not in peak_logic
+    assert "decline_count >= 3" in peak_logic
+    assert "peak_stress * 0.995" in text
+
+
+def test_maximum_strain_safety_stop_is_independent_and_peak_fallback_is_reachable():
+    cfg = load_intake(FIXTURE)
+    context = render_context(cfg, cfg.cases[0], 0)
+    assert context["max_abs_strain"] == "1.600000e-01"
+    text = render_case_files(cfg, cfg.cases[0], 0)["3load.dat"]
+    safety = text.split("if abs_strain >= max_abs_strain", 1)[1].split("end_if", 1)[0]
+    assert "peak_saved" not in safety
+    assert "peak_drop_halt = 1" in safety
+    assert text.index("model solve fishhalt @peak_drop_halt") < text.index(
+        "@save_peak_if_missing"
+    ) < text.index("model save 'final'")
+
+
+def test_fracture_template_retains_canonical_fragment_position_updates():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["fracture.p2fis"]
+    for token in [
+        "crack_accum",
+        "frag_time",
+        "fragment compute",
+        "dfn.fracturelist",
+        "fracture.pos(frac) = pos",
+        "domain.min.x()",
+        "domain.max.y()",
+    ]:
+        assert token in text
