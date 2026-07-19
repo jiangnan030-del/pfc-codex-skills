@@ -119,6 +119,13 @@ class ScaffoldConfig:
     cases: tuple[CaseConfig, ...]
 
 
+@dataclass(frozen=True)
+class CrackGeometry:
+    end1_m: tuple[float, float]
+    end2_m: tuple[float, float]
+    radius_m: float
+
+
 def _mapping(value: Any, field: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ConfigError(f"{field} must be a mapping")
@@ -539,3 +546,154 @@ def load_intake(path: Path) -> ScaffoldConfig:
     if errors:
         raise ConfigError("Invalid intake configuration:\n- " + "\n- ".join(errors))
     return config
+
+
+def _require_finite_case_value(case: CaseConfig, field: str) -> float:
+    value = getattr(case, field)
+    if value is None or not math.isfinite(value):
+        raise ConfigError(f"case {case.name}: {field} must be a finite number")
+    return value
+
+
+def crack_geometry(case: CaseConfig, specimen: SpecimenConfig) -> CrackGeometry:
+    """Calculate a straight-crack cylinder and ensure its full area fits."""
+    if not (
+        case.family == "straight_crack"
+        and case.crack_enabled
+        and case.crack_type == "straight"
+    ):
+        raise ConfigError(f"case {case.name}: straight crack geometry is required")
+
+    angle_deg = _require_finite_case_value(case, "angle_deg")
+    length_mm = _require_finite_case_value(case, "length_mm")
+    width_mm = _require_finite_case_value(case, "width_mm")
+    center_x_mm = _require_finite_case_value(case, "center_x_mm")
+    center_y_mm = _require_finite_case_value(case, "center_y_mm")
+    if length_mm <= 0:
+        raise ConfigError(f"case {case.name}: length_mm must be positive")
+    if width_mm <= 0:
+        raise ConfigError(f"case {case.name}: width_mm must be positive")
+
+    half_length_m = length_mm / 2000.0
+    angle_rad = math.radians(angle_deg)
+    center_x_m = center_x_mm / 1000.0
+    center_y_m = center_y_mm / 1000.0
+    dx_m = half_length_m * math.cos(angle_rad)
+    dy_m = half_length_m * math.sin(angle_rad)
+    result = CrackGeometry(
+        end1_m=(center_x_m - dx_m, center_y_m - dy_m),
+        end2_m=(center_x_m + dx_m, center_y_m + dy_m),
+        radius_m=width_mm / 2000.0,
+    )
+
+    half_specimen_width_m = specimen.width_m / 2.0
+    half_specimen_height_m = specimen.height_m / 2.0
+    for endpoint_name, (x_m, y_m) in (
+        ("end1_m", result.end1_m),
+        ("end2_m", result.end2_m),
+    ):
+        if abs(x_m) > half_specimen_width_m or abs(y_m) > half_specimen_height_m:
+            raise ConfigError(
+                f"case {case.name}: crack endpoint {endpoint_name} is outside specimen"
+            )
+        if (
+            abs(x_m) + result.radius_m > half_specimen_width_m
+            or abs(y_m) + result.radius_m > half_specimen_height_m
+        ):
+            raise ConfigError(
+                f"case {case.name}: crack cylinder radius at {endpoint_name} "
+                "extends outside specimen"
+            )
+    return result
+
+
+def _scientific(value: float) -> str:
+    if not math.isfinite(value):
+        raise ConfigError("render context numeric values must be finite")
+    return format(value, ".6e")
+
+
+def _pfc_single_line_string(value: str, field: str) -> str:
+    if _has_forbidden_controls(value):
+        raise ConfigError(f"{field} may not contain CR, LF, or NUL")
+    return value.replace("'", "''")
+
+
+def render_context(
+    config: ScaffoldConfig, case: CaseConfig, case_index: int
+) -> dict[str, object]:
+    """Build a deterministic, locale-independent, template-safe context."""
+    if isinstance(case_index, bool) or not isinstance(case_index, int) or case_index < 0:
+        raise ConfigError("case_index must be a non-negative integer")
+
+    _validate_slug(config.project.slug, "project.slug", slug_errors := [])
+    _validate_slug(case.name, "case.case_name", slug_errors)
+    if slug_errors:
+        raise ConfigError("Invalid render context:\n- " + "\n- ".join(slug_errors))
+    if config.project.pfc_version != "6.0":
+        raise ConfigError('project.pfc_version must be the string "6.0"')
+    if config.contact_model.family != "linearpbond":
+        raise ConfigError("contact_model.family must be linearpbond")
+
+    specimen = config.specimen
+    contact = config.contact_model
+    loading = config.loading
+    context: dict[str, object] = {
+        "project_slug": config.project.slug,
+        "project_title": _pfc_single_line_string(config.project.title, "project.title"),
+        "pfc_version": config.project.pfc_version,
+        "case_name": case.name,
+        "random_seed": config.project.random_seed_base + case_index,
+        "specimen_width_m": _scientific(specimen.width_m),
+        "specimen_height_m": _scientific(specimen.height_m),
+        "particle_radius_min_m": _scientific(specimen.radius_min_m),
+        "particle_radius_max_m": _scientific(specimen.radius_max_m),
+        "target_porosity": _scientific(specimen.porosity),
+        "density_kg_m3": _scientific(specimen.density_kg_m3),
+        "damping": _scientific(specimen.damping),
+        "contact_family": contact.family,
+        "linear_emod_pa": _scientific(contact.linear_emod_pa),
+        "bond_emod_pa": _scientific(contact.bond_emod_pa),
+        "kratio": _scientific(contact.kratio),
+        "pb_ten_pa": _scientific(contact.pb_ten_pa),
+        "pb_coh_pa": _scientific(contact.pb_coh_pa),
+        "pb_fa_deg": _scientific(contact.pb_fa_deg),
+        "friction": _scientific(contact.friction),
+        "wall_velocity_m_s": _scientific(loading.wall_velocity_m_s),
+        "peak_drop_fraction": _scientific(loading.peak_drop_fraction),
+        "target_peak_strain_guess": _scientific(loading.target_peak_strain_guess),
+        "history_interval": loading.history_interval,
+    }
+    for label, fraction in zip("abcd", loading.stage_fractions, strict=True):
+        context[f"stage_{label}_strain"] = _scientific(
+            loading.target_peak_strain_guess * fraction
+        )
+
+    warnings: list[str] = []
+    if case.family == "intact" and not case.crack_enabled and case.crack_type is None:
+        context["crack_command"] = "; intact case: no crack deletion"
+    elif (
+        case.family == "straight_crack"
+        and case.crack_enabled
+        and case.crack_type == "straight"
+    ):
+        geometry = crack_geometry(case, specimen)
+        context["crack_command"] = (
+            "ball delete range cylinder "
+            f"end-1 {_scientific(geometry.end1_m[0])} {_scientific(geometry.end1_m[1])} "
+            f"end-2 {_scientific(geometry.end2_m[0])} {_scientific(geometry.end2_m[1])} "
+            f"radius {_scientific(geometry.radius_m)}"
+        )
+        width_mm = _require_finite_case_value(case, "width_mm")
+        threshold_mm = 2.0 * specimen.radius_max_mm
+        if width_mm < threshold_mm:
+            warnings.append(
+                f"case {case.name}: crack width_mm {_scientific(width_mm)} is less "
+                "than twice particle_radius_max_mm "
+                f"{_scientific(threshold_mm)}"
+            )
+    else:
+        raise ConfigError(f"case {case.name}: unsupported render case state")
+
+    context["warnings"] = tuple(warnings)
+    return context

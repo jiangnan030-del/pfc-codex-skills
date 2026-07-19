@@ -8,7 +8,13 @@ import yaml
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from cpb2d_scaffold import ConfigError, load_intake, validate_config
+from cpb2d_scaffold import (
+    ConfigError,
+    crack_geometry,
+    load_intake,
+    render_context,
+    validate_config,
+)
 
 FIXTURE = Path(__file__).parent / "fixtures" / "intake_minimal.yaml"
 
@@ -317,3 +323,112 @@ def test_validate_config_rejects_non_finite_replaced_values(section, field):
         changed = replace(getattr(cfg, attribute), **{field: float("inf")})
         cfg = replace(cfg, **{attribute: changed})
     assert any(field in error and "finite" in error for error in validate_config(cfg))
+
+
+def test_horizontal_crack_geometry_uses_metres_half_length_center_and_half_width():
+    cfg = load_intake(FIXTURE)
+    crack = crack_geometry(cfg.cases[1], cfg.specimen)
+    assert crack.end1_m == pytest.approx((-0.01, 0.0))
+    assert crack.end2_m == pytest.approx((0.01, 0.0))
+    assert crack.radius_m == pytest.approx(0.0015)
+
+
+def test_vertical_and_rotated_crack_geometry_uses_angle_and_center():
+    cfg = load_intake(FIXTURE)
+    vertical = replace(
+        cfg.cases[1], angle_deg=90.0, length_mm=10.0, center_x_mm=2.0,
+        center_y_mm=-3.0,
+    )
+    crack = crack_geometry(vertical, cfg.specimen)
+    assert crack.end1_m == pytest.approx((0.002, -0.008))
+    assert crack.end2_m == pytest.approx((0.002, 0.002))
+
+    rotated = replace(
+        cfg.cases[1], angle_deg=45.0, length_mm=10.0, center_x_mm=1.0,
+        center_y_mm=2.0,
+    )
+    crack = crack_geometry(rotated, cfg.specimen)
+    offset = 0.005 / (2**0.5)
+    assert crack.end1_m == pytest.approx((0.001 - offset, 0.002 - offset))
+    assert crack.end2_m == pytest.approx((0.001 + offset, 0.002 + offset))
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        {"center_x_mm": 19.0, "length_mm": 20.0},
+        {"center_y_mm": 19.0, "angle_deg": 90.0, "length_mm": 20.0},
+    ],
+)
+def test_crack_endpoint_outside_specimen_is_rejected(case):
+    cfg = load_intake(FIXTURE)
+    bad = replace(cfg.cases[1], **case)
+    with pytest.raises(ConfigError, match=r"case b0_d20.*outside specimen"):
+        crack_geometry(bad, cfg.specimen)
+
+
+def test_crack_cylinder_radius_must_fit_inside_specimen():
+    cfg = load_intake(FIXTURE)
+    bad = replace(
+        cfg.cases[1], center_x_mm=14.0, length_mm=10.0, width_mm=4.0,
+    )
+    with pytest.raises(ConfigError, match=r"case b0_d20.*cylinder radius.*outside specimen"):
+        crack_geometry(bad, cfg.specimen)
+
+
+def test_crack_geometry_rejects_intact_case_with_case_field():
+    cfg = load_intake(FIXTURE)
+    with pytest.raises(ConfigError, match=r"case intact"):
+        crack_geometry(cfg.cases[0], cfg.specimen)
+
+
+def test_case_seed_is_deterministic_and_negative_index_is_rejected():
+    cfg = load_intake(FIXTURE)
+    intact = render_context(cfg, cfg.cases[0], 0)
+    crack = render_context(cfg, cfg.cases[1], 1)
+    assert intact["random_seed"] == 31000
+    assert crack["random_seed"] == 31001
+    with pytest.raises(ConfigError, match="case_index"):
+        render_context(cfg, cfg.cases[0], -1)
+
+
+def test_render_context_formats_numbers_and_calculates_stage_strains():
+    cfg = load_intake(FIXTURE)
+    context = render_context(cfg, cfg.cases[1], 1)
+    assert context["specimen_width_m"] == "4.000000e-02"
+    assert context["particle_radius_min_m"] == "3.000000e-04"
+    assert context["linear_emod_pa"] == "2.200000e+06"
+    assert context["stage_a_strain"] == "2.000000e-02"
+    assert context["stage_b_strain"] == "4.000000e-02"
+    assert context["stage_c_strain"] == "6.000000e-02"
+    assert context["stage_d_strain"] == "7.200000e-02"
+
+
+def test_render_context_builds_only_known_safe_crack_commands():
+    cfg = load_intake(FIXTURE)
+    intact = render_context(cfg, cfg.cases[0], 0)
+    straight = render_context(cfg, cfg.cases[1], 1)
+    assert intact["crack_command"].startswith(";")
+    assert "ball delete" not in intact["crack_command"]
+    assert straight["crack_command"] == (
+        "ball delete range cylinder end-1 -1.000000e-02 0.000000e+00 "
+        "end-2 1.000000e-02 0.000000e+00 radius 1.500000e-03"
+    )
+
+
+def test_render_context_returns_testable_narrow_crack_warning():
+    cfg = load_intake(FIXTURE)
+    narrow = replace(cfg.cases[1], width_mm=0.9)
+    context = render_context(cfg, narrow, 1)
+    assert context["warnings"] == (
+        "case b0_d20: crack width_mm 9.000000e-01 is less than twice "
+        "particle_radius_max_mm 1.000000e+00",
+    )
+    assert render_context(cfg, cfg.cases[1], 1)["warnings"] == ()
+
+
+def test_project_title_is_pfc_safe_single_line_text():
+    cfg = load_intake(FIXTURE)
+    quoted = replace(cfg.project, title="O'Brien's CPB")
+    context = render_context(replace(cfg, project=quoted), cfg.cases[0], 0)
+    assert context["project_title"] == "O''Brien''s CPB"
