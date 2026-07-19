@@ -53,7 +53,7 @@
 - Create: `skills/pfc-workflow/tests/test_cpb2d_scaffold.py`
 - Create: `skills/pfc-workflow/tests/fixtures/intake_minimal.yaml`
 
-- [ ] **Step 1: Write failing tests for slug, specimen, case, and unit validation**
+- [x] **Step 1: Write failing tests for slug, specimen, case, and unit validation**
 
 ```python
 # skills/pfc-workflow/tests/test_cpb2d_scaffold.py
@@ -95,7 +95,7 @@ def test_non_positive_particle_radius_is_rejected(tmp_path):
         load_intake(intake)
 ```
 
-- [ ] **Step 2: Add the deterministic fixture**
+- [x] **Step 2: Add the deterministic fixture**
 
 ```yaml
 # skills/pfc-workflow/tests/fixtures/intake_minimal.yaml
@@ -151,7 +151,7 @@ cases:
     center_y_mm: 0.0
 ```
 
-- [ ] **Step 3: Run tests and verify they fail**
+- [x] **Step 3: Run tests and verify they fail**
 
 Run:
 
@@ -162,7 +162,7 @@ cd pfc-codex-skills
 
 Expected: collection fails with `ModuleNotFoundError: No module named 'cpb2d_scaffold'`.
 
-- [ ] **Step 4: Implement typed config loading and validation**
+- [x] **Step 4: Implement typed config loading and validation**
 
 Implement these public types and signatures in `cpb2d_scaffold.py`:
 
@@ -227,13 +227,13 @@ Validation rules must be exact:
 
 Use `yaml.safe_load`; do not add a second YAML library.
 
-- [ ] **Step 5: Run tests and verify they pass**
+- [x] **Step 5: Run tests and verify they pass**
 
 Run the Step 3 command.
 
 Expected: all Task 1 tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/pfc-workflow/scripts/cpb2d_scaffold.py \
