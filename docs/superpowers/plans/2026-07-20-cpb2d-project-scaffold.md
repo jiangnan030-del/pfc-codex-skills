@@ -250,7 +250,7 @@ git commit -m "feat: add CPB2D scaffold configuration contract"
 - Modify: `skills/pfc-workflow/scripts/cpb2d_scaffold.py`
 - Modify: `skills/pfc-workflow/tests/test_cpb2d_scaffold.py`
 
-- [ ] **Step 1: Write failing geometry tests**
+- [x] **Step 1: Write failing geometry tests**
 
 ```python
 from cpb2d_scaffold import crack_geometry, render_context
@@ -281,7 +281,7 @@ def test_case_seed_is_deterministic_and_distinct():
 
 Define `FIXTURE = Path(__file__).parent / "fixtures" / "intake_minimal.yaml"` once at module scope.
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -k "crack or seed" -v
@@ -289,7 +289,7 @@ Define `FIXTURE = Path(__file__).parent / "fixtures" / "intake_minimal.yaml"` on
 
 Expected: import failure for `crack_geometry` or `render_context`.
 
-- [ ] **Step 3: Implement geometry and render context**
+- [x] **Step 3: Implement geometry and render context**
 
 Add:
 
@@ -320,11 +320,11 @@ def render_context(config: ScaffoldConfig, case: CaseConfig, case_index: int) ->
 
 Emit a warning string when `width_mm < 2 * particle_radius_max_mm`; do not reject it.
 
-- [ ] **Step 4: Run tests and verify pass**
+- [x] **Step 4: Run tests and verify pass**
 
 Run Step 2 command, then the full Task 1 suite.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/pfc-workflow/scripts/cpb2d_scaffold.py skills/pfc-workflow/tests/test_cpb2d_scaffold.py
