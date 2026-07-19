@@ -1,0 +1,68 @@
+; Minimal PFC2D linear parallel-bond fracture tracking.
+fish define add_crack(entries)
+    local contact = entries(1)
+    local mode = entries(2)
+    local frac_pos = contact.pos(contact)
+    local norm = contact.normal(contact)
+    local dfn_label = 'crack'
+    local bp1 = contact.end1(contact)
+    local bp2 = contact.end2(contact)
+    local frac_size = math.min(ball.radius(bp1), ball.radius(bp2))
+    local in_dir = vector(-comp.y(norm), comp.x(norm))
+    local vertices = array.create(4)
+    vertices(1) = 'vertices'
+    vertices(2) = 2
+    vertices(3) = frac_pos + in_dir * frac_size
+    vertices(4) = frac_pos - in_dir * frac_size
+
+    crack_num = crack_num + 1
+    local record_index = 0
+    if crack_record_count < crack_record_max then
+        crack_record_count = crack_record_count + 1
+        record_index = crack_record_count
+        crack_angle_record(record_index) = math.atan2(comp.y(in_dir), comp.x(in_dir)) * 180.0 / math.pi
+    end_if
+    if mode = 1 then
+        dfn_label = dfn_label + '_tension'
+        crack_tension_num = crack_tension_num + 1
+        if record_index > 0 then
+            crack_type_record(record_index) = 'tension'
+        end_if
+    else if mode = 2 then
+        dfn_label = dfn_label + '_shear'
+        crack_shear_num = crack_shear_num + 1
+        if record_index > 0 then
+            crack_type_record(record_index) = 'shear'
+        end_if
+    else
+        if record_index > 0 then
+            crack_type_record(record_index) = 'unknown'
+        end_if
+    end_if
+
+    local dfn_pointer = dfn.find(dfn_label)
+    if dfn_pointer = null then
+        dfn_pointer = dfn.create(dfn_label)
+    end_if
+    local new_fracture = fracture.create(dfn_pointer, vertices)
+    fracture.prop(new_fracture, 'age') = mech.time.total
+    fracture.extra(new_fracture, 1) = bp1
+    fracture.extra(new_fracture, 2) = bp2
+end
+
+fish define track_init
+    command
+        fracture delete
+        fragment clear
+        fragment register ball-ball
+        fish callback remove @add_crack
+        fish callback add @add_crack event bond_break
+    endcommand
+    global crack_num = 0
+    global crack_tension_num = 0
+    global crack_shear_num = 0
+    global crack_record_count = 0
+    global crack_record_max = 200000
+    global crack_angle_record = array.create(crack_record_max)
+    global crack_type_record = array.create(crack_record_max)
+end

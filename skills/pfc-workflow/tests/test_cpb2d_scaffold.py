@@ -12,9 +12,20 @@ from cpb2d_scaffold import (
     ConfigError,
     crack_geometry,
     load_intake,
+    render_case_files,
     render_context,
+    render_template,
     validate_config,
 )
+
+REQUIRED_CASE_FILES = {
+    "1model.dat",
+    "2bond.dat",
+    "3load.dat",
+    "4export.dat",
+    "fracture.p2fis",
+    "run_all.dat",
+}
 
 FIXTURE = Path(__file__).parent / "fixtures" / "intake_minimal.yaml"
 
@@ -498,3 +509,73 @@ def test_project_title_is_pfc_safe_single_line_text():
     quoted_cfg = replace(cfg, project=quoted)
     context = render_context(quoted_cfg, quoted_cfg.cases[0], 0)
     assert context["project_title"] == "O''Brien''s CPB"
+
+
+def test_rendered_intact_has_complete_stage_and_export_contract():
+    cfg = load_intake(FIXTURE)
+    files = render_case_files(cfg, cfg.cases[0], 0)
+    assert set(files) == REQUIRED_CASE_FILES
+    assert "model save 'sample'" in files["1model.dat"]
+    assert "ball delete range cylinder" not in files["2bond.dat"]
+    assert "contact model linearpbond" in files["2bond.dat"]
+    for name in ["stage_a", "stage_b", "stage_c", "stage_d"]:
+        assert files["3load.dat"].count(f"model save '{name}'") == 1
+    assert "model save 'peak'" in files["3load.dat"]
+    assert "model save 'final'" in files["3load.dat"]
+    assert "peak_drop_fraction" in files["3load.dat"]
+    assert (
+        "strain,stress_mpa,crack_num,crack_tension_num,crack_shear_num"
+        in files["4export.dat"]
+    )
+    assert "stress_strain_step.csv" in files["4export.dat"]
+
+
+def test_rendered_crack_uses_parameterized_cylinder():
+    cfg = load_intake(FIXTURE)
+    files = render_case_files(cfg, cfg.cases[1], 1)
+    assert "contact model linearpbond" in files["2bond.dat"]
+    assert "ball delete range cylinder" in files["2bond.dat"]
+    assert "-1.000000e-02" in files["2bond.dat"]
+    assert "1.500000e-03" in files["2bond.dat"]
+
+
+def test_run_all_is_single_ordered_entrypoint():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["run_all.dat"]
+    assert text.splitlines() == [
+        "program call '1model.dat'",
+        "program call '2bond.dat'",
+        "program call '3load.dat'",
+        "program call '4export.dat'",
+    ]
+
+
+def test_template_rendering_is_strict_and_validates_case_binding():
+    with pytest.raises(KeyError):
+        render_template("1model.dat.tpl", {})
+
+    cfg = load_intake(FIXTURE)
+    with pytest.raises(ConfigError, match="configured case"):
+        render_case_files(cfg, cfg.cases[1], 0)
+
+
+def test_rendered_templates_have_no_unresolved_or_private_heavy_ae_content():
+    cfg = load_intake(FIXTURE)
+    forbidden = ("${", "ghp_", "moment_tensor", "fig9", "export_ae", "ae_event")
+    drive_path = r"[A-Za-z]:[\\/]"
+    for case_index, case in enumerate(cfg.cases):
+        files = render_case_files(cfg, case, case_index)
+        assert set(files) == REQUIRED_CASE_FILES
+        for text in files.values():
+            assert not any(token.lower() in text.lower() for token in forbidden)
+            assert not __import__("re").search(drive_path, text)
+
+
+def test_fracture_template_has_minimal_mode_counts_and_orientation_records():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["fracture.p2fis"]
+    assert "crack_tension_num" in text
+    assert "crack_shear_num" in text
+    assert "crack_angle_record" in text
+    assert "crack_type_record" in text
+    assert "bond_break" in text

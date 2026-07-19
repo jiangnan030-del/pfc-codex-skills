@@ -6,7 +6,8 @@ from dataclasses import dataclass
 import math
 from pathlib import Path
 import re
-from typing import Any
+from string import Template
+from typing import Any, Mapping
 
 import yaml
 
@@ -24,6 +25,15 @@ _WINDOWS_DEVICES = {
 _CASE_FAMILIES = {"intact", "straight_crack", "polyline_reserved"}
 _CRACK_TYPES = {"straight", "polyline_reserved"}
 _MISSING = object()
+_TEMPLATE_ROOT = Path(__file__).resolve().parents[1] / "templates" / "cpb2d-scaffold"
+_TEMPLATE_OUTPUTS = {
+    "1model.dat": "1model.dat.tpl",
+    "2bond.dat": "2bond.dat.tpl",
+    "3load.dat": "3load.dat.tpl",
+    "4export.dat": "4export.dat.tpl",
+    "run_all.dat": "run_all.dat.tpl",
+}
+_REQUIRED_CASE_FILES = {*_TEMPLATE_OUTPUTS, "fracture.p2fis"}
 
 
 class ConfigError(ValueError):
@@ -659,6 +669,11 @@ def render_context(
         "random_seed": random_seed,
         "specimen_width_m": _scientific(specimen.width_m),
         "specimen_height_m": _scientific(specimen.height_m),
+        "specimen_half_width_m": _scientific(specimen.width_m / 2.0),
+        "specimen_half_height_m": _scientific(specimen.height_m / 2.0),
+        "domain_half_extent_m": _scientific(
+            max(specimen.width_m, specimen.height_m) * 1.25
+        ),
         "particle_radius_min_m": _scientific(specimen.radius_min_m),
         "particle_radius_max_m": _scientific(specimen.radius_max_m),
         "target_porosity": _scientific(specimen.porosity),
@@ -710,3 +725,31 @@ def render_context(
 
     context["warnings"] = warning
     return context
+
+
+def render_template(name: str, context: Mapping[str, object]) -> str:
+    """Render one allow-listed PFC template and fail on every missing key."""
+    if name not in _TEMPLATE_OUTPUTS.values():
+        raise ConfigError(f"unknown CPB2D template: {name}")
+    template_path = _TEMPLATE_ROOT / name
+    return Template(template_path.read_text(encoding="utf-8-sig")).substitute(context)
+
+
+def render_case_files(
+    config: ScaffoldConfig, case: CaseConfig, case_index: int
+) -> dict[str, str]:
+    """Render the exact six-file PFC2D case contract."""
+    context = render_context(config, case, case_index)
+    files = {
+        output_name: render_template(template_name, context)
+        for output_name, template_name in _TEMPLATE_OUTPUTS.items()
+    }
+    files["fracture.p2fis"] = (_TEMPLATE_ROOT / "fracture.p2fis").read_text(
+        encoding="utf-8-sig"
+    )
+    if set(files) != _REQUIRED_CASE_FILES:
+        raise ConfigError("rendered case does not match the six-file contract")
+    unresolved = [name for name, text in files.items() if "${" in text]
+    if unresolved:
+        raise ConfigError(f"unresolved template placeholders in: {', '.join(unresolved)}")
+    return files
