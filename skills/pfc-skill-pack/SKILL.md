@@ -49,6 +49,7 @@ Other domain skills, such as contact-model, FISH, CAD import, dynamics, coupling
 - `pfc-postprocessing`: child skill for standard figures, fields, exports, animations, and report tables.
 - `pfc-ae-energy`: child skill for AE, energy, event clustering, and source-mechanism plots.
 - `pfc-fast-calibration`: child skill for improved LPBM fast calibration using strong/weak contact grouping, Weibull damage, orthogonal design, and regression back-solving.
+- `dual-target-calibration`: child skill for exactly two active levers and two coupled targets under a tight trial budget, with zero-crossing, guarded local solves, basin recovery, and sensitivity checkpoints.
 - `pfc-gbm-brittle-rock`: child skill for PFC2D GBM/equivalent-crystal brittle-rock modeling with smooth-joint grain boundaries, prefabricated cracks, biaxial loading, fracture tracking, and energy histories.
 - `pfc-stress-wave-aelocation`: child skill for stress-wave propagation, Ricker excitation, dispersion and boundary checks, cross-correlation time delays, and velocity-free AE source localization.
 - Foundation skills such as basics, FISH, contact models, and servo calibration should be invoked by `pfc-workflow` when their specialized topic is needed.

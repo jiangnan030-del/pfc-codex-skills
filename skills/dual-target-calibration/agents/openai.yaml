@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dual-Target Calibration"
+  short_description: "Trial-efficient two-lever/two-target calibration with zero-crossing, basin recovery, and guarded local solves."
+  default_prompt: "Use $dual-target-calibration through pfc-workflow to calibrate exactly two active micro-parameter levers against two confirmed coupled macro targets with a strict true-run budget, checkpointed zero crossings, guarded 2x2 or least-squares solves, and an independent confirmation run."

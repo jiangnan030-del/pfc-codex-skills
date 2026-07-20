@@ -6,11 +6,11 @@
 
 **给 AI Agent（Claude Code / Codex / Cursor 等）用的 ITASCA PFC 全流程技能包——从规划、建模、标定、求解到后处理与可视化**
 
-23 个技能 · PFC 6.0 优先模板 · 七阶段生命周期 · 手动 / 快速 / 自动三条标定路线 · ParaView/Python/vedo 后处理 · AE/能量分析 · 发布前确定性校验
+24 个技能 · PFC 6.0 优先模板 · 七阶段生命周期 · 手动 / 双目标 / 快速 / 自动四条标定路线 · ParaView/Python/vedo 后处理 · AE/能量分析 · 发布前确定性校验
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PFC 6.0](https://img.shields.io/badge/PFC-6.0%20first-blue)](skills/pfc-skill-pack/SKILL.md)
-[![Skills](https://img.shields.io/badge/skills-23-059669)](references/skill-index.md)
+[![Skills](https://img.shields.io/badge/skills-24-059669)](references/skill-index.md)
 [![Validation](https://img.shields.io/badge/validation-validate__skills.py-8b5cf6)](scripts/validate_skills.py)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub Stars](https://img.shields.io/github/stars/jiangnan030-del/pfc-codex-skills?style=flat&logo=github&color=0ea5e9)](https://github.com/jiangnan030-del/pfc-codex-skills/stargazers)
@@ -26,10 +26,10 @@
 
 ## ✨ 核心特性
 
-- **23 个技能家族**：1 个治理枢纽（`pfc-skill-pack`）+ 1 个编排器（`pfc-workflow`）+ 21 个专家子技能，覆盖建模基础、接触模型、标准试验、标定、脆性岩石专题、动力学与耦合、后处理与可视化。
+- **24 个技能家族**：1 个治理枢纽（`pfc-skill-pack`）+ 1 个编排器（`pfc-workflow`）+ 22 个专家子技能，覆盖建模基础、接触模型、标准试验、标定、脆性岩石专题、动力学与耦合、后处理与可视化。
 - **七阶段生命周期**：`P1` 规划 → `P2` 预处理/试样 → `P3` 标定 → `P4` 求解控制 → `P5` 后处理 → `P6` 验证 → `P7` 交付，跨阶段任务留在 `pfc-workflow`，只把专家部分委托给子技能。
 - **PFC 6.0 优先**：所有公开模板默认 PFC 6.0 兼容；版本差异（5.0→6.0、7.0）在 `references/pfc5-to-pfc6-migration-map.md` 显式声明，不靠记忆。
-- **三条标定路线**：手动伺服微宏映射（`pfc-servo-calibration`）· LPBM 13 因子正交 + 回归反解（`pfc-fast-calibration`）· LHS→代理→贝叶斯优化自动标定（`pfc-workflow`）。
+- **四条标定路线**：手动伺服微宏映射（`pfc-servo-calibration`）· 双杠杆/双靶标小预算收敛（`dual-target-calibration`）· LPBM 13 因子正交 + 回归反解（`pfc-fast-calibration`）· LHS→代理→贝叶斯优化自动标定（`pfc-workflow`）。
 - **可移植不绑死本机**：用相对路径 + 占位符 `<PFC_CONSOLE_EXE>` / `<CASE_DIR>`，绝不出现私有绝对路径；校验脚本确定性扫描。
 - **后处理全覆盖**：标准曲线/场图/动画（`pfc-postprocessing`）· vedo 三维力链/裂纹/位移场（`pfc-vedo-postprocess`）· AE 事件/能量/矩张量/震源机制（`pfc-ae-energy`）。
 - **确定性发布校验**：`validate_skills.py` 扫 frontmatter、断链、绝对路径、疑似密钥、超大文件、二进制资产——0 ERROR 才推送 GitHub。
@@ -43,8 +43,8 @@
 pfc-skill-pack          # 治理层：路由约定、资产清单、PFC5→6 迁移、插件策略
   └─ pfc-workflow       # 编排层：P1–P7 全生命周期，按阶段把专家任务分派给子技能
       ├─ pfc-basics            pfc-contact-models     pfc-standard-tests
-      ├─ pfc-servo-calibration pfc-fast-calibration   pfc-fish
-      ├─ pfc-cad-import        pfc-modeling-techniques
+      ├─ pfc-servo-calibration dual-target-calibration pfc-fast-calibration
+      ├─ pfc-fish               pfc-cad-import           pfc-modeling-techniques
       ├─ pfc-gbm-brittle-rock  pfc-mineral-heterogeneity  pfc-brittle-rock-bpm
       ├─ pfc-equivalent-crystal-model  pfc-flat-joint-brittle-rock
       ├─ pfc-dynamics          pfc-stress-wave-aelocation
@@ -69,6 +69,7 @@ pfc-skill-pack          # 治理层：路由约定、资产清单、PFC5→6 迁
 | 选接触本构、CMAT、胶结方法 | `pfc-contact-models` |
 | UCS/巴西/双轴/三轴/直剪标准试验 | `pfc-standard-tests` |
 | 手动伺服 + 微宏参数映射 | `pfc-servo-calibration` |
+| 两个活跃杠杆同时命中两个耦合靶标 | `dual-target-calibration` |
 | LPBM 13 因子正交快速标定 | `pfc-fast-calibration` |
 | LHS/代理/贝叶斯自动标定 | `pfc-workflow`（自动标定路线） |
 | FISH 函数/回调/历史/IO | `pfc-fish` |
@@ -84,7 +85,7 @@ pfc-skill-pack          # 治理层：路由约定、资产清单、PFC5→6 迁
 | AE 事件/能量/矩张量/震源机制图 | `pfc-ae-energy` |
 | 中国传统色数据可视化配色 | `xxd-data-viz` |
 
-## 🎨 技能家族（23 个）
+## 🎨 技能家族（24 个）
 
 按职能分组，每组都打磨到"按路由调用即用"：
 
@@ -93,7 +94,7 @@ pfc-skill-pack          # 治理层：路由约定、资产清单、PFC5→6 迁
 | **治理 & 编排** | `pfc-skill-pack` · `pfc-workflow` | 包级约定、路由；P1–P7 全生命周期编排 |
 | **建模基础** | `pfc-basics` · `pfc-contact-models` · `pfc-fish` · `pfc-cad-import` · `pfc-modeling-techniques` | 模型生命周期、接触本构、FISH、几何导入、建模技巧 |
 | **标准试验** | `pfc-standard-tests` | UCS/巴西/双轴/三轴/直剪/三点弯曲 PFC 6.0 模板 |
-| **标定** | `pfc-servo-calibration` · `pfc-fast-calibration` | 手动伺服微宏映射；LPBM 13 因子正交快速标定 |
+| **标定** | `pfc-servo-calibration` · `dual-target-calibration` · `pfc-fast-calibration` | 手动伺服微宏映射；双杠杆/双靶标小预算标定；LPBM 13 因子正交快速标定 |
 | **脆性岩石专题** | `pfc-brittle-rock-bpm` · `pfc-equivalent-crystal-model` · `pfc-flat-joint-brittle-rock` · `pfc-gbm-brittle-rock` · `pfc-mineral-heterogeneity` | BPM 极限、等效晶格、平节理、GBM、矿物非均质 |
 | **动力学 & 耦合** | `pfc-dynamics` · `pfc-stress-wave-aelocation` · `pfc-fluid-coupling` · `pfc-flac-coupling` | 动力/地震、应力波/AE 定位、流固耦合、离散-连续耦合 |
 | **后处理 & 可视化** | `pfc-postprocessing` · `pfc-vedo-postprocess` · `pfc-ae-energy` | 标准图/场/动画、vedo 三维、AE/能量/震源机制 |
@@ -135,7 +136,7 @@ git clone https://github.com/jiangnan030-del/pfc-codex-skills.git ~/.codex/skill
 
 1. **P1 规划** — 先定五项再碰代码：维度（2D/3D）· 试样/材料类（颗粒/胶结/节理/耦合）· 加载路径（UCS/巴西/双轴/三轴/直剪/循环/蠕变）· 目标观测量 · 输出契约。用 `templates/scope.md` 作骨架。
 2. **P2 预处理/试样** — 固定随机种子、明确级配、显式边界、分阶段存档（压实/胶结/加载）。标准试验先走 `pfc-standard-tests` 选模板再回编排器。
-3. **P3 标定** — 默认顺序：弹性（`emod` + 刚度比）→ 强度（胶结强度）→ 摩擦/破坏包络。需伺服/边界控制走 `pfc-servo-calibration`；需 LPBM 快速标定走 `pfc-fast-calibration`；手动收益见顶后转自动优化。
+3. **P3 标定** — 默认顺序：弹性（`emod` + 刚度比）→ 强度（胶结强度）→ 摩擦/破坏包络。需伺服/边界控制走 `pfc-servo-calibration`；恰好两个杠杆/两个靶标且预算严格时走 `dual-target-calibration`；需 LPBM 13 因子快速标定走 `pfc-fast-calibration`；维度更高或局部响应失效时转自动优化。
 4. **P4 求解控制** — 先小批量试算再全长；显式控制时步、阻尼、停止准则、批策略；存重启态而非一根长脆跑。
 5. **P5 后处理** — 至少可复现导出：应力-应变、峰值/残余、裂纹演化、力链、孔隙率、绑定存态。标准图走 `pfc-postprocessing`，vedo 三维走 `pfc-vedo-postprocess`，AE/能量走 `pfc-ae-energy`。
 6. **P6 验证** — 分两类：验证（数值设置/分辨率/时步/阻尼敏感性）+ 确认（与试验/基准吻合）。
@@ -200,6 +201,7 @@ pfc-codex-skills/
     ├── pfc-contact-models/         # 接触本构
     ├── pfc-standard-tests/         # 标准试验模板
     ├── pfc-servo-calibration/      # 手动伺服标定
+    ├── dual-target-calibration/    # 双杠杆/双靶标小预算标定（AGPL-3.0）
     ├── pfc-fast-calibration/       # LPBM 快速标定
     ├── pfc-fish/                   # FISH 编程
     ├── pfc-cad-import/             # CAD/几何导入
@@ -230,19 +232,23 @@ pfc-codex-skills/
 - **PFC 6.0 first** — 默认 6.0 兼容模板，版本差异显式声明，不混用。
 - **可移植优先** — 相对路径 + 占位符，克隆到任何机器、任何 Agent 都能跑。
 
-## 🧠 方法论：标定的三条路线
+## 🧠 方法论：标定的四条路线
 
-PFC 标定没有银弹，本包按"从快到精"提供三条可切换路线，均由编排器 `pfc-workflow` 在 P3 阶段按需路由：
+PFC 标定没有银弹，本包提供四条边界清晰、可切换的路线，均由编排器 `pfc-workflow` 在 P3 阶段按需路由：
 
 ### 路线一：手动伺服 + 微宏映射（`pfc-servo-calibration`）
 
 适合参数少、机理清晰、需要人工把控的案例。固定顺序：弹性（`emod` + 刚度比）→ 强度（胶结强度）→ 摩擦/破坏包络；每族参数一次只动一个，除非是显式自动化campaign。需应力/力伺服、围压、伺服墙稳定性时由本技能提供边界控制片段。
 
-### 路线二：LPBM 13 因子正交快速标定（`pfc-fast-calibration`）
+### 路线二：双杠杆 / 双靶标小预算标定（`dual-target-calibration`）
+
+适合**恰好两个活跃微参数杠杆**同时匹配**两个已确认的耦合宏观靶标**，且真实试算预算严格的案例。流程为双跨零采样 → 受保护的 2×2 局部精确解 → 盆地最小二乘恢复 → 受控敏感度微调；任何回归预测都必须由真实算例和独立确认 run 验证。多于两个杠杆、无法跨零或响应秩不足时必须退出本路线。
+
+### 路线三：LPBM 13 因子正交快速标定（`pfc-fast-calibration`）
 
 适合改进型线性平行胶结模型（LPBM）的多参数快速标定：13 个微参数 · 强/弱接触分组 · Weibull 损伤 · 13 因子正交设计 · Pearson 相关性 · 回归公式 · 由宏观目标反解微观参数。比手动快、比全自动省算力。
 
-### 路线三：LHS → 代理 → 贝叶斯自动标定（`pfc-workflow`）
+### 路线四：LHS → 代理 → 贝叶斯自动标定（`pfc-workflow`）
 
 适合黑盒、昂贵、多目标的自动标定campaign。默认序列：
 
@@ -274,7 +280,7 @@ PFC 标定没有银弹，本包按"从快到精"提供三条可切换路线，�
 
 ## 🗺 Roadmap
 
-- [x] 23 个技能家族 + 七阶段生命周期编排
+- [x] 24 个技能家族 + 七阶段生命周期编排
 - [x] 发布前确定性校验（`validate_skills.py`）
 - [x] PFC5→PFC6 迁移映射与插件策略
 - [ ] 更多标准试验模板（蠕变、循环、真三轴）
@@ -318,6 +324,7 @@ A：能。每个技能自包含，把 `skills/<skill>/` 整个文件夹拷进你
 | `pfc-modeling-techniques` | 基础 | 边界伺服、装配、加载率、尺寸效应等实用技巧 |
 | `pfc-standard-tests` | 试验 | UCS/巴西/双轴/三轴/直剪/三点弯曲模板 |
 | `pfc-servo-calibration` | 标定 | 手动伺服 + 微宏映射顺序 |
+| `dual-target-calibration` | 标定 | 两杠杆/两靶标跨零、局部求解、盆地恢复与敏感度检查 |
 | `pfc-fast-calibration` | 标定 | LPBM 13 因子正交 + Pearson + 回归反解 |
 | `pfc-brittle-rock-bpm` | 脆岩 | 脆性岩力学与 BPM 假设极限 |
 | `pfc-equivalent-crystal-model` | 脆岩 | 等效晶格模型构建与标定 |
@@ -343,7 +350,7 @@ A：能。每个技能自包含，把 `skills/<skill>/` 整个文件夹拷进你
 
 **MIT © 2026 PFC Codex Skills contributors**
 
-本项目采用 **MIT** 协议：可自由使用、修改、分发，需保留版权与许可声明。完整条款见 [LICENSE](LICENSE)。
+本项目除显式声明的嵌套组件外采用 **MIT** 协议：可自由使用、修改、分发，需保留版权与许可声明。完整条款见 [LICENSE](LICENSE)。`skills/dual-target-calibration/` 保留其独立 **AGPL-3.0-or-later** 许可证与来源声明，详见 [`NOTICE.md`](skills/dual-target-calibration/NOTICE.md) 和该目录内的 [`LICENSE`](skills/dual-target-calibration/LICENSE)。
 
 > ⚠️ 本仓库只提供命令流模板与工作流，不授予 PFC、FLAC3D、ParaView 或任何第三方软件的使用授权；相关软件的合法授权由用户自行取得。
 

@@ -7,6 +7,8 @@ If the user explicitly asks about `贝叶斯优化`, `LHS`, `代理模型`, `响
 - `references/auto-calibration.md`
 - `references/doe-surrogate.md`
 
+If the task has exactly two confirmed targets, exactly two active levers, and a tight true-run budget, route the numerical decision method through `dual-target-calibration`. It uses guarded zero crossings, a local 2x2 solve, basin recovery, and controlled sensitivity. Return here or to auto-calibration if either response cannot cross zero, the response rank is deficient, or a third independent lever is required.
+
 ## Default tuning order
 
 1. elastic response
@@ -52,5 +54,6 @@ Perturb each active parameter around the current point to estimate local respons
 ## Anti-patterns
 
 - changing stiffness, bond strength, and friction aggressively in the same round
+- using the dual-target 2x2 solver with more than two independent levers or without explicit target crossings
 - calibrating a highly structured specimen before the intact or baseline specimen is acceptable
 - judging calibration from screenshots instead of exported metrics

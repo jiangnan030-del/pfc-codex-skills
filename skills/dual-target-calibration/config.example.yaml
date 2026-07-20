@@ -1,0 +1,34 @@
+# dual-target-calibration project template.
+# Copy this file into the project as config.yaml; do not write project results into the installed skill.
+engine: pfc2d                  # 任意 DEM/数值引擎，由 adapters 屏蔽差异
+
+targets:
+  A: {name: UCS,         unit: MPa, kind: strength,    value: null}   # 靶标值由 target() 填入
+  B: {name: peak_strain, unit: "%", kind: deformation, value: null}
+
+levers:
+  X: {name: emod,   bounds: [5.0e+5, 2.0e+7]}   # 刚度类主杠杆（物理边界必填）
+  Y: {name: pb_ten, bounds: [1.0e+4, 5.0e+6]}   # 强度类副杠杆
+
+linked:                        # 按比例联动的参数（保持比例不动）
+  pb_coh: "2.0 * pb_ten"
+
+frozen:                        # 冻结参数（含结构升级候选 krat）
+  pb_fa: 27.0
+  krat: 1.5
+  gap: 3.5e-5
+  dp_nratio: 0.5
+
+thresholds:
+  pass: 0.01                   # 双误差均 < 1% 才算 PASS
+  seed_divergence: 0.50        # T1 任一误差 > 50% = 落入错误盆地
+  exact_basin_error_span: 0.20 # 三点精确解允许的 B 误差极差
+  basin_jump:
+    dErrB: 0.03                # B 误差跳变阈值（3 个百分点）
+    per_dX: 1.0e+4             # 对应的 X 步长（默认 0.01e6）
+  regression_r2: 0.9           # 跨盆地最小二乘接受线
+  sensitivity_max_relative_y_change: 0.02 # 估 dA/dX、dB/dX 时允许的 Y 相对变化
+
+budget:
+  max_trials: 20               # 单模型试算上限
+  escalate_at: 10              # 连续不收敛时触发结构参数升级（如 krat 1.5 -> 2.0）

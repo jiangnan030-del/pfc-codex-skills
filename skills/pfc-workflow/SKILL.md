@@ -42,6 +42,10 @@ Use subskills only through this workflow split:
   13-factor orthogonal design, strong/weak contact grouping, Weibull damage,
   Pearson correlation, regression formulas, and macro-target back-solving; use
   during P3 when a bonded-rock calibration needs a fast multi-parameter route
+- `dual-target-calibration`: trial-budget-limited calibration with exactly two
+  active levers and two confirmed coupled macro targets, guarded zero-crossing,
+  local 2x2 solve, basin recovery, and controlled sensitivity fine-tuning; use
+  during P3 only after the baseline and experiment contract are reproducible
 - `pfc-fish`: FISH functions, callbacks, histories, IO helpers, maps/tables,
   object traversal, and reusable helper-file refactoring; use whenever the
   case needs nontrivial FISH logic or legacy FISH audit
@@ -145,6 +149,9 @@ Use these subskills as children, not peers:
 - `pfc-fast-calibration` during calibration when the task needs improved LPBM
   strong/weak contacts, Weibull damage, 13-factor orthogonal design, Pearson
   correlation, regression formulas, or quick back-solving from macro targets
+- `dual-target-calibration` during calibration when exactly two active levers
+  must match exactly two confirmed targets under a tight true-run budget and
+  local response basins require guarded zero-crossing/regression checkpoints
 - `pfc-fish` during planning/modeling/solve setup when the task needs FISH
   functions, callbacks, histories, object traversal, data IO, maps/tables, or
   refactoring reusable helper files
@@ -214,6 +221,13 @@ If calibration needs improved LPBM strong/weak contacts, Weibull damage,
 macro-target back-solving, route the specialist calibration portion through
 `pfc-fast-calibration`; then return to `pfc-workflow` for campaign execution,
 validation, post-processing routing, and delivery.
+
+If exactly two active levers must match exactly two confirmed coupled targets
+under a strict run budget, route the numerical decision method through
+`dual-target-calibration`. Keep true PFC execution, artifact management,
+confirmation runs, V&V, and delivery in `pfc-workflow`. If crossings cannot be
+obtained, response rank is deficient, or more than two levers are needed,
+return to the LHS/surrogate route rather than silently opening another lever.
 
 Use `templates/params.yaml` for simple manual bounds and `templates/calibration_campaign.yaml` for automated campaigns.
 
