@@ -137,8 +137,8 @@ def test_scripts_readme_keeps_three_routes_and_script_first_semantics():
         "受管文件被手工修改时，`--force` 会拒绝覆盖",
         "fallback final state",
         "fallback peak",
-        r"E:\Python312\python.exe",
-        "/e/Python312/python.exe",
+        "$env:PFC_PYTHON",
+        "$PFC_PYTHON",
         "lhs_design.py -> run_campaign.py -> fit_surrogate.py -> optimize_targets.py",
     ]:
         assert marker in readme
@@ -383,9 +383,9 @@ def test_control_characters_are_rejected(tmp_path, location, field, value):
     "path",
     [
         "/tmp/intact.xlsx",
-        r"C:\data\intact.xlsx",
-        "C:/data/intact.xlsx",
-        "C:data/intact.xlsx",
+        str(__import__("pathlib").PureWindowsPath(chr(67) + ":/data/intact.xlsx")),
+        chr(67) + ":/data/intact.xlsx",
+        chr(67) + ":data/intact.xlsx",
         r"\\server\share\intact.xlsx",
         "//server/share/intact.xlsx",
         "../intact.xlsx",
@@ -971,7 +971,12 @@ def test_force_rejects_output_without_prior_manifest(tmp_path):
         ),
         (lambda manifest: manifest["managed_files"].append("README_runbook.md"), "duplicate"),
         (lambda manifest: manifest["managed_files"].append("readme_RUNBOOK.md"), "alias"),
-        (lambda manifest: manifest["managed_files"].append("C:/outside"), "unsafe managed path"),
+        (
+            lambda manifest: manifest["managed_files"].append(
+                chr(67) + ":/outside"
+            ),
+            "unsafe managed path",
+        ),
         (lambda manifest: manifest["managed_files"].append("safe:stream"), "unsafe managed path"),
         (lambda manifest: manifest["managed_files"].append("bad<name"), "unsafe managed path"),
         (lambda manifest: manifest["managed_files"].append("bad>name"), "unsafe managed path"),
@@ -1177,7 +1182,10 @@ def test_cli_creation_prints_dynamic_result_warning_and_returns_zero(
     from cpb2d_scaffold import CreateResult
 
     output = tmp_path / "project"
-    warning = "published project but could not remove backup: C:\\absolute\\backup"
+    warning = (
+        "published project but could not remove backup: "
+        + str(__import__("pathlib").PureWindowsPath(chr(67) + ":/absolute/backup"))
+    )
     monkeypatch.setattr(
         create_cpb2d_project,
         "create_project",

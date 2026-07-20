@@ -25,19 +25,19 @@ references/cpb2d-project-wizard.md
 4. 第一个 PFC 目标固定为 `pfc_cases/intact/run_all.dat`。intact 未在 PFC2D 6.0 实际运行并核对保存节点/CSV 前，不进行裂隙批跑、标定、后处理或 AE。
 5. `templates/project-case/` **不是**新项目 scaffold source，不要把其历史项目逻辑复制到 beginner route。
 
-Windows 可直接指定 E 盘 Python。以下是同一解释器在不同 shell 中的写法，不包含任何用户私有项目路径：
+本机可将 `PFC_PYTHON` 设置为用户选择的 Python 3.12 解释器。公开命令通过环境变量调用，不绑定固定盘符或用户私有路径：
 
 ```powershell
-# PowerShell / cmd.exe
-E:\Python312\python.exe skills\pfc-workflow\scripts\create_cpb2d_project.py `
+# PowerShell
+& $env:PFC_PYTHON skills\pfc-workflow\scripts\create_cpb2d_project.py `
   --from-intake skills\pfc-workflow\templates\cpb2d_intake.yaml `
   --output-dir cpb2d_beginner_demo `
   --validate-only
 ```
 
 ```bash
-# Git Bash/MSYS：Windows 路径也可写为 /e/Python312/python.exe
-/e/Python312/python.exe skills/pfc-workflow/scripts/create_cpb2d_project.py \
+# Git Bash/MSYS
+"$PFC_PYTHON" skills/pfc-workflow/scripts/create_cpb2d_project.py \
   --from-intake skills/pfc-workflow/templates/cpb2d_intake.yaml \
   --output-dir cpb2d_beginner_demo \
   --validate-only
