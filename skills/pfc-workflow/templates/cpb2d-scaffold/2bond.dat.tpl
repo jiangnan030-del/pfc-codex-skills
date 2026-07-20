@@ -5,6 +5,7 @@ contact cmat default type ball-ball model linearpbond method deform emod ${bond_
     pb_deform emod ${bond_emod_pa} kratio ${kratio} ...
     property pb_ten ${pb_ten_pa} pb_coh ${pb_coh_pa} pb_fa ${pb_fa_deg} fric ${friction}
 contact cmat apply
+contact cmat proximity ${particle_radius_min_m}
 model clean
 contact method bond gap ${particle_radius_min_m}
 ball attribute displacement multiply 0.0 velocity multiply 0.0

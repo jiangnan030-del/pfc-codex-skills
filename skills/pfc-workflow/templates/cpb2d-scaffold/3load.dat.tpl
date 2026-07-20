@@ -88,18 +88,23 @@ fish define peak_drop_halt
             stage_d_saved = 1
         end_if
     end_if
-    if stress_initialized = 1
-        if abs_stress <= peak_stress * 0.995
-            if abs_stress < previous_stress
-                decline_count = decline_count + 1
+    if stage_a_saved = 1
+        if stress_initialized = 1
+            if abs_stress <= peak_stress * 0.995
+                if abs_stress < previous_stress
+                    decline_count = decline_count + 1
+                else
+                    decline_count = 0
+                end_if
             else
                 decline_count = 0
             end_if
         else
-            decline_count = 0
+            stress_initialized = 1
         end_if
     else
-        stress_initialized = 1
+        decline_count = 0
+        stress_initialized = 0
     end_if
     if peak_saved = 0
         if decline_count >= 3
@@ -112,8 +117,10 @@ fish define peak_drop_halt
     end_if
     previous_stress = abs_stress
     if peak_saved = 1
-        if abs_stress <= peak_stress * peak_drop_fraction
-            peak_drop_halt = 1
+        if stage_d_saved = 1
+            if abs_stress <= peak_stress * peak_drop_fraction
+                peak_drop_halt = 1
+            end_if
         end_if
     end_if
     if abs_strain >= max_abs_strain
@@ -121,8 +128,37 @@ fish define peak_drop_halt
     end_if
 end
 
+fish define save_missing_stages
+    ; Missing thresholds use the fallback final state to preserve the A-D file contract.
+    if stage_a_saved = 0
+        command
+            model save 'stage_a'
+        endcommand
+        stage_a_saved = 1
+    end_if
+    if stage_b_saved = 0
+        command
+            model save 'stage_b'
+        endcommand
+        stage_b_saved = 1
+    end_if
+    if stage_c_saved = 0
+        command
+            model save 'stage_c'
+        endcommand
+        stage_c_saved = 1
+    end_if
+    if stage_d_saved = 0
+        command
+            model save 'stage_d'
+        endcommand
+        stage_d_saved = 1
+    end_if
+end
+
 fish define save_peak_if_missing
     if peak_saved = 0
+        ; Contract name only: this is the confirmed near-peak/post-peak state.
         command
             model save 'peak'
         endcommand
@@ -131,5 +167,7 @@ fish define save_peak_if_missing
 end
 
 model solve fishhalt @peak_drop_halt
+@save_missing_stages
 @save_peak_if_missing
+@finalize_tracking
 model save 'final'

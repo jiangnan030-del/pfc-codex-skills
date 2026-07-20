@@ -19,7 +19,9 @@ fish define export_csv
         history export 4 vs 6 table 'crack_tension_step_table'
         history export 5 vs 6 table 'crack_shear_step_table'
     endcommand
-    local n = table.size(t_stress)
+    local n = math.min(table.size(t_stress),table.size(t_crack))
+    n = math.min(n,table.size(t_crack_tension))
+    n = math.min(n,table.size(t_crack_shear))
     local rows = array.create(n + 1)
     rows(1) = 'strain,stress_mpa,crack_num,crack_tension_num,crack_shear_num'
     loop local i (1, n)
@@ -29,7 +31,10 @@ fish define export_csv
     status = file.write(rows, n + 1)
     status = file.close()
 
-    local ns = table.size(t_stress_step)
+    local ns = math.min(table.size(t_stress_step),table.size(t_strain_step))
+    ns = math.min(ns,table.size(t_crack_step))
+    ns = math.min(ns,table.size(t_crack_tension_step))
+    ns = math.min(ns,table.size(t_crack_shear_step))
     local step_rows = array.create(ns + 1)
     step_rows(1) = 'step,strain,stress_mpa,crack_num,crack_tension_num,crack_shear_num'
     loop local j (1, ns)

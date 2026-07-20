@@ -1,4 +1,35 @@
 ; Minimal PFC2D linear parallel-bond fracture tracking derived from canonical UCS.
+fish define update_fracture_positions
+    loop for (local i = 0, i < 2, i = i + 1)
+        local name = 'crack_tension'
+        if i = 1
+            name = 'crack_shear'
+        endif
+        dfn = dfn.find(name)
+        if dfn # null
+            loop foreach local frac dfn.fracturelist(dfn)
+                local ball1 = fracture.extra(frac,1)
+                local ball2 = fracture.extra(frac,2)
+                if ball1 # null
+                    if ball2 # null
+                        local len = fracture.len(frac)/2.0
+                        local pos = (ball.pos(ball1)+ball.pos(ball2))/2.0
+                        if comp.x(pos)-len > xmin
+                            if comp.x(pos)+len < xmax
+                                if comp.y(pos)-len > ymin
+                                    if comp.y(pos)+len < ymax
+                                        fracture.pos(frac) = pos
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endif
+                endif
+            endloop
+        endif
+    endloop
+end
+
 fish define add_crack(entries)
     local contact = entries(1)
     local mode = entries(2)
@@ -22,7 +53,17 @@ fish define add_crack(entries)
     if crack_record_count < crack_record_max then
         crack_record_count = crack_record_count + 1
         record_index = crack_record_count
-        crack_angle_record(record_index) = math.atan2(comp.y(inDir),comp.x(inDir)) * 180.0 / math.pi
+        local crack_angle = math.atan2(comp.y(inDir),comp.x(inDir)) * 180.0 / math.pi
+        ; Axial orientation normalization maps -30 to 150 and 180 to 0.
+        if crack_angle < 0.0 then
+            crack_angle = crack_angle + 180.0
+        endif
+        if crack_angle >= 180.0 then
+            crack_angle = crack_angle - 180.0
+        endif
+        crack_angle_record(record_index) = crack_angle
+    else
+        crack_record_truncated = 1
     endif
     if mode = 1 then
         dfn_label = dfn_label + '_tension'
@@ -58,35 +99,19 @@ fish define add_crack(entries)
             command
                 fragment compute
             endcommand
-            loop for (local i = 0, i < 2, i = i + 1)
-                local name = 'crack_tension'
-                if i = 1
-                    name = 'crack_shear'
-                endif
-                dfn = dfn.find(name)
-                if dfn # null
-                    loop foreach local frac dfn.fracturelist(dfn)
-                        local ball1 = fracture.extra(frac,1)
-                        local ball2 = fracture.extra(frac,2)
-                        if ball1 # null
-                            if ball2 # null
-                                local len = fracture.len(frac)/2.0
-                                local pos = (ball.pos(ball1)+ball.pos(ball2))/2.0
-                                if comp.x(pos)-len > xmin
-                                    if comp.x(pos)+len < xmax
-                                        if comp.y(pos)-len > ymin
-                                            if comp.y(pos)+len < ymax
-                                                fracture.pos(frac) = pos
-                                            endif
-                                        endif
-                                    endif
-                                endif
-                            endif
-                        endif
-                    endloop
-                endif
-            endloop
+            update_fracture_positions
         endif
+    endif
+end
+
+fish define finalize_tracking
+    if crack_accum > 0
+        command
+            fragment compute
+        endcommand
+        frag_time = mech.time.total
+        crack_accum = 0
+        update_fracture_positions
     endif
 end
 
@@ -106,6 +131,7 @@ fish define track_init
     global crack_shear_num = 0
     global crack_record_count = 0
     global crack_record_max = 200000
+    global crack_record_truncated = 0
     global crack_angle_record = array.create(crack_record_max)
     global crack_type_record = array.create(crack_record_max)
     global track_time0 = mech.time.total

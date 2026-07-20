@@ -519,7 +519,8 @@ def test_rendered_intact_has_complete_stage_and_export_contract():
     assert "ball delete range cylinder" not in files["2bond.dat"]
     assert "contact model linearpbond" in files["2bond.dat"]
     for name in ["stage_a", "stage_b", "stage_c", "stage_d"]:
-        assert files["3load.dat"].count(f"model save '{name}'") == 1
+        assert files["3load.dat"].count(f"model save '{name}'") == 2
+        assert files["3load.dat"].count(f"if {name}_saved = 0") == 2
     assert "model save 'peak'" in files["3load.dat"]
     assert "model save 'final'" in files["3load.dat"]
     assert "peak_drop_fraction" in files["3load.dat"]
@@ -616,3 +617,62 @@ def test_fracture_template_retains_canonical_fragment_position_updates():
         "domain.max.y()",
     ]:
         assert token in text
+
+
+def test_decline_tracking_starts_after_stage_a_and_normal_drop_requires_stage_d():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["3load.dat"]
+    tracking = text.split("if stage_a_saved = 1", 1)[1].split(
+        "if peak_saved = 0", 1
+    )[0]
+    assert "decline_count = decline_count + 1" in tracking
+    assert "else\n        decline_count = 0\n        stress_initialized = 0" in tracking
+    normal_halt = text.split("if peak_saved = 1", 1)[1].split(
+        "if abs_strain >= max_abs_strain", 1
+    )[0]
+    assert "if stage_d_saved = 1" in normal_halt
+
+
+def test_missing_stage_fallback_saves_all_stage_contract_names_in_order():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["3load.dat"]
+    fallback = text.split("fish define save_missing_stages", 1)[1].split("end\n", 1)[0]
+    positions = [fallback.index(f"model save 'stage_{label}'") for label in "abcd"]
+    assert positions == sorted(positions)
+    assert "fallback final state" in fallback.lower()
+    assert text.index("@save_missing_stages") < text.index("@save_peak_if_missing")
+    assert "confirmed near-peak/post-peak state" in text
+
+
+def test_bond_template_sets_official_cmat_proximity_before_clean_and_bond_gap():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["2bond.dat"]
+    assert text.index("contact cmat apply") < text.index(
+        "contact cmat proximity 3.000000e-04"
+    ) < text.index("model clean") < text.index("contact method bond gap")
+
+
+def test_export_uses_common_minimum_table_sizes_before_allocating_rows():
+    cfg = load_intake(FIXTURE)
+    text = render_case_files(cfg, cfg.cases[0], 0)["4export.dat"]
+    assert text.count("math.min") >= 7
+    assert "table.size(t_crack)" in text
+    assert "table.size(t_strain_step)" in text
+    assert text.index("local n = math.min") < text.index("array.create(n + 1)")
+    assert text.index("local ns = math.min") < text.index("array.create(ns + 1)")
+
+
+def test_fracture_normalizes_orientation_and_finalizes_pending_fragments():
+    cfg = load_intake(FIXTURE)
+    files = render_case_files(cfg, cfg.cases[0], 0)
+    fracture = files["fracture.p2fis"]
+    assert "if crack_angle < 0.0" in fracture
+    assert "crack_angle = crack_angle + 180.0" in fracture
+    assert "if crack_angle >= 180.0" in fracture
+    assert "crack_angle = crack_angle - 180.0" in fracture
+    assert "crack_record_truncated = 1" in fracture
+    assert "fish define update_fracture_positions" in fracture
+    assert "fish define finalize_tracking" in fracture
+    assert "if crack_accum > 0" in fracture
+    load = files["3load.dat"]
+    assert load.index("@finalize_tracking") < load.index("model save 'final'")
