@@ -678,7 +678,7 @@ git commit -m "docs: add CPB2D beginner project wizard"
 - Modify: `skills/pfc-workflow/SKILL.md:366-480`
 - Modify: `skills/pfc-workflow/tests/test_cpb2d_scaffold.py`
 
-- [ ] **Step 1: Write failing skill-wiring test**
+- [x] **Step 1: Write failing skill-wiring test**
 
 ```python
 def test_workflow_skill_enforces_beginner_scaffold_gate():
@@ -695,7 +695,7 @@ def test_workflow_skill_enforces_beginner_scaffold_gate():
     assert "Do not start calibration, post-processing, or AE" in skill
 ```
 
-- [ ] **Step 2: Run test and verify failure**
+- [x] **Step 2: Run test and verify failure**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -k workflow_skill -v
@@ -703,7 +703,7 @@ def test_workflow_skill_enforces_beginner_scaffold_gate():
 
 Expected: fails because the gate heading/markers are absent.
 
-- [ ] **Step 3: Add the beginner project gate to `SKILL.md`**
+- [x] **Step 3: Add the beginner project gate to `SKILL.md`**
 
 Insert after `When to use` and before general `First rules`:
 
@@ -725,7 +725,7 @@ Also distinguish routes:
 
 Update Bundled scripts and Local Contents with exact new paths.
 
-- [ ] **Step 4: Run wiring test and all workflow tests**
+- [x] **Step 4: Run wiring test and all workflow tests**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests -v
@@ -733,7 +733,7 @@ Update Bundled scripts and Local Contents with exact new paths.
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/pfc-workflow/SKILL.md skills/pfc-workflow/tests/test_cpb2d_scaffold.py
