@@ -58,6 +58,94 @@ def test_load_minimal_intake_normalizes_si_values():
     assert [case.name for case in cfg.cases] == ["intact", "b0_d20"]
 
 
+def test_public_intake_example_is_loadable_and_matches_beginner_contract():
+    public = Path(__file__).resolve().parents[1] / "templates" / "cpb2d_intake.yaml"
+    cfg = load_intake(public)
+    assert [(case.name, case.enabled) for case in cfg.cases] == [
+        ("intact", True),
+        ("b0_d20", False),
+    ]
+    assert cfg.cases[0].family == "intact"
+    assert cfg.cases[0].crack_enabled is False
+    assert cfg.cases[1].family == "straight_crack"
+    assert cfg.cases[1].crack_enabled is True
+    assert cfg.outputs.heavy_ae is False
+    assert cfg.loading.stage_fractions == (0.25, 0.50, 0.75, 0.90)
+
+
+def test_scope_uses_exact_load_intake_field_names_without_aliases():
+    scope = (Path(__file__).resolve().parents[1] / "templates" / "scope.md").read_text(
+        encoding="utf-8-sig"
+    )
+    expected = {
+        "slug", "title", "pfc_version", "random_seed_base",
+        "width_mm", "height_mm", "particle_radius_min_mm",
+        "particle_radius_max_mm", "target_porosity", "density_kg_m3", "damping",
+        "family", "linear_emod_pa", "bond_emod_pa", "kratio", "pb_ten_pa",
+        "pb_coh_pa", "pb_fa_deg", "friction", "wall_velocity_m_s",
+        "peak_drop_fraction", "target_peak_strain_guess", "stage_fractions",
+        "history_interval", "stress_strain", "crack_counts", "heavy_ae",
+        "case_name", "enabled", "experiment_file", "crack_enabled", "crack_type",
+        "angle_deg", "distance_mm", "length_mm", "width_mm", "center_x_mm",
+        "center_y_mm", "assumptions",
+    }
+    documented = set(__import__("re").findall(r"^- `([a-z][a-z0-9_]*)`", scope, __import__("re").M))
+    assert documented == expected
+    assert "particle_min" not in scope
+    assert "particle_max" not in scope
+
+
+def test_wizard_has_eight_one_question_stages_and_runtime_gate_contract():
+    wizard = (
+        Path(__file__).resolve().parents[1] / "references" / "cpb2d-project-wizard.md"
+    ).read_text(encoding="utf-8")
+    assert [int(value) for value in __import__("re").findall(r"^## 阶段 (\d)：", wizard, __import__("re").M)] == list(range(1, 9))
+    questions = __import__("re").split(r"^### 问题 ", wizard, flags=__import__("re").M)[1:]
+    assert questions
+    for question in questions:
+        for marker in ["**默认**", "**答案形状**", "**配置目标**", "**阻断性**"]:
+            assert marker in question.split("\n## ", 1)[0]
+    for marker in [
+        "一次只问一个问题",
+        "assumptions",
+        "明确的“确认生成”",
+        "静态校验通过",
+        "PFC runtime 通过",
+        "pfc_cases/intact/run_all.dat",
+        "不运行裂隙批跑、不开始标定、不做后处理、不启用 AE",
+        "polyline_reserved",
+        "只生成 schema，不切割",
+        "文件当前不存在仅 warning",
+        "data/experimental/",
+        "PFC6 only",
+        "LPBM",
+    ]:
+        assert marker in wizard
+
+
+def test_scripts_readme_keeps_three_routes_and_script_first_semantics():
+    readme = (Path(__file__).resolve().parents[1] / "scripts" / "README.md").read_text(
+        encoding="utf-8"
+    )
+    for marker in [
+        "Route: Beginner scaffold",
+        "Route: Existing project-case",
+        "Route: Automated calibration",
+        "Script-first",
+        "pfc-postprocessing/references/script-catalog.md",
+        "拟输出目录",
+        "受管文件被手工修改时，`--force` 会拒绝覆盖",
+        "fallback final state",
+        "fallback peak",
+        r"E:\Python312\python.exe",
+        "/e/Python312/python.exe",
+        "lhs_design.py -> run_campaign.py -> fit_surrogate.py -> optimize_targets.py",
+    ]:
+        assert marker in readme
+    assert "templates/project-case/" in readme
+    assert "**不是**新项目 scaffold source" in readme
+
+
 @pytest.mark.parametrize("slug", ["my project", "CPB_Demo", "cpb-demo", "../cpb"])
 def test_project_slug_rejects_unsafe_names(tmp_path, slug):
     assert_invalid(tmp_path, lambda data: data["project"].update(slug=slug), "project.slug")
