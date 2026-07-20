@@ -148,3 +148,17 @@
 5. intact runtime 未通过前：**不运行裂隙批跑、不开始标定、不做后处理、不启用 AE**。
 6. intact runtime 通过后，才可显式启用并运行 `straight_crack` case；`polyline_reserved` 仍保持 disabled，仅有 schema，不执行切割。
 7. 后处理开始前先读 `pfc-postprocessing/references/script-catalog.md`，再读选中的实际脚本并按其真实接口执行。
+
+## 已验证的 PFC6 runtime 基线
+
+2026-07-20 使用本仓库公开 intake 生成的 `intact` case 完成真实运行验收：
+
+- **程序版本**：PFC2D Version 6.00 Release 013，Build 0，Common 128。
+- **运行入口**：仅运行 `pfc_cases/intact/run_all.dat`；未运行裂隙 case、标定、后处理或 AE。
+- **运行结果**：通过；`sample.sav`、`parallel_bonded.sav`、`stage_a.sav`–`stage_d.sav`、`peak.sav` 和 `final.sav` 均生成且非空。
+- **曲线输出**：`stress_strain.csv` 的表头为 `strain,stress_mpa,crack_num,crack_tension_num,crack_shear_num`，包含数值数据行。
+- **步级输出**：`stress_strain_step.csv` 的表头为 `step,strain,stress_mpa,crack_num,crack_tension_num,crack_shear_num`，包含数值数据行。
+- **裂纹输出**：`plotdata_fracture_orientations.csv` 的表头为 `angle_deg,type`，包含数值角度和裂纹类型。
+- **Windows 注意事项**：通过 PFC 命令设置工作目录时使用正斜杠路径；反斜杠可能被 PFC 命令解析器吞掉。该注意事项只影响运行器传入的目录写法，不要求修改生成的项目源文件。
+
+上述结果只证明公开基线的 `intact` case 与该 PFC6 build 兼容；新项目仍须按本向导独立执行 intact runtime gate，不能直接据此跳过验证。
