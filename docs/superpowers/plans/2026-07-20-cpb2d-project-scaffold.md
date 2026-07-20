@@ -457,7 +457,7 @@ git commit -m "feat: add reusable CPB2D PFC source templates"
 - Modify: `skills/pfc-workflow/scripts/cpb2d_scaffold.py`
 - Modify: `skills/pfc-workflow/tests/test_cpb2d_scaffold.py`
 
-- [ ] **Step 1: Write failing integration tests for the generated tree**
+- [x] **Step 1: Write failing integration tests for the generated tree**
 
 ```python
 from cpb2d_scaffold import create_project
@@ -495,7 +495,7 @@ def test_force_replaces_only_scaffold_managed_tree(tmp_path):
     assert user_file.read_text(encoding="utf-8") == "keep"
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -k create_project -v
@@ -503,7 +503,7 @@ def test_force_replaces_only_scaffold_managed_tree(tmp_path):
 
 Expected: import failure for `create_project`.
 
-- [ ] **Step 3: Implement managed-file generation**
+- [x] **Step 3: Implement managed-file generation**
 
 Add:
 
@@ -533,7 +533,7 @@ Generation must write:
 
 Write into a sibling temporary directory and rename only after all static checks pass. Under `force=True`, delete/replace only paths listed in the prior `scaffold_manifest.json`; refuse force if no manifest exists. This prevents deleting an unrelated user project.
 
-- [ ] **Step 4: Implement CLI wrapper**
+- [x] **Step 4: Implement CLI wrapper**
 
 ```python
 # create_cpb2d_project.py
@@ -553,7 +553,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 Do not implement the colon-packed `--straight-crack` shortcut in v1; the approved intake YAML is the single source of truth and avoids duplicate parsers.
 
-- [ ] **Step 5: Run integration tests and CLI smoke test**
+- [x] **Step 5: Run integration tests and CLI smoke test**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -v
@@ -567,7 +567,7 @@ rm -rf .tmp_cpb2d_scaffold
 
 Expected: tests pass; CLI reports two missing experiment warnings; generated tree includes both cases; cleanup leaves no tracked output.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/pfc-workflow/scripts/create_cpb2d_project.py \
