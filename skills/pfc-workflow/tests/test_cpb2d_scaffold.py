@@ -1,5 +1,7 @@
 from dataclasses import replace
+import json
 from pathlib import Path
+import subprocess
 import sys
 
 import pytest
@@ -11,11 +13,13 @@ sys.path.insert(0, str(SCRIPTS))
 from cpb2d_scaffold import (
     ConfigError,
     crack_geometry,
+    create_project,
     load_intake,
     render_case_files,
     render_context,
     render_template,
     validate_config,
+    validate_generated_project,
 )
 
 REQUIRED_CASE_FILES = {
@@ -676,3 +680,249 @@ def test_fracture_normalizes_orientation_and_finalizes_pending_fragments():
     assert "if crack_accum > 0" in fracture
     load = files["3load.dat"]
     assert load.index("@finalize_tracking") < load.index("model save 'final'")
+
+
+def test_create_project_writes_mixed_tree_and_manifest(tmp_path):
+    result = create_project(FIXTURE, tmp_path / "cpb_2d_ucs_demo")
+    root = result.root
+    expected_dirs = {
+        "data/experimental",
+        "geometry/cracks",
+        "pfc_cases",
+        "calibration/trials",
+        "postprocess",
+        "figures",
+        "tables",
+        "reports",
+    }
+    assert all((root / relative).is_dir() for relative in expected_dirs)
+    for relative in [
+        "README_runbook.md",
+        "project_config.yaml",
+        "cases.csv",
+        "calibration/targets.csv",
+        "calibration/parameter_bounds.yaml",
+        "postprocess/manifest.csv",
+        "reports/modeling_notes.md",
+        "geometry/cracks/README.md",
+        "geometry/cracks/polyline_schema.csv",
+        "scaffold_manifest.json",
+    ]:
+        assert (root / relative).is_file()
+    for case in ["intact", "b0_d20"]:
+        assert {path.name for path in (root / "pfc_cases" / case).iterdir()} == REQUIRED_CASE_FILES
+
+    expected_warnings = [
+        "missing experiment file in output project: data/experimental/intact.xlsx",
+        "missing experiment file in output project: data/experimental/b0_d20.xlsx",
+    ]
+    assert result.warnings == expected_warnings
+    manifest = json.loads((root / "scaffold_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["schema"] == "cpb2d-scaffold-manifest"
+    assert manifest["version"] == 1
+    assert manifest["run_order"] == ["intact", "b0_d20"]
+    assert manifest["warnings"] == expected_warnings
+    assert manifest["managed_files"] == sorted(manifest["managed_files"])
+    assert "reports" not in manifest["managed_files"]
+    assert "scaffold_manifest.json" in manifest["managed_files"]
+    assert validate_generated_project(root) == []
+
+
+def test_generated_content_is_honest_and_routes_postprocessing(tmp_path):
+    root = create_project(FIXTURE, tmp_path / "project").root
+    runbook = (root / "README_runbook.md").read_text(encoding="utf-8")
+    notes = (root / "reports/modeling_notes.md").read_text(encoding="utf-8")
+    postprocess = (root / "postprocess/manifest.csv").read_text(encoding="utf-8")
+    bounds = (root / "calibration/parameter_bounds.yaml").read_text(encoding="utf-8")
+    assert "intact-first" in runbook
+    assert "PFC executable" not in runbook
+    assert "run_all.dat" in runbook
+    assert "fallback final state" in runbook
+    assert "confirmed near-peak/post-peak" in runbook
+    assert "heavy AE is disabled" in runbook
+    assert "missing experiment" in runbook
+    assert "pfc-postprocessing/references/script-catalog.md" in postprocess
+    assert "stress_strain.csv,pfc-postprocessing/scripts/plot_curves.py" in postprocess
+    assert "not final calibrated values" in bounds
+    assert "heavy AE is disabled" in notes
+
+
+def test_targets_use_output_project_experiment_semantics(tmp_path):
+    output = tmp_path / "project"
+    output.mkdir()
+    (output / "scaffold_manifest.json").write_text(
+        json.dumps({"managed_files": ["scaffold_manifest.json"]}), encoding="utf-8"
+    )
+    experiment = output / "data" / "experimental" / "intact.xlsx"
+    experiment.parent.mkdir(parents=True)
+    experiment.write_bytes(b"fixture")
+    result = create_project(FIXTURE, output, force=True)
+    assert result.warnings == [
+        "missing experiment file in output project: data/experimental/b0_d20.xlsx"
+    ]
+    targets = (output / "calibration/targets.csv").read_text(encoding="utf-8")
+    assert "intact,data/experimental/intact.xlsx,registered" in targets
+    assert "b0_d20,data/experimental/b0_d20.xlsx,missing_experiment" in targets
+
+
+def test_render_context_warnings_are_collected_in_stable_case_order(tmp_path):
+    intake = write_intake(
+        tmp_path,
+        lambda data: data["cases"][1].update(width_mm=0.5),
+    )
+    result = create_project(intake, tmp_path / "project")
+    assert result.warnings == [
+        "missing experiment file in output project: data/experimental/intact.xlsx",
+        "missing experiment file in output project: data/experimental/b0_d20.xlsx",
+        "case b0_d20: crack width_mm 5.000000e-01 is less than twice "
+        "particle_radius_max_mm 1.000000e+00",
+    ]
+
+
+def test_existing_output_is_rejected_without_force(tmp_path):
+    output = tmp_path / "existing"
+    output.mkdir()
+    with pytest.raises(FileExistsError):
+        create_project(FIXTURE, output)
+
+
+def test_force_replaces_only_managed_files_and_preserves_user_file(tmp_path):
+    output = tmp_path / "project"
+    create_project(FIXTURE, output)
+    user_file = output / "reports" / "user_notes.md"
+    user_file.write_text("keep", encoding="utf-8")
+    create_project(FIXTURE, output, force=True)
+    assert user_file.read_text(encoding="utf-8") == "keep"
+
+
+def test_force_rejects_output_without_prior_manifest(tmp_path):
+    output = tmp_path / "project"
+    output.mkdir()
+    with pytest.raises(ConfigError, match="prior scaffold_manifest.json"):
+        create_project(FIXTURE, output, force=True)
+
+
+def test_force_rejects_manifest_path_traversal(tmp_path):
+    output = tmp_path / "project"
+    output.mkdir()
+    (output / "scaffold_manifest.json").write_text(
+        json.dumps({"managed_files": ["../outside.txt"]}), encoding="utf-8"
+    )
+    outside = tmp_path / "outside.txt"
+    outside.write_text("safe", encoding="utf-8")
+    with pytest.raises(ConfigError, match="unsafe managed path"):
+        create_project(FIXTURE, output, force=True)
+    assert outside.read_text(encoding="utf-8") == "safe"
+
+
+def test_force_does_not_overwrite_unmanaged_collision(tmp_path):
+    output = tmp_path / "project"
+    output.mkdir()
+    (output / "scaffold_manifest.json").write_text(
+        json.dumps({"managed_files": ["scaffold_manifest.json"]}), encoding="utf-8"
+    )
+    user_file = output / "README_runbook.md"
+    user_file.write_text("user owned", encoding="utf-8")
+    with pytest.raises(ConfigError, match="unmanaged existing path"):
+        create_project(FIXTURE, output, force=True)
+    assert user_file.read_text(encoding="utf-8") == "user owned"
+
+
+def test_transaction_failure_leaves_existing_project_intact(tmp_path, monkeypatch):
+    import cpb2d_scaffold
+
+    output = tmp_path / "project"
+    create_project(FIXTURE, output)
+    user_file = output / "reports" / "user_notes.md"
+    user_file.write_text("keep", encoding="utf-8")
+    before = {
+        path.relative_to(output).as_posix(): path.read_bytes()
+        for path in output.rglob("*")
+        if path.is_file()
+    }
+    real_replace = cpb2d_scaffold.os.replace
+    staged_replacements = 0
+
+    def fail_during_merge(source, destination):
+        nonlocal staged_replacements
+        source_path = Path(source)
+        if ".cpb2d-stage-" in source_path.parent.as_posix():
+            staged_replacements += 1
+            if staged_replacements == 2:
+                raise OSError("injected merge failure")
+        return real_replace(source, destination)
+
+    monkeypatch.setattr(cpb2d_scaffold.os, "replace", fail_during_merge)
+    with pytest.raises(OSError, match="injected merge failure"):
+        create_project(FIXTURE, output, force=True)
+    after = {
+        path.relative_to(output).as_posix(): path.read_bytes()
+        for path in output.rglob("*")
+        if path.is_file()
+    }
+    assert after == before
+    assert user_file.read_text(encoding="utf-8") == "keep"
+
+
+def test_cli_validate_only_prints_order_and_warnings_without_output(tmp_path):
+    output = tmp_path / "not-created"
+    script = SCRIPTS / "create_cpb2d_project.py"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--from-intake",
+            str(FIXTURE),
+            "--output-dir",
+            str(output),
+            "--validate-only",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 0
+    assert "enabled case order: intact, b0_d20" in completed.stdout
+    assert "missing experiment file in output project" in completed.stdout
+    assert not output.exists()
+
+
+def test_cli_user_error_returns_two(tmp_path):
+    script = SCRIPTS / "create_cpb2d_project.py"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--from-intake",
+            str(tmp_path / "missing.yaml"),
+            "--output-dir",
+            str(tmp_path / "output"),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 2
+    assert "error:" in completed.stderr.lower()
+
+
+def test_static_validator_returns_error_for_non_object_manifest(tmp_path):
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "scaffold_manifest.json").write_text("[]", encoding="utf-8")
+    assert validate_generated_project(root) == [
+        "scaffold_manifest.json root must be an object"
+    ]
+
+
+def test_static_validator_reports_tampered_case_contract(tmp_path):
+    root = create_project(FIXTURE, tmp_path / "project").root
+    (root / "pfc_cases" / "intact" / "run_all.dat").write_text(
+        "program call '4export.dat'\n", encoding="utf-8"
+    )
+    (root / "pfc_cases" / "b0_d20" / "2bond.dat").write_text(
+        "${unresolved}\n", encoding="utf-8"
+    )
+    errors = validate_generated_project(root)
+    assert any("run_all.dat does not match exact run order" in error for error in errors)
+    assert any("unresolved placeholder" in error for error in errors)

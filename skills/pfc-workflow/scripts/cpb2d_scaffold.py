@@ -3,10 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import csv
+import io
+import json
 import math
-from pathlib import Path
+import os
+from pathlib import Path, PurePosixPath
 import re
+import shutil
 from string import Template
+import tempfile
 from typing import Any, Mapping
 
 import yaml
@@ -134,6 +140,13 @@ class CrackGeometry:
     end1_m: tuple[float, float]
     end2_m: tuple[float, float]
     radius_m: float
+
+
+@dataclass(frozen=True)
+class CreateResult:
+    root: Path
+    warnings: list[str]
+    managed_files: list[str]
 
 
 def _mapping(value: Any, field: str) -> dict[str, Any]:
@@ -761,3 +774,431 @@ def render_case_files(
     if unresolved:
         raise ConfigError(f"unresolved template placeholders in: {', '.join(unresolved)}")
     return files
+
+
+_MANIFEST_SCHEMA = "cpb2d-scaffold-manifest"
+_MANIFEST_VERSION = 1
+_RUN_ALL_TEXT = """program call '1model.dat'
+program call '2bond.dat'
+program call '3load.dat'
+program call '4export.dat'
+"""
+_PROJECT_DIRS = (
+    "data/experimental",
+    "geometry/cracks",
+    "pfc_cases",
+    "calibration/trials",
+    "postprocess",
+    "figures",
+    "tables",
+    "reports",
+)
+
+
+def _enabled_cases(config: ScaffoldConfig) -> list[tuple[int, CaseConfig]]:
+    return [
+        (index, case)
+        for index, case in enumerate(config.cases)
+        if case.enabled
+    ]
+
+
+def project_warnings(config: ScaffoldConfig, output_dir: Path) -> list[str]:
+    """Return deterministic warnings using paths relative to the output project."""
+    enabled = _enabled_cases(config)
+    warnings = [
+        f"missing experiment file in output project: {case.experiment_file}"
+        for _, case in enabled
+        if not (output_dir / PurePosixPath(case.experiment_file)).is_file()
+    ]
+    warnings.extend(
+        warning
+        for index, case in enabled
+        if (warning := str(render_context(config, case, index)["warnings"]))
+    )
+    return warnings
+
+
+def _csv_text(header: list[str], rows: list[list[object]]) -> str:
+    stream = io.StringIO(newline="")
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow(header)
+    writer.writerows(rows)
+    return stream.getvalue()
+
+
+def _normalized_config(config: ScaffoldConfig) -> dict[str, object]:
+    return {
+        "schema": "cpb2d-project-config",
+        "version": 1,
+        "units": {"length_input": "mm", "model_length": "m", "stress": "Pa"},
+        "project": {
+            "slug": config.project.slug,
+            "title": config.project.title,
+            "pfc_version": config.project.pfc_version,
+            "random_seed_base": config.project.random_seed_base,
+        },
+        "specimen": {
+            "width_mm": config.specimen.width_mm,
+            "height_mm": config.specimen.height_mm,
+            "particle_radius_min_mm": config.specimen.radius_min_mm,
+            "particle_radius_max_mm": config.specimen.radius_max_mm,
+            "target_porosity": config.specimen.porosity,
+            "density_kg_m3": config.specimen.density_kg_m3,
+            "damping": config.specimen.damping,
+        },
+        "contact_model": {
+            "family": config.contact_model.family,
+            "linear_emod_pa": config.contact_model.linear_emod_pa,
+            "bond_emod_pa": config.contact_model.bond_emod_pa,
+            "kratio": config.contact_model.kratio,
+            "pb_ten_pa": config.contact_model.pb_ten_pa,
+            "pb_coh_pa": config.contact_model.pb_coh_pa,
+            "pb_fa_deg": config.contact_model.pb_fa_deg,
+            "friction": config.contact_model.friction,
+        },
+        "loading": {
+            "wall_velocity_m_s": config.loading.wall_velocity_m_s,
+            "peak_drop_fraction": config.loading.peak_drop_fraction,
+            "target_peak_strain_guess": config.loading.target_peak_strain_guess,
+            "stage_fractions": list(config.loading.stage_fractions),
+            "history_interval": config.loading.history_interval,
+        },
+        "outputs": {
+            "stress_strain": config.outputs.stress_strain,
+            "crack_counts": config.outputs.crack_counts,
+            "heavy_ae": config.outputs.heavy_ae,
+        },
+    }
+
+
+def _case_rows(config: ScaffoldConfig) -> list[list[object]]:
+    rows: list[list[object]] = []
+    for case in config.cases:
+        rows.append([
+            case.name,
+            case.family,
+            str(case.enabled).lower(),
+            case.experiment_file,
+            str(case.crack_enabled).lower(),
+            case.crack_type or "",
+            "" if case.angle_deg is None else case.angle_deg,
+            "" if case.distance_mm is None else case.distance_mm,
+            "" if case.length_mm is None else case.length_mm,
+            "" if case.width_mm is None else case.width_mm,
+            "" if case.center_x_mm is None else case.center_x_mm,
+            "" if case.center_y_mm is None else case.center_y_mm,
+        ])
+    return rows
+
+
+def _runbook(config: ScaffoldConfig, warnings: list[str]) -> str:
+    warning_lines = "\n".join(f"- {warning}" for warning in warnings) or "- none"
+    cases = ", ".join(case.name for _, case in _enabled_cases(config))
+    return f"""# {config.project.title}: CPB2D runbook
+
+## Contract
+
+- Use an intact-first workflow. Run and inspect `pfc_cases/intact/run_all.dat` before `{cases}`.
+- In the PFC GUI, set the working directory to one case directory and call `run_all.dat`; use the equivalent general file-call operation in other PFC interfaces. No machine-specific launch command is assumed.
+- Stage A-D files can be a fallback final state when a threshold was not reached.
+- `peak.sav` is a confirmed near-peak/post-peak state, not an exact peak rollback.
+- heavy AE is disabled in this v1 scaffold. Enable it only after standard files, stages, and input contracts are confirmed.
+- Expected standard artifacts include `sample.sav`, `parallel_bonded.sav`, `stage_a.sav` through `stage_d.sav`, `peak.sav`, `final.sav`, `stress_strain.csv`, `stress_strain_step.csv`, and `plotdata_fracture_orientations.csv`.
+- After exports exist, read `pfc-postprocessing/references/script-catalog.md` and the selected owning script before postprocessing.
+
+## Missing experiment warnings
+
+{warning_lines}
+"""
+
+
+def _modeling_notes(config: ScaffoldConfig, intake_path: Path) -> str:
+    return f"""# Modeling notes
+
+- Intake source at generation time: `{intake_path}`.
+- Model units are SI; intake lengths are normalized from mm to m.
+- Contact model seed family: `{config.contact_model.family}`. Seed parameters are assumptions for trial runs, not final calibrated values.
+- The enabled case order is intact-first: {', '.join(case.name for _, case in _enabled_cases(config))}.
+- Stage A-D fallback may represent the final state; peak denotes a confirmed near-peak/post-peak state.
+- heavy AE is disabled for the initial standard-output workflow.
+- Experiment paths are interpreted relative to the generated output project, not relative to the intake file directory.
+"""
+
+
+def _parameter_bounds(config: ScaffoldConfig) -> str:
+    values = config.contact_model
+    data = {
+        "note": "Seed search ranges only; not final calibrated values.",
+        "parameters": {
+            "linear_emod_pa": {"min": values.linear_emod_pa * 0.5, "seed": values.linear_emod_pa, "max": values.linear_emod_pa * 2.0},
+            "bond_emod_pa": {"min": values.bond_emod_pa * 0.5, "seed": values.bond_emod_pa, "max": values.bond_emod_pa * 2.0},
+            "kratio": {"min": max(0.1, values.kratio * 0.5), "seed": values.kratio, "max": values.kratio * 2.0},
+            "pb_ten_pa": {"min": values.pb_ten_pa * 0.5, "seed": values.pb_ten_pa, "max": values.pb_ten_pa * 2.0},
+            "pb_coh_pa": {"min": values.pb_coh_pa * 0.5, "seed": values.pb_coh_pa, "max": values.pb_coh_pa * 2.0},
+            "friction": {"min": 0.0, "seed": values.friction, "max": max(1.0, values.friction * 1.5)},
+            "random_seed": {
+                "min": config.project.random_seed_base,
+                "seed": config.project.random_seed_base,
+                "max": config.project.random_seed_base + 99,
+            },
+        },
+    }
+    return yaml.safe_dump(data, sort_keys=False, allow_unicode=False)
+
+
+def _safe_manifest_path(root: Path, value: object) -> Path:
+    if not isinstance(value, str) or not value or "\\" in value:
+        raise ConfigError(f"unsafe managed path: {value!r}")
+    relative = PurePosixPath(value)
+    if relative.is_absolute() or any(part in {"", ".", ".."} for part in relative.parts):
+        raise ConfigError(f"unsafe managed path: {value!r}")
+    root_resolved = root.resolve(strict=False)
+    candidate = root.joinpath(*relative.parts)
+    try:
+        candidate.resolve(strict=False).relative_to(root_resolved)
+    except (OSError, ValueError) as exc:
+        raise ConfigError(f"unsafe managed path: {value!r}") from exc
+    current = root
+    for part in relative.parts:
+        current = current / part
+        if current.exists() and current.is_symlink():
+            raise ConfigError(f"unsafe managed path crosses symlink/reparse point: {value!r}")
+    return candidate
+
+
+def _write_stage(
+    stage: Path,
+    config: ScaffoldConfig,
+    intake_path: Path,
+    output_dir: Path,
+    warnings: list[str],
+) -> list[str]:
+    for relative in _PROJECT_DIRS:
+        (stage / relative).mkdir(parents=True, exist_ok=True)
+
+    files: dict[str, str] = {}
+    files["project_config.yaml"] = yaml.safe_dump(
+        _normalized_config(config), sort_keys=False, allow_unicode=True
+    )
+    case_header = [
+        "case_name", "family", "enabled", "experiment_file", "crack_enabled",
+        "crack_type", "angle_deg", "distance_mm", "length_mm", "width_mm",
+        "center_x_mm", "center_y_mm",
+    ]
+    files["cases.csv"] = _csv_text(case_header, _case_rows(config))
+    files["README_runbook.md"] = _runbook(config, warnings)
+    files["reports/modeling_notes.md"] = _modeling_notes(config, intake_path)
+    files["geometry/cracks/README.md"] = """# Crack geometry files
+
+`polyline_schema.csv` defines the reserved future polyline contract. Straight cracks are parameterized in `cases.csv`; v1 does not execute polyline cutting.
+"""
+    files["geometry/cracks/polyline_schema.csv"] = _csv_text(
+        ["point_order", "x_mm", "y_mm"], [[0, "", ""]]
+    )
+    targets = []
+    for _, case in _enabled_cases(config):
+        status = "registered" if (output_dir / PurePosixPath(case.experiment_file)).is_file() else "missing_experiment"
+        targets.append([case.name, case.experiment_file, status])
+    files["calibration/targets.csv"] = _csv_text(
+        ["case_name", "experiment_file", "status"], targets
+    )
+    files["calibration/parameter_bounds.yaml"] = _parameter_bounds(config)
+    files["postprocess/manifest.csv"] = (
+        "# Read pfc-postprocessing/references/script-catalog.md and the owning script first.\n"
+        "artifact,owning_script,required\n"
+        "stress_strain.csv,pfc-postprocessing/scripts/plot_curves.py,true\n"
+        "stress_strain_step.csv,pfc-postprocessing/scripts/plot_curves.py,false\n"
+        "plotdata_fracture_orientations.csv,pfc-postprocessing/scripts/plot_rose.py,false\n"
+    )
+
+    enabled_names: list[str] = []
+    for index, case in _enabled_cases(config):
+        enabled_names.append(case.name)
+        for name, text in render_case_files(config, case, index).items():
+            files[f"pfc_cases/{case.name}/{name}"] = text
+
+    managed_files = sorted([*files, "scaffold_manifest.json"])
+    manifest = {
+        "schema": _MANIFEST_SCHEMA,
+        "version": _MANIFEST_VERSION,
+        "run_order": enabled_names,
+        "cases": [
+            {"name": case.name, "family": case.family, "enabled": case.enabled}
+            for case in config.cases
+        ],
+        "warnings": warnings,
+        "managed_files": managed_files,
+    }
+    files["scaffold_manifest.json"] = json.dumps(
+        manifest, indent=2, sort_keys=True, ensure_ascii=True
+    ) + "\n"
+
+    for relative, text in files.items():
+        destination = stage / PurePosixPath(relative)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(text, encoding="utf-8", newline="\n")
+    return managed_files
+
+
+def validate_generated_project(root: Path) -> list[str]:
+    """Return static contract errors for a generated project."""
+    errors: list[str] = []
+    manifest_path = root / "scaffold_manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"invalid scaffold_manifest.json: {exc}"]
+    if not isinstance(manifest, dict):
+        return ["scaffold_manifest.json root must be an object"]
+    if manifest.get("schema") != _MANIFEST_SCHEMA:
+        errors.append("manifest schema is not cpb2d-scaffold-manifest")
+    if manifest.get("version") != _MANIFEST_VERSION:
+        errors.append("manifest version is not 1")
+
+    managed = manifest.get("managed_files")
+    if not isinstance(managed, list):
+        errors.append("manifest managed_files must be a list")
+        managed = []
+    for relative in managed:
+        try:
+            path = _safe_manifest_path(root, relative)
+        except ConfigError as exc:
+            errors.append(str(exc))
+            continue
+        if not path.is_file():
+            errors.append(f"managed file is missing: {relative}")
+
+    cases = manifest.get("cases")
+    enabled_names = []
+    if not isinstance(cases, list):
+        errors.append("manifest cases must be a list")
+    else:
+        for entry in cases:
+            if not isinstance(entry, dict) or not isinstance(entry.get("name"), str):
+                errors.append("manifest case entry is invalid")
+            elif entry.get("enabled") is True:
+                enabled_names.append(entry["name"])
+    if manifest.get("run_order") != enabled_names:
+        errors.append("manifest run_order does not match enabled cases")
+
+    cases_root = root / "pfc_cases"
+    actual_case_dirs = (
+        sorted(path.name for path in cases_root.iterdir() if path.is_dir())
+        if cases_root.is_dir() else []
+    )
+    if actual_case_dirs != sorted(enabled_names):
+        errors.append("pfc_cases directories do not match enabled cases")
+    for case_name in enabled_names:
+        try:
+            case_dir = _safe_manifest_path(root, f"pfc_cases/{case_name}")
+        except ConfigError as exc:
+            errors.append(str(exc))
+            continue
+        actual_files = {path.name for path in case_dir.iterdir() if path.is_file()} if case_dir.is_dir() else set()
+        if actual_files != _REQUIRED_CASE_FILES:
+            errors.append(f"case {case_name} does not contain the exact six-file contract")
+        run_all = case_dir / "run_all.dat"
+        if run_all.is_file() and run_all.read_text(encoding="utf-8") != _RUN_ALL_TEXT:
+            errors.append(f"case {case_name}: run_all.dat does not match exact run order")
+        for name in sorted(actual_files):
+            path = case_dir / name
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeError) as exc:
+                errors.append(f"case {case_name}/{name} is unreadable: {exc}")
+                continue
+            if "${" in text:
+                errors.append(f"case {case_name}/{name} has unresolved placeholder")
+    return errors
+
+
+def _load_prior_managed(output_dir: Path) -> list[str]:
+    manifest_path = output_dir / "scaffold_manifest.json"
+    if not manifest_path.is_file():
+        raise ConfigError("force requires a prior scaffold_manifest.json")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ConfigError(f"prior scaffold_manifest.json is invalid: {exc}") from exc
+    if not isinstance(manifest, dict):
+        raise ConfigError("prior scaffold_manifest.json root must be an object")
+    managed = manifest.get("managed_files")
+    if not isinstance(managed, list):
+        raise ConfigError("prior scaffold_manifest.json managed_files must be a list")
+    for relative in managed:
+        path = _safe_manifest_path(output_dir, relative)
+        if path.exists() and not path.is_file():
+            raise ConfigError(f"managed path is not a regular file: {relative!r}")
+    return list(managed)
+
+
+def _force_merge(stage: Path, output_dir: Path, old_files: list[str], new_files: list[str]) -> None:
+    old_file_set = set(old_files)
+    for relative in new_files:
+        target = _safe_manifest_path(output_dir, relative)
+        if target.exists() and relative not in old_file_set:
+            raise ConfigError(f"unmanaged existing path blocks force: {relative}")
+    backup = Path(tempfile.mkdtemp(prefix=f".{output_dir.name}.cpb2d-backup-", dir=output_dir.parent))
+    affected = sorted(old_file_set | set(new_files))
+    originally_present: set[str] = set()
+    try:
+        for relative in affected:
+            target = _safe_manifest_path(output_dir, relative)
+            if target.is_file():
+                originally_present.add(relative)
+                backup_path = backup / PurePosixPath(relative)
+                backup_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(target, backup_path)
+        for relative in new_files:
+            source = stage / PurePosixPath(relative)
+            target = _safe_manifest_path(output_dir, relative)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(source, target)
+        for relative in sorted(set(old_files) - set(new_files)):
+            target = _safe_manifest_path(output_dir, relative)
+            if target.is_file():
+                target.unlink()
+    except Exception:
+        for relative in affected:
+            target = _safe_manifest_path(output_dir, relative)
+            backup_path = backup / PurePosixPath(relative)
+            if relative in originally_present:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(backup_path, target)
+            elif target.is_file():
+                target.unlink()
+        raise
+    finally:
+        shutil.rmtree(backup, ignore_errors=True)
+
+
+def create_project(
+    intake_path: Path, output_dir: Path, *, force: bool = False
+) -> CreateResult:
+    """Generate and validate a CPB2D project with transactional publication."""
+    intake_path = Path(intake_path)
+    output_dir = Path(output_dir)
+    config = load_intake(intake_path)
+    output_parent = output_dir.parent
+    if output_dir.exists() and (output_dir.is_symlink() or not output_dir.is_dir()):
+        raise FileExistsError(f"output path is not a regular directory: {output_dir}")
+    if output_dir.exists() and not force:
+        raise FileExistsError(f"output directory already exists: {output_dir}")
+    old_files = _load_prior_managed(output_dir) if output_dir.exists() else []
+    output_parent.mkdir(parents=True, exist_ok=True)
+    stage = Path(tempfile.mkdtemp(prefix=f".{output_dir.name}.cpb2d-stage-", dir=output_parent))
+    try:
+        warnings = project_warnings(config, output_dir)
+        managed_files = _write_stage(stage, config, intake_path, output_dir, warnings)
+        errors = validate_generated_project(stage)
+        if errors:
+            raise ConfigError("Generated project validation failed:\n- " + "\n- ".join(errors))
+        if output_dir.exists():
+            _force_merge(stage, output_dir, old_files, managed_files)
+        else:
+            os.replace(stage, output_dir)
+        return CreateResult(output_dir, warnings, managed_files)
+    finally:
+        if stage.exists():
+            shutil.rmtree(stage, ignore_errors=True)
