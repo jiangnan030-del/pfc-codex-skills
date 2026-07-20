@@ -437,7 +437,7 @@ def render_case_files(config: ScaffoldConfig, case: CaseConfig, case_index: int)
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -v
 ```
 
-Expected: all tests pass. Also assert in tests that rendered files contain no `${...}` and no `ghp_`, `C:\`, `D:\`, or `E:\`.
+Expected: all tests pass. Also assert in tests that rendered files contain no `${...}`, credentials, or drive-root paths assembled in tests.
 
 - [x] **Step 6: Commit**
 
@@ -749,7 +749,7 @@ git commit -m "feat: route beginners through CPB2D project scaffold"
 - Modify: `skills/pfc-workflow/tests/test_cpb2d_scaffold.py`
 - Modify: `references/skill-index.md`
 
-- [ ] **Step 1: Add generated CSV contract and static-source tests**
+- [x] **Step 1: Add generated CSV contract and static-source tests**
 
 ```python
 def test_export_contract_matches_postprocessing_required_columns():
@@ -774,7 +774,7 @@ def test_rendered_sources_have_no_private_paths_or_unresolved_placeholders():
             assert "moment_tensor" not in text.lower(), name
 ```
 
-- [ ] **Step 2: Clarify the postprocessing contract**
+- [x] **Step 2: Clarify the postprocessing contract**
 
 Add a short “CPB2D scaffold producer” note to `data-contract.md`:
 
@@ -785,7 +785,7 @@ Add a short “CPB2D scaffold producer” note to `data-contract.md`:
 
 Do not change `plot_curves.py` unless the generated demo exposes a real incompatibility.
 
-- [ ] **Step 3: Run complete automated checks**
+- [x] **Step 3: Run complete automated checks**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests -v
@@ -795,30 +795,13 @@ Do not change `plot_curves.py` unless the generated demo exposes a real incompat
 
 Expected: all tests pass; publication validation reports zero errors and zero warnings.
 
-- [ ] **Step 4: Run a generated-project smoke test**
+- [x] **Step 4: Run a generated-project smoke test**
 
-```bash
-rm -rf .tmp_cpb2d_acceptance
-/e/Python312/python.exe skills/pfc-workflow/scripts/create_cpb2d_project.py \
-  --from-intake skills/pfc-workflow/tests/fixtures/intake_minimal.yaml \
-  --output-dir .tmp_cpb2d_acceptance
-/e/Python312/python.exe - <<'PY'
-from pathlib import Path
-root = Path('.tmp_cpb2d_acceptance')
-expected = ['sample', 'parallel_bonded', 'stage_a', 'stage_b', 'stage_c', 'stage_d', 'peak', 'final']
-load = (root / 'pfc_cases/intact/3load.dat').read_text(encoding='utf-8')
-for name in expected[2:]:
-    assert f"model save '{name}'" in load
-assert (root / 'pfc_cases/intact/run_all.dat').exists()
-assert (root / 'pfc_cases/b0_d20/run_all.dat').exists()
-print('static acceptance passed')
-PY
-rm -rf .tmp_cpb2d_acceptance
-```
+Use the configured Python 3.12 interpreter and a session-data `cpb2d_acceptance` directory. If that artifact already exists, remove it safely with Python `shutil`, generate both fixture cases through the CLI, run `validate_generated_project`, and verify the exact run order, six-file case contract, stage/peak/final markers, manifest v2 hashes, warnings, and postprocessing manifest mapping. Do not use or remove repository temporary directories.
 
 Expected: `static acceptance passed`.
 
-- [ ] **Step 5: Perform optional PFC6/pfc-mcp smoke test**
+- [x] **Step 5: Perform optional PFC6/pfc-mcp smoke test**
 
 Only when a licensed PFC6 runtime or `pfc-mcp` is available:
 
@@ -830,7 +813,7 @@ Only when a licensed PFC6 runtime or `pfc-mcp` is available:
 
 If runtime is unavailable, do not claim PFC execution passed; report static verification separately.
 
-- [ ] **Step 6: Check the final diff and commit**
+- [x] **Step 6: Check the final diff and commit**
 
 ```bash
 git status --short
@@ -846,17 +829,17 @@ git commit -m "test: verify CPB2D scaffold integration"
 
 ## Final Acceptance Checklist
 
-- [ ] A beginner path is explicit and asks one question at a time.
-- [ ] Intake field names exactly match Python config names.
-- [ ] `intact` is generated and ordered before crack cases.
-- [ ] Straight-crack endpoints are deterministic and unit-tested.
-- [ ] `polyline_reserved` cannot masquerade as an enabled runnable case.
-- [ ] Every enabled case gets exactly six source files and `run_all.dat`.
-- [ ] Stage A-D, peak and final are present; heavy AE/Fig.9 is absent.
-- [ ] Missing experiment data is a visible warning, not silent success or a hard blocker.
-- [ ] `--force` cannot erase an unrelated user directory.
-- [ ] Generated `stress_strain.csv` contract matches `pfc-postprocessing`.
-- [ ] No private paths, secrets, `.sav`, generated plots or unresolved placeholders are committed.
-- [ ] Pytest passes under `E:/Python312/python.exe`.
-- [ ] `validate_skills.py` reports `0 error(s), 0 warning(s)`.
-- [ ] PFC runtime verification is reported honestly as passed, failed, or unavailable.
+- [x] A beginner path is explicit and asks one question at a time.
+- [x] Intake field names exactly match Python config names.
+- [x] `intact` is generated and ordered before crack cases.
+- [x] Straight-crack endpoints are deterministic and unit-tested.
+- [x] `polyline_reserved` cannot masquerade as an enabled runnable case.
+- [x] Every enabled case gets exactly six source files and `run_all.dat`.
+- [x] Stage A-D, peak and final are present; heavy AE/Fig.9 is absent.
+- [x] Missing experiment data is a visible warning, not silent success or a hard blocker.
+- [x] `--force` cannot erase an unrelated user directory.
+- [x] Generated `stress_strain.csv` contract matches `pfc-postprocessing`.
+- [x] No private paths, secrets, `.sav`, generated plots or unresolved placeholders are committed.
+- [x] Pytest passes under the configured Python 3.12 interpreter.
+- [x] `validate_skills.py` reports `0 error(s), 0 warning(s)`.
+- [x] PFC runtime verification is reported honestly as passed, failed, or unavailable.

@@ -1,5 +1,6 @@
 from dataclasses import replace
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -736,6 +737,32 @@ def test_rendered_intact_has_complete_stage_and_export_contract():
     assert "stress_strain_step.csv" in files["4export.dat"]
 
 
+def test_export_contract_matches_postprocessing_contract():
+    cfg = load_intake(FIXTURE)
+    export = render_case_files(cfg, cfg.cases[0], 0)["4export.dat"]
+    required_header = "strain,stress_mpa"
+    assert required_header in export
+
+    contract = (
+        Path(__file__).resolve().parents[2]
+        / "pfc-postprocessing"
+        / "references"
+        / "data-contract.md"
+    ).read_text(encoding="utf-8")
+    for marker in [
+        "CPB2D scaffold producer",
+        "`pfc-workflow/scripts/create_cpb2d_project.py`",
+        "`strain`",
+        "`stress_mpa`",
+        "`crack_num`",
+        "`crack_tension_num`",
+        "`crack_shear_num`",
+        "`pfc-postprocessing/scripts/plot_curves.py`",
+        "script-first",
+    ]:
+        assert marker in contract
+
+
 def test_rendered_crack_uses_parameterized_cylinder():
     cfg = load_intake(FIXTURE)
     files = render_case_files(cfg, cfg.cases[1], 1)
@@ -1309,3 +1336,40 @@ def test_static_validator_reports_tampered_case_contract(tmp_path):
     errors = validate_generated_project(root)
     assert any("run_all.dat does not match exact run order" in error for error in errors)
     assert any("unresolved placeholder" in error for error in errors)
+
+
+def _load_repository_validator():
+    validator_path = Path(__file__).resolve().parents[3] / "scripts" / "validate_skills.py"
+    spec = importlib.util.spec_from_file_location("repository_validate_skills", validator_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_repository_validator_absolute_path_pattern_requires_real_root():
+    validator = _load_repository_validator()
+    true_paths = [
+        chr(67) + ":" + chr(92) + "Users" + chr(92) + "person",
+        chr(68) + ":/work/project",
+        "/" + "mnt/x/project",
+    ]
+    assert all(validator.ABS_PATH_RE.search(value) for value in true_paths)
+    assert validator.ABS_PATH_RE.search("configuration:\\n") is None
+
+
+def test_repository_validator_skips_only_declared_temporary_directories(tmp_path):
+    validator = _load_repository_validator()
+    excluded = {".git", ".tmp", ".pytest_cache", "__pycache__", ".venv", "venv"}
+    for directory in excluded:
+        target = tmp_path / directory / "nested" / "ignored.txt"
+        target.parent.mkdir(parents=True)
+        target.write_text("must not be read", encoding="utf-8")
+    visible = tmp_path / ".config" / "visible.txt"
+    visible.parent.mkdir()
+    visible.write_text("visible", encoding="utf-8")
+
+    files = set(validator.iter_repository_files(tmp_path))
+    assert visible in files
+    assert all(not any(part in excluded for part in path.relative_to(tmp_path).parts) for path in files)

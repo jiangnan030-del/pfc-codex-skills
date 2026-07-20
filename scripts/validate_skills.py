@@ -11,7 +11,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = ROOT / "skills"
 
-ABS_PATH_RE = re.compile(r"(?:[A-Za-z]:\\|/mnt/)")
+ABS_PATH_RE = re.compile(r"(?<![A-Za-z0-9_])[A-Za-z]:[\\/]|/mnt/[A-Za-z0-9._-]+(?:/|$)")
+EXCLUDED_DIRS = {".git", ".tmp", ".pytest_cache", "__pycache__", ".venv", "venv"}
 SECRET_RE = re.compile(
     r"(?:ghp_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]{20,})"
 )
@@ -107,12 +108,18 @@ def validate_skill(skill_dir: Path) -> list[Finding]:
     return findings
 
 
+def iter_repository_files(root: Path):
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root)
+        if any(part in EXCLUDED_DIRS for part in relative.parts):
+            continue
+        yield path
+
+
 def validate_file(path: Path) -> list[Finding]:
     findings: list[Finding] = []
-    rel = path.relative_to(ROOT)
-    if any(part == ".git" for part in rel.parts):
-        return findings
-
     suffix = path.suffix.lower()
     size = path.stat().st_size
     if size > OVERSIZE_BYTES:
@@ -186,7 +193,7 @@ def main() -> int:
 
     for skill_dir in sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir()):
         findings.extend(validate_skill(skill_dir))
-    for path in sorted(p for p in ROOT.rglob("*") if p.is_file()):
+    for path in sorted(iter_repository_files(ROOT)):
         findings.extend(validate_file(path))
 
     errors = [f for f in findings if f.level == "ERROR"]

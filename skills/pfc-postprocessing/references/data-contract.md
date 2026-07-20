@@ -14,6 +14,14 @@ Required columns:
 Optional columns:
 
 - `crack_num`
+- `crack_tension_num`
+- `crack_shear_num`
+
+### CPB2D scaffold producer
+
+The producer is the generated `4export.dat` created by `pfc-workflow/scripts/create_cpb2d_project.py`. It guarantees the required `strain` and `stress_mpa` columns; `crack_num`, `crack_tension_num`, and `crack_shear_num` are optional crack columns.
+
+The script-first consumer is `pfc-postprocessing/scripts/plot_curves.py`. Read that script before adapting the workflow. It consumes only the required columns, so the optional crack columns remain compatible and available to specialized analyses.
 
 ## 2. Ball field data
 
