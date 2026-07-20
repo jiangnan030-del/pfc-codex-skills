@@ -587,7 +587,7 @@ git commit -m "feat: generate transactional CPB2D projects"
 - Modify: `skills/pfc-workflow/templates/scope.md`
 - Modify: `skills/pfc-workflow/tests/test_cpb2d_scaffold.py`
 
-- [ ] **Step 1: Write failing documentation/fixture parity test**
+- [x] **Step 1: Write failing documentation/fixture parity test**
 
 ```python
 def test_public_intake_example_is_loadable_and_matches_fixture_contract():
@@ -598,7 +598,7 @@ def test_public_intake_example_is_loadable_and_matches_fixture_contract():
     assert cfg.loading.stage_fractions == (0.25, 0.50, 0.75, 0.90)
 ```
 
-- [ ] **Step 2: Run test and verify failure**
+- [x] **Step 2: Run test and verify failure**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -k public_intake -v
@@ -606,7 +606,7 @@ def test_public_intake_example_is_loadable_and_matches_fixture_contract():
 
 Expected: `FileNotFoundError` for `templates/cpb2d_intake.yaml`.
 
-- [ ] **Step 3: Create public intake and wizard guide**
+- [x] **Step 3: Create public intake and wizard guide**
 
 `cpb2d_intake.yaml` must be a valid, loadable intact + disabled straight-crack example, with comments explaining units and seed parameters.
 
@@ -623,11 +623,11 @@ Expected: `FileNotFoundError` for `templates/cpb2d_intake.yaml`.
 
 For every question, include default, accepted answer shape, config destination, and blocking/non-blocking behavior. Include the hard gate: no calibration, postprocessing or AE until `intact/run_all.dat` exists and static validation passes.
 
-- [ ] **Step 4: Rewrite `templates/scope.md` as an intake worksheet**
+- [x] **Step 4: Rewrite `templates/scope.md` as an intake worksheet**
 
 Retain generic problem/loading/observables headings, then add exact CPB2D fields matching `load_intake`. Do not create alternative names such as `particle_min`; documentation must use `particle_radius_min_mm` exactly.
 
-- [ ] **Step 5: Add workflow script README**
+- [x] **Step 5: Add workflow script README**
 
 Document:
 
@@ -649,7 +649,7 @@ Automated calibration:
 
 Explicitly state that `templates/project-case/` is not a scaffold source and that scripts must be read before adaptation.
 
-- [ ] **Step 6: Run tests and publication validation**
+- [x] **Step 6: Run tests and publication validation**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -v
@@ -658,7 +658,7 @@ Explicitly state that `templates/project-case/` is not a scaffold source and tha
 
 Expected: tests pass and `Validation summary: 0 error(s), 0 warning(s)`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add skills/pfc-workflow/templates/cpb2d_intake.yaml \
