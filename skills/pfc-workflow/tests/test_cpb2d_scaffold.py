@@ -1,5 +1,7 @@
 from dataclasses import replace
+import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -12,6 +14,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 from cpb2d_scaffold import (
     ConfigError,
+    _assert_tree_has_no_reparse_points,
     crack_geometry,
     create_project,
     load_intake,
@@ -293,10 +296,22 @@ def test_control_characters_are_rejected(tmp_path, location, field, value):
     [
         "/tmp/intact.xlsx",
         r"C:\data\intact.xlsx",
+        "C:/data/intact.xlsx",
+        "C:data/intact.xlsx",
         r"\\server\share\intact.xlsx",
+        "//server/share/intact.xlsx",
         "../intact.xlsx",
         "data/../intact.xlsx",
         r"data\..\intact.xlsx",
+        "intact.xlsx",
+        "other/intact.xlsx",
+        "data/experimental/file:stream.xlsx",
+        "data/experimental/CON.xlsx",
+        "data/experimental/trailing./intact.xlsx",
+        "data/experimental/trailing /intact.xlsx",
+        "data/experimental/=formula.xlsx",
+        "data/experimental/+formula.xlsx",
+        "data/experimental/@formula.xlsx",
     ],
 )
 def test_experiment_file_must_be_project_relative(tmp_path, path):
@@ -317,6 +332,45 @@ def test_missing_experiment_file_is_not_checked(tmp_path):
         )
     )
     assert cfg.cases[0].experiment_file.endswith("does_not_exist.xlsx")
+
+
+def test_assumptions_default_empty_and_are_validated_and_recorded(tmp_path):
+    assert load_intake(FIXTURE).assumptions == ()
+    intake = write_intake(
+        tmp_path,
+        lambda data: data.update(
+            assumptions=["Seed stiffness from pilot study.", "Dry specimen."]
+        ),
+    )
+    config = load_intake(intake)
+    assert config.assumptions == (
+        "Seed stiffness from pilot study.",
+        "Dry specimen.",
+    )
+    root = create_project(intake, tmp_path / "assumptions-project").root
+    normalized = yaml.safe_load((root / "project_config.yaml").read_text(encoding="utf-8"))
+    notes = (root / "reports/modeling_notes.md").read_text(encoding="utf-8")
+    assert normalized["assumptions"] == list(config.assumptions)
+    assert "- Seed stiffness from pilot study." in notes
+    assert "- Dry specimen." in notes
+
+
+def test_missing_assumptions_are_explicit_in_modeling_notes(tmp_path):
+    root = create_project(FIXTURE, tmp_path / "project").root
+    notes = (root / "reports/modeling_notes.md").read_text(encoding="utf-8")
+    assert "## Recorded assumptions\n\n- None recorded." in notes
+
+
+@pytest.mark.parametrize(
+    "assumptions",
+    [["bad\nline"], ["bad\rline"], ["bad\x00line"], "not-a-list", [1]],
+)
+def test_invalid_assumptions_are_rejected(tmp_path, assumptions):
+    assert_invalid(
+        tmp_path,
+        lambda data: data.update(assumptions=assumptions),
+        "assumptions",
+    )
 
 
 @pytest.mark.parametrize(
@@ -713,18 +767,23 @@ def test_create_project_writes_mixed_tree_and_manifest(tmp_path):
         assert {path.name for path in (root / "pfc_cases" / case).iterdir()} == REQUIRED_CASE_FILES
 
     expected_warnings = [
-        "missing experiment file in output project: data/experimental/intact.xlsx",
-        "missing experiment file in output project: data/experimental/b0_d20.xlsx",
+        "missing experiment file: data/experimental/intact.xlsx",
+        "missing experiment file: data/experimental/b0_d20.xlsx",
     ]
     assert result.warnings == expected_warnings
     manifest = json.loads((root / "scaffold_manifest.json").read_text(encoding="utf-8"))
     assert manifest["schema"] == "cpb2d-scaffold-manifest"
-    assert manifest["version"] == 1
+    assert manifest["version"] == 2
     assert manifest["run_order"] == ["intact", "b0_d20"]
     assert manifest["warnings"] == expected_warnings
     assert manifest["managed_files"] == sorted(manifest["managed_files"])
     assert "reports" not in manifest["managed_files"]
     assert "scaffold_manifest.json" in manifest["managed_files"]
+    expected_hash_keys = set(manifest["managed_files"]) - {"scaffold_manifest.json"}
+    assert set(manifest["managed_sha256"]) == expected_hash_keys
+    for relative, expected_hash in manifest["managed_sha256"].items():
+        assert hashlib.sha256((root / relative).read_bytes()).hexdigest() == expected_hash
+    assert result.case_order == ["intact", "b0_d20"]
     assert validate_generated_project(root) == []
 
 
@@ -745,20 +804,19 @@ def test_generated_content_is_honest_and_routes_postprocessing(tmp_path):
     assert "stress_strain.csv,pfc-postprocessing/scripts/plot_curves.py" in postprocess
     assert "not final calibrated values" in bounds
     assert "heavy AE is disabled" in notes
+    schema = (root / "geometry/cracks/polyline_schema.csv").read_text(encoding="utf-8")
+    assert schema.startswith("point_id,x_mm,y_mm")
 
 
 def test_targets_use_output_project_experiment_semantics(tmp_path):
     output = tmp_path / "project"
-    output.mkdir()
-    (output / "scaffold_manifest.json").write_text(
-        json.dumps({"managed_files": ["scaffold_manifest.json"]}), encoding="utf-8"
-    )
+    create_project(FIXTURE, output)
     experiment = output / "data" / "experimental" / "intact.xlsx"
-    experiment.parent.mkdir(parents=True)
+    experiment.parent.mkdir(parents=True, exist_ok=True)
     experiment.write_bytes(b"fixture")
     result = create_project(FIXTURE, output, force=True)
     assert result.warnings == [
-        "missing experiment file in output project: data/experimental/b0_d20.xlsx"
+        "missing experiment file: data/experimental/b0_d20.xlsx"
     ]
     targets = (output / "calibration/targets.csv").read_text(encoding="utf-8")
     assert "intact,data/experimental/intact.xlsx,registered" in targets
@@ -772,8 +830,8 @@ def test_render_context_warnings_are_collected_in_stable_case_order(tmp_path):
     )
     result = create_project(intake, tmp_path / "project")
     assert result.warnings == [
-        "missing experiment file in output project: data/experimental/intact.xlsx",
-        "missing experiment file in output project: data/experimental/b0_d20.xlsx",
+        "missing experiment file: data/experimental/intact.xlsx",
+        "missing experiment file: data/experimental/b0_d20.xlsx",
         "case b0_d20: crack width_mm 5.000000e-01 is less than twice "
         "particle_radius_max_mm 1.000000e+00",
     ]
@@ -802,66 +860,130 @@ def test_force_rejects_output_without_prior_manifest(tmp_path):
         create_project(FIXTURE, output, force=True)
 
 
-def test_force_rejects_manifest_path_traversal(tmp_path):
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda manifest: manifest.update(schema="fake"), "schema"),
+        (lambda manifest: manifest.update(version=999), "version"),
+        (lambda manifest: manifest["managed_files"].remove("scaffold_manifest.json"), "self"),
+        (lambda manifest: manifest.pop("managed_sha256"), "managed_sha256"),
+        (
+            lambda manifest: manifest["managed_sha256"].pop("README_runbook.md"),
+            "keys must exactly match",
+        ),
+        (
+            lambda manifest: manifest["managed_sha256"].update({"extra.txt": "0" * 64}),
+            "keys must exactly match",
+        ),
+        (lambda manifest: manifest["managed_files"].append("README_runbook.md"), "duplicate"),
+        (lambda manifest: manifest["managed_files"].append("readme_RUNBOOK.md"), "alias"),
+        (lambda manifest: manifest["managed_files"].append("C:/outside"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("safe:stream"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("CON/file"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("trail./file"), "unsafe managed path"),
+    ],
+)
+def test_force_rejects_invalid_prior_manifest(tmp_path, mutate, message):
     output = tmp_path / "project"
-    output.mkdir()
-    (output / "scaffold_manifest.json").write_text(
-        json.dumps({"managed_files": ["../outside.txt"]}), encoding="utf-8"
-    )
-    outside = tmp_path / "outside.txt"
-    outside.write_text("safe", encoding="utf-8")
-    with pytest.raises(ConfigError, match="unsafe managed path"):
+    create_project(FIXTURE, output)
+    manifest_path = output / "scaffold_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    mutate(manifest)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ConfigError, match=message):
         create_project(FIXTURE, output, force=True)
-    assert outside.read_text(encoding="utf-8") == "safe"
 
 
-def test_force_does_not_overwrite_unmanaged_collision(tmp_path):
+def test_force_rejects_unmanaged_existing_collision(tmp_path):
     output = tmp_path / "project"
-    output.mkdir()
-    (output / "scaffold_manifest.json").write_text(
-        json.dumps({"managed_files": ["scaffold_manifest.json"]}), encoding="utf-8"
-    )
-    user_file = output / "README_runbook.md"
-    user_file.write_text("user owned", encoding="utf-8")
+    create_project(FIXTURE, output)
+    manifest_path = output / "scaffold_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["managed_files"].remove("README_runbook.md")
+    manifest["managed_sha256"].pop("README_runbook.md")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(ConfigError, match="unmanaged existing path"):
         create_project(FIXTURE, output, force=True)
-    assert user_file.read_text(encoding="utf-8") == "user owned"
+    assert (output / "README_runbook.md").is_file()
 
 
-def test_transaction_failure_leaves_existing_project_intact(tmp_path, monkeypatch):
+def test_force_rejects_modified_managed_file(tmp_path):
+    output = tmp_path / "project"
+    create_project(FIXTURE, output)
+    managed = output / "README_runbook.md"
+    managed.write_text("user changed managed content", encoding="utf-8")
+    with pytest.raises(ConfigError, match="managed file hash mismatch"):
+        create_project(FIXTURE, output, force=True)
+    assert managed.read_text(encoding="utf-8") == "user changed managed content"
+
+
+def _tree_snapshot(root):
+    return {
+        path.relative_to(root).as_posix(): (
+            "dir" if path.is_dir() else hashlib.sha256(path.read_bytes()).hexdigest()
+        )
+        for path in root.rglob("*")
+    }
+
+
+def test_second_directory_rename_failure_restores_exact_project(tmp_path, monkeypatch):
     import cpb2d_scaffold
 
     output = tmp_path / "project"
     create_project(FIXTURE, output)
     user_file = output / "reports" / "user_notes.md"
     user_file.write_text("keep", encoding="utf-8")
-    before = {
-        path.relative_to(output).as_posix(): path.read_bytes()
-        for path in output.rglob("*")
-        if path.is_file()
-    }
+    before = _tree_snapshot(output)
     real_replace = cpb2d_scaffold.os.replace
-    staged_replacements = 0
 
-    def fail_during_merge(source, destination):
-        nonlocal staged_replacements
+    def fail_stage_publish(source, destination):
         source_path = Path(source)
-        if ".cpb2d-stage-" in source_path.parent.as_posix():
-            staged_replacements += 1
-            if staged_replacements == 2:
-                raise OSError("injected merge failure")
+        if ".cpb2d-stage-" in source_path.name and Path(destination) == output:
+            raise OSError("injected second rename failure")
         return real_replace(source, destination)
 
-    monkeypatch.setattr(cpb2d_scaffold.os, "replace", fail_during_merge)
-    with pytest.raises(OSError, match="injected merge failure"):
+    monkeypatch.setattr(cpb2d_scaffold.os, "replace", fail_stage_publish)
+    with pytest.raises(OSError, match="injected second rename failure"):
         create_project(FIXTURE, output, force=True)
-    after = {
-        path.relative_to(output).as_posix(): path.read_bytes()
-        for path in output.rglob("*")
-        if path.is_file()
-    }
-    assert after == before
-    assert user_file.read_text(encoding="utf-8") == "keep"
+    assert _tree_snapshot(output) == before
+    assert not list(tmp_path.glob(".project.cpb2d-backup-*"))
+
+
+def test_rollback_failure_keeps_backup_and_reports_absolute_path(tmp_path, monkeypatch):
+    import cpb2d_scaffold
+
+    output = tmp_path / "project"
+    create_project(FIXTURE, output)
+    before = _tree_snapshot(output)
+    real_replace = cpb2d_scaffold.os.replace
+
+    def fail_publish_and_rollback(source, destination):
+        source_path = Path(source)
+        destination_path = Path(destination)
+        if destination_path == output and (
+            ".cpb2d-stage-" in source_path.name or ".cpb2d-backup-" in source_path.name
+        ):
+            raise OSError("injected rename failure")
+        return real_replace(source, destination)
+
+    monkeypatch.setattr(cpb2d_scaffold.os, "replace", fail_publish_and_rollback)
+    with pytest.raises(ConfigError, match="rollback failed; backup preserved at") as caught:
+        create_project(FIXTURE, output, force=True)
+    backups = list(tmp_path.glob(".project.cpb2d-backup-*"))
+    assert len(backups) == 1
+    assert str(backups[0].resolve()) in str(caught.value)
+    assert _tree_snapshot(backups[0]) == before
+
+
+def test_reparse_scan_rejects_root_junction_flag(tmp_path, monkeypatch):
+    root = tmp_path / "project"
+    root.mkdir()
+    real_is_junction = getattr(Path, "is_junction", None)
+    if real_is_junction is None:
+        pytest.skip("Path.is_junction requires Python 3.12")
+    monkeypatch.setattr(Path, "is_junction", lambda self: self == root)
+    with pytest.raises(ConfigError, match="reparse"):
+        _assert_tree_has_no_reparse_points(root)
 
 
 def test_cli_validate_only_prints_order_and_warnings_without_output(tmp_path):
@@ -882,9 +1004,33 @@ def test_cli_validate_only_prints_order_and_warnings_without_output(tmp_path):
         check=False,
     )
     assert completed.returncode == 0
+    assert "validate-only preflight for proposed output directory" in completed.stdout
     assert "enabled case order: intact, b0_d20" in completed.stdout
-    assert "missing experiment file in output project" in completed.stdout
+    assert "missing experiment file:" in completed.stdout
     assert not output.exists()
+
+
+def test_cli_creation_loads_intake_once(tmp_path, monkeypatch, capsys):
+    import create_cpb2d_project
+    import cpb2d_scaffold
+
+    calls = 0
+    real_load = cpb2d_scaffold.load_intake
+
+    def load_once(path):
+        nonlocal calls
+        calls += 1
+        if calls > 1:
+            raise ConfigError("second load forbidden")
+        return real_load(path)
+
+    monkeypatch.setattr(cpb2d_scaffold, "load_intake", load_once)
+    output = tmp_path / "project"
+    assert create_cpb2d_project.main([
+        "--from-intake", str(FIXTURE), "--output-dir", str(output)
+    ]) == 0
+    assert calls == 1
+    assert "enabled case order: intact, b0_d20" in capsys.readouterr().out
 
 
 def test_cli_user_error_returns_two(tmp_path):
@@ -910,9 +1056,25 @@ def test_static_validator_returns_error_for_non_object_manifest(tmp_path):
     root = tmp_path / "project"
     root.mkdir()
     (root / "scaffold_manifest.json").write_text("[]", encoding="utf-8")
-    assert validate_generated_project(root) == [
-        "scaffold_manifest.json root must be an object"
-    ]
+    errors = validate_generated_project(root)
+    assert "scaffold_manifest.json root must be an object" in errors
+    assert any("required root artifact is missing" in error for error in errors)
+
+
+def test_static_validator_requires_root_artifacts_independently_of_manifest(tmp_path):
+    root = create_project(FIXTURE, tmp_path / "project").root
+    missing = root / "calibration" / "targets.csv"
+    missing.unlink()
+    manifest_path = root / "scaffold_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["managed_files"].remove("calibration/targets.csv")
+    manifest["managed_sha256"].pop("calibration/targets.csv")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    errors = validate_generated_project(root)
+    assert any(
+        "required root artifact is missing: calibration/targets.csv" in error
+        for error in errors
+    )
 
 
 def test_static_validator_reports_tampered_case_contract(tmp_path):

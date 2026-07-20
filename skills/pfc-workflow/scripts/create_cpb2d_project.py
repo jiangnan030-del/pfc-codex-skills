@@ -33,6 +33,7 @@ def main(argv: list[str] | None = None) -> int:
             config = load_intake(args.from_intake)
             order = [case.name for case in config.cases if case.enabled]
             warnings = project_warnings(config, args.output_dir)
+            print("validate-only preflight for proposed output directory")
             _print_result(order, warnings)
             return 0
 
@@ -41,10 +42,7 @@ def main(argv: list[str] | None = None) -> int:
             args.output_dir,
             force=args.force,
         )
-        config = load_intake(args.from_intake)
-        _print_result(
-            [case.name for case in config.cases if case.enabled], result.warnings
-        )
+        _print_result(result.case_order, result.warnings)
         print(f"created project: {result.root}")
         return 0
     except (ConfigError, FileExistsError) as exc:

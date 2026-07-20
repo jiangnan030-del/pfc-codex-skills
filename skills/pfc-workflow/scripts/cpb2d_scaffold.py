@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import csv
+import hashlib
 import io
 import json
 import math
@@ -11,9 +12,11 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
+import stat
 from string import Template
 import tempfile
 from typing import Any, Mapping
+import uuid
 
 import yaml
 
@@ -25,6 +28,8 @@ _WINDOWS_DEVICES = {
     "prn",
     "aux",
     "nul",
+    "conin$",
+    "conout$",
     *(f"com{number}" for number in range(1, 10)),
     *(f"lpt{number}" for number in range(1, 10)),
 }
@@ -133,6 +138,7 @@ class ScaffoldConfig:
     loading: LoadingConfig
     outputs: OutputConfig
     cases: tuple[CaseConfig, ...]
+    assumptions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -147,6 +153,7 @@ class CreateResult:
     root: Path
     warnings: list[str]
     managed_files: list[str]
+    case_order: list[str]
 
 
 def _mapping(value: Any, field: str) -> dict[str, Any]:
@@ -316,6 +323,20 @@ def _parse_cases(data: dict[str, Any]) -> tuple[CaseConfig, ...]:
     return tuple(cases)
 
 
+def _parse_assumptions(data: dict[str, Any]) -> tuple[str, ...]:
+    raw = data.get("assumptions", [])
+    if not isinstance(raw, list):
+        raise ConfigError("assumptions must be a list of strings")
+    assumptions: list[str] = []
+    for index, value in enumerate(raw):
+        if not isinstance(value, str) or not value:
+            raise ConfigError(f"assumptions[{index}] must be a non-empty string")
+        if _has_forbidden_controls(value):
+            raise ConfigError(f"assumptions[{index}] may not contain CR, LF, or NUL")
+        assumptions.append(value)
+    return tuple(assumptions)
+
+
 def _windows_name_key(name: str) -> str:
     return name.rstrip(" .").casefold()
 
@@ -327,18 +348,33 @@ def _validate_slug(value: str, field: str, errors: list[str]) -> None:
         errors.append(f"{field} is a reserved Windows device name")
 
 
+def _unsafe_posix_part(part: str) -> bool:
+    base = part.split(".", 1)[0].casefold()
+    return (
+        part in {"", ".", ".."}
+        or part.endswith((".", " "))
+        or ":" in part
+        or part[0] in "=+@"
+        or base in _WINDOWS_DEVICES
+    )
+
+
 def _validate_relative_path(value: str, field: str, errors: list[str]) -> None:
     if _has_forbidden_controls(value):
         errors.append(f"{field} may not contain CR, LF, or NUL")
         return
-    normalized = value.replace("\\", "/")
-    parts = normalized.split("/")
+    parts = value.split("/")
     if (
-        normalized.startswith("/")
-        or _DRIVE_PATTERN.match(normalized)
-        or any(part in {"", ".", ".."} for part in parts)
+        "\\" in value
+        or value.startswith("/")
+        or _DRIVE_PATTERN.match(value)
+        or parts[:2] != ["data", "experimental"]
+        or len(parts) < 3
+        or any(_unsafe_posix_part(part) for part in parts)
     ):
-        errors.append(f"{field} must be a project-relative path without traversal")
+        errors.append(
+            f"{field} must be a safe POSIX path under data/experimental"
+        )
 
 
 def _check_finite(field: str, value: float, errors: list[str]) -> bool:
@@ -441,6 +477,12 @@ def validate_config(config: ScaffoldConfig) -> list[str]:
         left < right for left, right in zip(fractions, fractions[1:])
     ):
         errors.append("loading.stage_fractions must be strictly increasing")
+
+    for index, assumption in enumerate(config.assumptions):
+        if not isinstance(assumption, str) or not assumption:
+            errors.append(f"assumptions[{index}] must be a non-empty string")
+        elif _has_forbidden_controls(assumption):
+            errors.append(f"assumptions[{index}] may not contain CR, LF, or NUL")
 
     enabled_cases = [case for case in config.cases if case.enabled]
     if not enabled_cases or enabled_cases[0].name != "intact":
@@ -564,6 +606,7 @@ def load_intake(path: Path) -> ScaffoldConfig:
         loading=_parse_loading(data),
         outputs=_parse_outputs(data),
         cases=_parse_cases(data),
+        assumptions=_parse_assumptions(data),
     )
     errors = validate_config(config)
     if errors:
@@ -777,7 +820,7 @@ def render_case_files(
 
 
 _MANIFEST_SCHEMA = "cpb2d-scaffold-manifest"
-_MANIFEST_VERSION = 1
+_MANIFEST_VERSION = 2
 _RUN_ALL_TEXT = """program call '1model.dat'
 program call '2bond.dat'
 program call '3load.dat'
@@ -807,7 +850,7 @@ def project_warnings(config: ScaffoldConfig, output_dir: Path) -> list[str]:
     """Return deterministic warnings using paths relative to the output project."""
     enabled = _enabled_cases(config)
     warnings = [
-        f"missing experiment file in output project: {case.experiment_file}"
+        f"missing experiment file: {case.experiment_file}"
         for _, case in enabled
         if not (output_dir / PurePosixPath(case.experiment_file)).is_file()
     ]
@@ -869,6 +912,7 @@ def _normalized_config(config: ScaffoldConfig) -> dict[str, object]:
             "crack_counts": config.outputs.crack_counts,
             "heavy_ae": config.outputs.heavy_ae,
         },
+        "assumptions": list(config.assumptions),
     }
 
 
@@ -914,6 +958,9 @@ def _runbook(config: ScaffoldConfig, warnings: list[str]) -> str:
 
 
 def _modeling_notes(config: ScaffoldConfig, intake_path: Path) -> str:
+    assumption_lines = "\n".join(f"- {value}" for value in config.assumptions)
+    if not assumption_lines:
+        assumption_lines = "- None recorded."
     return f"""# Modeling notes
 
 - Intake source at generation time: `{intake_path}`.
@@ -923,6 +970,10 @@ def _modeling_notes(config: ScaffoldConfig, intake_path: Path) -> str:
 - Stage A-D fallback may represent the final state; peak denotes a confirmed near-peak/post-peak state.
 - heavy AE is disabled for the initial standard-output workflow.
 - Experiment paths are interpreted relative to the generated output project, not relative to the intake file directory.
+
+## Recorded assumptions
+
+{assumption_lines}
 """
 
 
@@ -947,24 +998,83 @@ def _parameter_bounds(config: ScaffoldConfig) -> str:
     return yaml.safe_dump(data, sort_keys=False, allow_unicode=False)
 
 
+def _manifest_alias(value: str) -> str:
+    return "/".join(part.rstrip(" .").casefold() for part in value.split("/"))
+
+
 def _safe_manifest_path(root: Path, value: object) -> Path:
-    if not isinstance(value, str) or not value or "\\" in value:
+    if (
+        not isinstance(value, str)
+        or not value
+        or "\\" in value
+        or _has_forbidden_controls(value)
+    ):
         raise ConfigError(f"unsafe managed path: {value!r}")
-    relative = PurePosixPath(value)
-    if relative.is_absolute() or any(part in {"", ".", ".."} for part in relative.parts):
+    parts = value.split("/")
+    if (
+        value.startswith("/")
+        or _DRIVE_PATTERN.match(value)
+        or any(_unsafe_posix_part(part) for part in parts)
+    ):
         raise ConfigError(f"unsafe managed path: {value!r}")
-    root_resolved = root.resolve(strict=False)
-    candidate = root.joinpath(*relative.parts)
+    candidate = root.joinpath(*parts)
     try:
-        candidate.resolve(strict=False).relative_to(root_resolved)
+        candidate.resolve(strict=False).relative_to(root.resolve(strict=False))
     except (OSError, ValueError) as exc:
         raise ConfigError(f"unsafe managed path: {value!r}") from exc
-    current = root
-    for part in relative.parts:
-        current = current / part
-        if current.exists() and current.is_symlink():
-            raise ConfigError(f"unsafe managed path crosses symlink/reparse point: {value!r}")
     return candidate
+
+
+def _is_reparse_point(path: Path) -> bool:
+    if path.is_symlink():
+        return True
+    is_junction = getattr(path, "is_junction", None)
+    if is_junction is not None and is_junction():
+        return True
+    attributes = getattr(path.lstat(), "st_file_attributes", 0)
+    return bool(attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+
+
+def _assert_tree_has_no_reparse_points(root: Path) -> None:
+    """Reject links and Windows reparse points without traversing them."""
+    if not root.exists() or not root.is_dir():
+        raise ConfigError(f"output root is not a regular directory: {root}")
+    pending = [root]
+    while pending:
+        current = pending.pop()
+        if _is_reparse_point(current):
+            raise ConfigError(f"output tree contains symlink/junction/reparse point: {current}")
+        with os.scandir(current) as entries:
+            for entry in entries:
+                path = Path(entry.path)
+                if _is_reparse_point(path):
+                    raise ConfigError(
+                        f"output tree contains symlink/junction/reparse point: {path}"
+                    )
+                if entry.is_dir(follow_symlinks=False):
+                    pending.append(path)
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+_REQUIRED_ROOT_ARTIFACTS = {
+    "README_runbook.md",
+    "project_config.yaml",
+    "cases.csv",
+    "calibration/targets.csv",
+    "calibration/parameter_bounds.yaml",
+    "postprocess/manifest.csv",
+    "reports/modeling_notes.md",
+    "geometry/cracks/README.md",
+    "geometry/cracks/polyline_schema.csv",
+    "scaffold_manifest.json",
+}
 
 
 def _write_stage(
@@ -976,48 +1086,61 @@ def _write_stage(
 ) -> list[str]:
     for relative in _PROJECT_DIRS:
         (stage / relative).mkdir(parents=True, exist_ok=True)
-
-    files: dict[str, str] = {}
-    files["project_config.yaml"] = yaml.safe_dump(
-        _normalized_config(config), sort_keys=False, allow_unicode=True
-    )
-    case_header = [
-        "case_name", "family", "enabled", "experiment_file", "crack_enabled",
-        "crack_type", "angle_deg", "distance_mm", "length_mm", "width_mm",
-        "center_x_mm", "center_y_mm",
+    files: dict[str, str] = {
+        "project_config.yaml": yaml.safe_dump(
+            _normalized_config(config), sort_keys=False, allow_unicode=True
+        ),
+        "cases.csv": _csv_text(
+            [
+                "case_name", "family", "enabled", "experiment_file",
+                "crack_enabled", "crack_type", "angle_deg", "distance_mm",
+                "length_mm", "width_mm", "center_x_mm", "center_y_mm",
+            ],
+            _case_rows(config),
+        ),
+        "README_runbook.md": _runbook(config, warnings),
+        "reports/modeling_notes.md": _modeling_notes(config, intake_path),
+        "geometry/cracks/README.md": (
+            "# Crack geometry files\n\n"
+            "`polyline_schema.csv` defines the reserved future polyline contract. "
+            "Straight cracks are parameterized in `cases.csv`; v1 does not execute "
+            "polyline cutting.\n"
+        ),
+        "geometry/cracks/polyline_schema.csv": _csv_text(
+            ["point_id", "x_mm", "y_mm"], [[0, "", ""]]
+        ),
+        "calibration/parameter_bounds.yaml": _parameter_bounds(config),
+        "postprocess/manifest.csv": (
+            "# Read pfc-postprocessing/references/script-catalog.md and the owning script first.\n"
+            "artifact,owning_script,required\n"
+            "stress_strain.csv,pfc-postprocessing/scripts/plot_curves.py,true\n"
+            "stress_strain_step.csv,pfc-postprocessing/scripts/plot_curves.py,false\n"
+            "plotdata_fracture_orientations.csv,pfc-postprocessing/scripts/plot_rose.py,false\n"
+        ),
+    }
+    targets = [
+        [
+            case.name,
+            case.experiment_file,
+            "registered"
+            if (output_dir / PurePosixPath(case.experiment_file)).is_file()
+            else "missing_experiment",
+        ]
+        for _, case in _enabled_cases(config)
     ]
-    files["cases.csv"] = _csv_text(case_header, _case_rows(config))
-    files["README_runbook.md"] = _runbook(config, warnings)
-    files["reports/modeling_notes.md"] = _modeling_notes(config, intake_path)
-    files["geometry/cracks/README.md"] = """# Crack geometry files
-
-`polyline_schema.csv` defines the reserved future polyline contract. Straight cracks are parameterized in `cases.csv`; v1 does not execute polyline cutting.
-"""
-    files["geometry/cracks/polyline_schema.csv"] = _csv_text(
-        ["point_order", "x_mm", "y_mm"], [[0, "", ""]]
-    )
-    targets = []
-    for _, case in _enabled_cases(config):
-        status = "registered" if (output_dir / PurePosixPath(case.experiment_file)).is_file() else "missing_experiment"
-        targets.append([case.name, case.experiment_file, status])
     files["calibration/targets.csv"] = _csv_text(
         ["case_name", "experiment_file", "status"], targets
     )
-    files["calibration/parameter_bounds.yaml"] = _parameter_bounds(config)
-    files["postprocess/manifest.csv"] = (
-        "# Read pfc-postprocessing/references/script-catalog.md and the owning script first.\n"
-        "artifact,owning_script,required\n"
-        "stress_strain.csv,pfc-postprocessing/scripts/plot_curves.py,true\n"
-        "stress_strain_step.csv,pfc-postprocessing/scripts/plot_curves.py,false\n"
-        "plotdata_fracture_orientations.csv,pfc-postprocessing/scripts/plot_rose.py,false\n"
-    )
-
     enabled_names: list[str] = []
     for index, case in _enabled_cases(config):
         enabled_names.append(case.name)
         for name, text in render_case_files(config, case, index).items():
             files[f"pfc_cases/{case.name}/{name}"] = text
 
+    for relative, text in files.items():
+        destination = _safe_manifest_path(stage, relative)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(text, encoding="utf-8", newline="\n")
     managed_files = sorted([*files, "scaffold_manifest.json"])
     manifest = {
         "schema": _MANIFEST_SCHEMA,
@@ -1029,37 +1152,46 @@ def _write_stage(
         ],
         "warnings": warnings,
         "managed_files": managed_files,
+        "managed_sha256": {
+            relative: _sha256(_safe_manifest_path(stage, relative))
+            for relative in managed_files
+            if relative != "scaffold_manifest.json"
+        },
     }
-    files["scaffold_manifest.json"] = json.dumps(
-        manifest, indent=2, sort_keys=True, ensure_ascii=True
-    ) + "\n"
-
-    for relative, text in files.items():
-        destination = stage / PurePosixPath(relative)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(text, encoding="utf-8", newline="\n")
+    (stage / "scaffold_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
     return managed_files
 
 
-def validate_generated_project(root: Path) -> list[str]:
-    """Return static contract errors for a generated project."""
+def _manifest_errors(root: Path, manifest: object, *, check_hashes: bool) -> list[str]:
     errors: list[str] = []
-    manifest_path = root / "scaffold_manifest.json"
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        return [f"invalid scaffold_manifest.json: {exc}"]
     if not isinstance(manifest, dict):
         return ["scaffold_manifest.json root must be an object"]
     if manifest.get("schema") != _MANIFEST_SCHEMA:
-        errors.append("manifest schema is not cpb2d-scaffold-manifest")
+        errors.append(f"manifest schema must be {_MANIFEST_SCHEMA}")
     if manifest.get("version") != _MANIFEST_VERSION:
-        errors.append("manifest version is not 1")
-
+        errors.append(f"manifest version must be {_MANIFEST_VERSION}")
     managed = manifest.get("managed_files")
-    if not isinstance(managed, list):
-        errors.append("manifest managed_files must be a list")
+    hashes = manifest.get("managed_sha256")
+    if not isinstance(managed, list) or not all(isinstance(item, str) for item in managed):
+        errors.append("manifest managed_files must be a list of strings")
         managed = []
+    aliases = [_manifest_alias(value) for value in managed]
+    if len(managed) != len(set(managed)):
+        errors.append("manifest managed_files contains duplicate paths")
+    if len(aliases) != len(set(aliases)):
+        errors.append("manifest managed_files contains Windows alias collisions")
+    if "scaffold_manifest.json" not in managed:
+        errors.append("manifest managed_files must contain manifest self path")
+    expected_hash_keys = set(managed) - {"scaffold_manifest.json"}
+    if not isinstance(hashes, dict):
+        errors.append("manifest managed_sha256 must be an object")
+        hashes = {}
+    elif set(hashes) != expected_hash_keys:
+        errors.append("manifest managed_sha256 keys must exactly match non-manifest managed files")
     for relative in managed:
         try:
             path = _safe_manifest_path(root, relative)
@@ -1068,9 +1200,45 @@ def validate_generated_project(root: Path) -> list[str]:
             continue
         if not path.is_file():
             errors.append(f"managed file is missing: {relative}")
+        elif check_hashes and relative != "scaffold_manifest.json":
+            expected = hashes.get(relative)
+            if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
+                errors.append(f"invalid managed_sha256 value: {relative}")
+            elif _sha256(path) != expected:
+                errors.append(f"managed file hash mismatch: {relative}")
+    return errors
 
+
+def _read_manifest(root: Path) -> dict[str, object]:
+    manifest_path = root / "scaffold_manifest.json"
+    if not manifest_path.is_file():
+        raise ConfigError("force requires a prior scaffold_manifest.json")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ConfigError(f"prior scaffold_manifest.json is invalid: {exc}") from exc
+    errors = _manifest_errors(root, manifest, check_hashes=True)
+    if errors:
+        raise ConfigError("Invalid prior scaffold manifest:\n- " + "\n- ".join(errors))
+    return manifest
+
+
+def validate_generated_project(root: Path) -> list[str]:
+    """Return static contract errors for a generated project."""
+    errors: list[str] = []
+    for relative in sorted(_REQUIRED_ROOT_ARTIFACTS):
+        if not _safe_manifest_path(root, relative).is_file():
+            errors.append(f"required root artifact is missing: {relative}")
+    manifest_path = root / "scaffold_manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [*errors, f"invalid scaffold_manifest.json: {exc}"]
+    errors.extend(_manifest_errors(root, manifest, check_hashes=True))
+    if not isinstance(manifest, dict):
+        return errors
     cases = manifest.get("cases")
-    enabled_names = []
+    enabled_names: list[str] = []
     if not isinstance(cases, list):
         errors.append("manifest cases must be a list")
     else:
@@ -1081,11 +1249,11 @@ def validate_generated_project(root: Path) -> list[str]:
                 enabled_names.append(entry["name"])
     if manifest.get("run_order") != enabled_names:
         errors.append("manifest run_order does not match enabled cases")
-
     cases_root = root / "pfc_cases"
     actual_case_dirs = (
         sorted(path.name for path in cases_root.iterdir() if path.is_dir())
-        if cases_root.is_dir() else []
+        if cases_root.is_dir()
+        else []
     )
     if actual_case_dirs != sorted(enabled_names):
         errors.append("pfc_cases directories do not match enabled cases")
@@ -1095,16 +1263,19 @@ def validate_generated_project(root: Path) -> list[str]:
         except ConfigError as exc:
             errors.append(str(exc))
             continue
-        actual_files = {path.name for path in case_dir.iterdir() if path.is_file()} if case_dir.is_dir() else set()
+        actual_files = (
+            {path.name for path in case_dir.iterdir() if path.is_file()}
+            if case_dir.is_dir()
+            else set()
+        )
         if actual_files != _REQUIRED_CASE_FILES:
             errors.append(f"case {case_name} does not contain the exact six-file contract")
         run_all = case_dir / "run_all.dat"
         if run_all.is_file() and run_all.read_text(encoding="utf-8") != _RUN_ALL_TEXT:
             errors.append(f"case {case_name}: run_all.dat does not match exact run order")
         for name in sorted(actual_files):
-            path = case_dir / name
             try:
-                text = path.read_text(encoding="utf-8")
+                text = (case_dir / name).read_text(encoding="utf-8")
             except (OSError, UnicodeError) as exc:
                 errors.append(f"case {case_name}/{name} is unreadable: {exc}")
                 continue
@@ -1113,64 +1284,57 @@ def validate_generated_project(root: Path) -> list[str]:
     return errors
 
 
-def _load_prior_managed(output_dir: Path) -> list[str]:
-    manifest_path = output_dir / "scaffold_manifest.json"
-    if not manifest_path.is_file():
-        raise ConfigError("force requires a prior scaffold_manifest.json")
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ConfigError(f"prior scaffold_manifest.json is invalid: {exc}") from exc
-    if not isinstance(manifest, dict):
-        raise ConfigError("prior scaffold_manifest.json root must be an object")
-    managed = manifest.get("managed_files")
-    if not isinstance(managed, list):
-        raise ConfigError("prior scaffold_manifest.json managed_files must be a list")
-    for relative in managed:
-        path = _safe_manifest_path(output_dir, relative)
-        if path.exists() and not path.is_file():
-            raise ConfigError(f"managed path is not a regular file: {relative!r}")
-    return list(managed)
-
-
-def _force_merge(stage: Path, output_dir: Path, old_files: list[str], new_files: list[str]) -> None:
-    old_file_set = set(old_files)
+def _remove_old_managed_from_stage(
+    stage: Path, old_files: list[str], new_files: list[str]
+) -> None:
+    old_set = set(old_files)
     for relative in new_files:
-        target = _safe_manifest_path(output_dir, relative)
-        if target.exists() and relative not in old_file_set:
+        target = _safe_manifest_path(stage, relative)
+        if target.exists() and relative not in old_set:
             raise ConfigError(f"unmanaged existing path blocks force: {relative}")
-    backup = Path(tempfile.mkdtemp(prefix=f".{output_dir.name}.cpb2d-backup-", dir=output_dir.parent))
-    affected = sorted(old_file_set | set(new_files))
-    originally_present: set[str] = set()
+    for relative in old_files:
+        target = _safe_manifest_path(stage, relative)
+        if target.is_file():
+            target.unlink()
+    for directory in sorted(
+        (path for path in stage.rglob("*") if path.is_dir()),
+        key=lambda path: len(path.parts),
+        reverse=True,
+    ):
+        try:
+            directory.rmdir()
+        except OSError:
+            pass
+
+
+def _unique_sibling(output_dir: Path, kind: str) -> Path:
+    return output_dir.parent / f".{output_dir.name}.cpb2d-{kind}-{uuid.uuid4().hex}"
+
+
+def _acquire_lock(output_dir: Path) -> tuple[Path, int]:
+    lock_path = output_dir.parent / f".{output_dir.name}.cpb2d.lock"
     try:
-        for relative in affected:
-            target = _safe_manifest_path(output_dir, relative)
-            if target.is_file():
-                originally_present.add(relative)
-                backup_path = backup / PurePosixPath(relative)
-                backup_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(target, backup_path)
-        for relative in new_files:
-            source = stage / PurePosixPath(relative)
-            target = _safe_manifest_path(output_dir, relative)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            os.replace(source, target)
-        for relative in sorted(set(old_files) - set(new_files)):
-            target = _safe_manifest_path(output_dir, relative)
-            if target.is_file():
-                target.unlink()
-    except Exception:
-        for relative in affected:
-            target = _safe_manifest_path(output_dir, relative)
-            backup_path = backup / PurePosixPath(relative)
-            if relative in originally_present:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                os.replace(backup_path, target)
-            elif target.is_file():
-                target.unlink()
-        raise
-    finally:
-        shutil.rmtree(backup, ignore_errors=True)
+        descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    except FileExistsError as exc:
+        raise ConfigError(f"another CPB2D generation holds lock: {lock_path}") from exc
+    return lock_path, descriptor
+
+
+def _swap_directories(stage: Path, output_dir: Path) -> None:
+    backup = _unique_sibling(output_dir, "backup")
+    os.replace(output_dir, backup)
+    try:
+        os.replace(stage, output_dir)
+    except Exception as publish_error:
+        try:
+            os.replace(backup, output_dir)
+        except Exception as rollback_error:
+            raise ConfigError(
+                "directory publish failed and rollback failed; backup preserved at "
+                f"{backup.resolve()}"
+            ) from rollback_error
+        raise publish_error
+    shutil.rmtree(backup)
 
 
 def create_project(
@@ -1180,25 +1344,61 @@ def create_project(
     intake_path = Path(intake_path)
     output_dir = Path(output_dir)
     config = load_intake(intake_path)
+    case_order = [case.name for _, case in _enabled_cases(config)]
     output_parent = output_dir.parent
-    if output_dir.exists() and (output_dir.is_symlink() or not output_dir.is_dir()):
-        raise FileExistsError(f"output path is not a regular directory: {output_dir}")
-    if output_dir.exists() and not force:
-        raise FileExistsError(f"output directory already exists: {output_dir}")
-    old_files = _load_prior_managed(output_dir) if output_dir.exists() else []
     output_parent.mkdir(parents=True, exist_ok=True)
-    stage = Path(tempfile.mkdtemp(prefix=f".{output_dir.name}.cpb2d-stage-", dir=output_parent))
+    lock_path, lock_descriptor = _acquire_lock(output_dir)
+    stage = _unique_sibling(output_dir, "stage")
     try:
+        output_exists = os.path.lexists(output_dir)
+        if output_exists and not force:
+            raise FileExistsError(f"output directory already exists: {output_dir}")
         warnings = project_warnings(config, output_dir)
+        if output_exists:
+            _assert_tree_has_no_reparse_points(output_dir)
+            prior = _read_manifest(output_dir)
+            prior_errors = validate_generated_project(output_dir)
+            if prior_errors:
+                raise ConfigError(
+                    "Prior generated project validation failed:\n- "
+                    + "\n- ".join(prior_errors)
+                )
+            old_files = list(prior["managed_files"])
+            shutil.copytree(output_dir, stage, symlinks=False)
+            new_preview = sorted([
+                "README_runbook.md", "project_config.yaml", "cases.csv",
+                "calibration/targets.csv", "calibration/parameter_bounds.yaml",
+                "postprocess/manifest.csv", "reports/modeling_notes.md",
+                "geometry/cracks/README.md", "geometry/cracks/polyline_schema.csv",
+                "scaffold_manifest.json",
+                *(
+                    f"pfc_cases/{case.name}/{name}"
+                    for _, case in _enabled_cases(config)
+                    for name in _REQUIRED_CASE_FILES
+                ),
+            ])
+            _remove_old_managed_from_stage(stage, old_files, new_preview)
+        else:
+            stage.mkdir()
+            old_files = []
         managed_files = _write_stage(stage, config, intake_path, output_dir, warnings)
         errors = validate_generated_project(stage)
         if errors:
             raise ConfigError("Generated project validation failed:\n- " + "\n- ".join(errors))
-        if output_dir.exists():
-            _force_merge(stage, output_dir, old_files, managed_files)
+        if output_exists:
+            _assert_tree_has_no_reparse_points(output_dir)
+            current = _read_manifest(output_dir)
+            if current != prior:
+                raise ConfigError("output project changed during force generation")
+            _swap_directories(stage, output_dir)
         else:
             os.replace(stage, output_dir)
-        return CreateResult(output_dir, warnings, managed_files)
+        return CreateResult(output_dir, warnings, managed_files, case_order)
     finally:
+        os.close(lock_descriptor)
+        try:
+            lock_path.unlink()
+        except FileNotFoundError:
+            pass
         if stage.exists():
             shutil.rmtree(stage, ignore_errors=True)
