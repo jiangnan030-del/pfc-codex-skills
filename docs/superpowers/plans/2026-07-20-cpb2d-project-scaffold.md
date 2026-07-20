@@ -345,7 +345,7 @@ git commit -m "feat: add deterministic CPB2D crack geometry"
 - Modify: `skills/pfc-workflow/scripts/cpb2d_scaffold.py`
 - Modify: `skills/pfc-workflow/tests/test_cpb2d_scaffold.py`
 
-- [ ] **Step 1: Write failing template contract tests**
+- [x] **Step 1: Write failing template contract tests**
 
 ```python
 from cpb2d_scaffold import render_case_files
@@ -388,7 +388,7 @@ def test_run_all_is_single_ordered_entrypoint():
     ]
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -k rendered -v
@@ -396,7 +396,7 @@ def test_run_all_is_single_ordered_entrypoint():
 
 Expected: import failure for `render_case_files`.
 
-- [ ] **Step 3: Add minimal PFC templates derived from public/canonical sources**
+- [x] **Step 3: Add minimal PFC templates derived from public/canonical sources**
 
 Use `string.Template` placeholders only. Required PFC behavior:
 
@@ -409,7 +409,7 @@ Use `string.Template` placeholders only. Required PFC behavior:
 
 No template may contain a Windows drive path, user case name outside placeholders, or heavy-AE symbols.
 
-- [ ] **Step 4: Implement renderer with strict placeholder checking**
+- [x] **Step 4: Implement renderer with strict placeholder checking**
 
 ```python
 def render_template(name: str, context: Mapping[str, object]) -> str:
@@ -431,7 +431,7 @@ def render_case_files(config: ScaffoldConfig, case: CaseConfig, case_index: int)
 
 `Template.substitute`, not `safe_substitute`, is required so missing placeholders fail tests.
 
-- [ ] **Step 5: Run tests and inspect generated source snippets**
+- [x] **Step 5: Run tests and inspect generated source snippets**
 
 ```bash
 /e/Python312/python.exe -m pytest skills/pfc-workflow/tests/test_cpb2d_scaffold.py -v
@@ -439,7 +439,7 @@ def render_case_files(config: ScaffoldConfig, case: CaseConfig, case_index: int)
 
 Expected: all tests pass. Also assert in tests that rendered files contain no `${...}` and no `ghp_`, `C:\`, `D:\`, or `E:\`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/pfc-workflow/templates/cpb2d-scaffold \
