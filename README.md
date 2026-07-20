@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/pfc-codex-skills-cover.webp" alt="PFC Codex Skills：颗粒介质、力链、裂纹与自动化工作流" width="100%" />
+
 # PFC Codex Skills · PFC 离散元建模技能包
 
 **给 AI Agent（Claude Code / Codex / Cursor 等）用的 ITASCA PFC 全流程技能包——从规划、建模、标定、求解到后处理与可视化**
@@ -11,6 +13,7 @@
 [![Skills](https://img.shields.io/badge/skills-23-059669)](references/skill-index.md)
 [![Validation](https://img.shields.io/badge/validation-validate__skills.py-8b5cf6)](scripts/validate_skills.py)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GitHub Stars](https://img.shields.io/github/stars/jiangnan030-del/pfc-codex-skills?style=flat&logo=github&color=0ea5e9)](https://github.com/jiangnan030-del/pfc-codex-skills/stargazers)
 [![Agents](https://img.shields.io/badge/Claude%20Code%20·%20Codex%20·%20Cursor-supported-8b5cf6.svg)](#-快速开始)
 
 </div>
@@ -258,6 +261,16 @@ PFC 标定没有银弹，本包按"从快到精"提供三条可切换路线，�
 > 用贝叶斯优化对这组 LPBM 微参数做自动标定，目标是 UCS=120MPa、E=40GPa、峰值应变=0.004
 >
 > 先用 LHS 抽 30 个样本，拟合代理模型，再跑 50 轮贝叶斯优化
+
+## ⭐ Star History
+
+如果这个技能包对你的 PFC 建模、标定或后处理工作有帮助，欢迎点一个 Star。下面的曲线由 [Star History](https://www.star-history.com/) 动态生成：
+
+<div align="center">
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jiangnan030-del/pfc-codex-skills&type=Date)](https://www.star-history.com/#jiangnan030-del/pfc-codex-skills&Date)
+
+</div>
 
 ## 🗺 Roadmap
 
