@@ -550,6 +550,24 @@ def test_horizontal_crack_geometry_uses_metres_half_length_center_and_half_width
     assert crack.radius_m == pytest.approx(0.0015)
 
 
+def test_distance_is_metadata_and_does_not_implicitly_move_crack_geometry():
+    cfg = load_intake(FIXTURE)
+    baseline_case = cfg.cases[1]
+    changed_distance = replace(baseline_case, distance_mm=14.0)
+
+    assert crack_geometry(changed_distance, cfg.specimen) == crack_geometry(
+        baseline_case, cfg.specimen
+    )
+    assert (
+        render_context(cfg, baseline_case, 1)["crack_command"]
+        == render_context(
+            replace(cfg, cases=(cfg.cases[0], changed_distance)),
+            changed_distance,
+            1,
+        )["crack_command"]
+    )
+
+
 def test_vertical_and_rotated_crack_geometry_uses_angle_and_center():
     cfg = load_intake(FIXTURE)
     vertical = replace(

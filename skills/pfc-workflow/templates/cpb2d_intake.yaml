@@ -59,9 +59,11 @@ cases:
     crack_enabled: true
     crack_type: straight
     angle_deg: 0.0
+    # Metadata for case naming and paper variables; it does not move the crack.
     distance_mm: 20.0
     length_mm: 20.0
     width_mm: 3.0
+    # These coordinates control the crack's actual position in the specimen.
     center_x_mm: 0.0
     center_y_mm: 0.0
 

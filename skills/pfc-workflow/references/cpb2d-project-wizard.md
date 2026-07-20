@@ -78,6 +78,7 @@
 - **默认**：`angle_deg: 0.0`、`distance_mm: 20.0`、`length_mm: 20.0`、`width_mm: 3.0`、中心 `(0.0, 0.0) mm`。
 - **答案形状**：角度、可选边界距离、正长度、正宽度、中心 x/y；长度和坐标统一为 mm。
 - **配置目标**：`cases[].angle_deg`、`cases[].distance_mm`、`cases[].length_mm`、`cases[].width_mm`、`cases[].center_x_mm`、`cases[].center_y_mm`。
+- **字段语义**：`distance_mm` 只登记 case 命名和论文自变量，不会隐式移动裂隙；实际位置由 `center_x_mm`、`center_y_mm` 明确控制。若论文中的边界距离需要换算为裂隙中心，必须先确认距离定义和方向，再把换算结果写入中心坐标，不能让 AI 猜测。
 - **阻断性**：对 `straight_crack` 阻断；几何不全或越界不能作为有效配置。裂隙 case 在 intact runtime 通过前保持 disabled。
 
 ## 阶段 4：实验数据登记
@@ -161,4 +162,14 @@
 - **裂纹输出**：`plotdata_fracture_orientations.csv` 的表头为 `angle_deg,type`，包含数值角度和裂纹类型。
 - **Windows 注意事项**：通过 PFC 命令设置工作目录时使用正斜杠路径；反斜杠可能被 PFC 命令解析器吞掉。该注意事项只影响运行器传入的目录写法，不要求修改生成的项目源文件。
 
-上述结果只证明公开基线的 `intact` case 与该 PFC6 build 兼容；新项目仍须按本向导独立执行 intact runtime gate，不能直接据此跳过验证。
+同一公开 intake 的 `b0_d20` 直线裂隙 case 也完成真实运行验收：
+
+- **运行入口**：仅运行 `pfc_cases/b0_d20/run_all.dat`，任务 `8b0c9f` 完成；未运行其他案例、标定、后处理或 AE。
+- **保存节点**：`sample.sav`、`parallel_bonded.sav`、`stage_a.sav`–`stage_d.sav`、`peak.sav` 和 `final.sav` 均生成且非空。
+- **输出契约**：三个标准 CSV 均生成且包含数值数据；`stress_strain.csv` 536 行，`stress_strain_step.csv` 536 行，`plotdata_fracture_orientations.csv` 781 行。
+- **实际裂隙几何**：水平裂隙中心为 `(0, 0) mm`，端点为 `(-10, 0) mm` 和 `(10, 0) mm`，法向半宽 `1.5 mm`，与生成的 `ball delete range cylinder` 命令一致。
+- **删球证据**：`sample.sav` 有 2652 个球，`parallel_bonded.sav` 有 2549 个球；理论有限圆柱区域内的球心由 103 个降为 0，等面积上下邻带保持 200 个，PFC 日志同时报告 `103 balls deleted.`。这证明裂隙由真实删球形成，而不是换色或分组。
+- **离散尺度**：实际球半径约 `0.300009–0.499963 mm`，因此可视空隙边缘相对理论边界允许约 `0.3–0.5 mm` 的颗粒离散偏差。
+- **PFC6 范围语义**：该 build 下二维 `range cylinder` 表现为端平面截断的有限圆柱投影，即矩形带，而不是带半圆端帽的胶囊区。
+
+上述结果只证明公开基线的 `intact` 和 `b0_d20` case 与该 PFC6 build 兼容；新项目仍须按本向导独立执行 runtime gate，不能直接据此跳过验证。
