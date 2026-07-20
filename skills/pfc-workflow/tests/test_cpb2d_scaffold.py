@@ -146,6 +146,59 @@ def test_scripts_readme_keeps_three_routes_and_script_first_semantics():
     assert "**不是**新项目 scaffold source" in readme
 
 
+def test_skill_wires_beginner_gate_routes_and_local_assets():
+    skill_root = Path(__file__).resolve().parents[1]
+    skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    for marker in [
+        "## CPB2D Beginner Project Gate",
+        "references/cpb2d-project-wizard.md",
+        "一次只问一个问题",
+        "intake",
+        "assumptions",
+        "--validate-only",
+        "scripts/create_cpb2d_project.py",
+        "scripts/cpb2d_scaffold.py",
+        "Do not start calibration, post-processing, or AE",
+        "pfc_cases/intact/run_all.dat",
+        "PFC2D 6.0",
+        "new CPB2D UCS",
+        "existing case folders",
+        "Complete case route",
+        "project-case",
+        "non-CPB standard test",
+        "pfc-standard-tests",
+        "pfc-postprocessing",
+        "script-first",
+        "heavy AE",
+        "--force",
+        "hash",
+        "fallback stage",
+        "fallback peak",
+        "## Existing project - Complete case route",
+        "templates/cpb2d_intake.yaml",
+        "templates/cpb2d-scaffold/",
+        "tests/test_cpb2d_scaffold.py",
+        "唯一生成器",
+        "不得由 AI 临时重写",
+    ]:
+        assert marker in skill
+
+    assert skill.index("## CPB2D Beginner Project Gate") < skill.index(
+        "## Existing project - Complete case route"
+    )
+
+    for relative in [
+        "references/cpb2d-project-wizard.md",
+        "templates/cpb2d_intake.yaml",
+        "templates/cpb2d-scaffold",
+        "scripts/create_cpb2d_project.py",
+        "scripts/cpb2d_scaffold.py",
+        "tests/test_cpb2d_scaffold.py",
+    ]:
+        assert (skill_root / relative).exists(), relative
+
+
 @pytest.mark.parametrize("slug", ["my project", "CPB_Demo", "cpb-demo", "../cpb"])
 def test_project_slug_rejects_unsafe_names(tmp_path, slug):
     assert_invalid(tmp_path, lambda data: data["project"].update(slug=slug), "project.slug")

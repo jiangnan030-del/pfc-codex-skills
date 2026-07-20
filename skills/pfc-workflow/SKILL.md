@@ -365,8 +365,10 @@ When the user asks about `贝叶斯优化`, `LHS`, `拉丁超立方`, `代理模
 
 ## Bundled scripts
 
-The skill includes reusable campaign templates:
+The skill includes reusable campaign templates and the CPB2D scaffold generator:
 
+- `scripts/create_cpb2d_project.py`
+- `scripts/cpb2d_scaffold.py`
 - `scripts/lhs_design.py`
 - `scripts/run_campaign.py`
 - `scripts/fit_surrogate.py`
@@ -374,12 +376,46 @@ The skill includes reusable campaign templates:
 - `scripts/plot_campaign_diagnostics.py`
 - `scripts/runner_template.py`
 
-Use these as patterns for public repositories. They are intentionally generic and do not assume any local PFC project layout.
+The campaign scripts are generic patterns for public repositories. For a new
+CPB2D UCS project, `scripts/create_cpb2d_project.py` backed by
+`scripts/cpb2d_scaffold.py` is the 唯一生成器: the bundled template bodies must
+be used as maintained and 不得由 AI 临时重写.
 
-## Complete case route
+## CPB2D Beginner Project Gate
 
-For a project that already has per-case folders such as `b90_d18`, prefer a
-single-case runner route instead of rebuilding the workflow by hand.
+Trigger this gate when the user starts a new CPB2D UCS project from geometry
+and/or experimental data and does not yet have a runnable four-stage case.
+This gate precedes the expert P1-P7 workflow; it does not replace or duplicate
+that workflow once its runtime conditions have been met.
+
+First read `references/cpb2d-project-wizard.md`. Follow it 一次只问一个问题,
+record and explicitly confirm the complete `intake` and `assumptions`, then run
+`scripts/create_cpb2d_project.py --validate-only` against the proposed output
+directory before using that same script to create the scaffold.
+
+Do not start calibration, post-processing, or AE until the scaffold exists,
+static validation passes, and `pfc_cases/intact/run_all.dat` has been used as
+the first runtime target and has actually passed in PFC2D 6.0. A generated or
+statically valid project is not a runtime-validated project.
+
+Route adjacent requests explicitly:
+
+- new CPB2D UCS without a runnable four-stage case -> this scaffold gate
+- existing case folders -> `Existing project - Complete case route` and the
+  bundled `templates/project-case/` tools
+- non-CPB standard test -> `pfc-standard-tests`
+- figures -> `pfc-postprocessing`, script-first, after standard exports exist
+- heavy AE -> `pfc-ae-energy` only after standard stages and exports pass
+
+`--force` is not a general overwrite switch: it requires a prior managed
+manifest and rejects changed managed files through hash protection. Stage A-D
+may be a fallback stage representing the final state, while a fallback peak is
+not a confirmed physical peak; see `scripts/README.md` for the full semantics.
+
+## Existing project - Complete case route
+
+For an existing project that already has per-case folders such as `b90_d18`,
+prefer a single-case runner route instead of rebuilding the workflow by hand.
 
 Project-style runner and helpers are bundled under:
 
@@ -475,7 +511,12 @@ If `pfc-mcp` is available, this skill supplies the domain workflow while `pfc-mc
 ## Local Contents
 
 - `references/`: lifecycle routing, calibration, auto-calibration, DOE/surrogate modeling, contact models, ParaView export, post-processing, V&V, and advanced topics.
+- `references/cpb2d-project-wizard.md`: one-question-at-a-time beginner intake and runtime-gate contract.
 - `templates/scope.md`: reusable project-scope intake template.
+- `templates/cpb2d_intake.yaml`: public CPB2D intake seed reviewed through the wizard.
+- `templates/cpb2d-scaffold/`: maintained four-stage PFC2D template bodies; do not rewrite them ad hoc.
 - `templates/`: calibration campaign and project-case templates that use placeholders for local executables and case directories.
+- `scripts/create_cpb2d_project.py` and `scripts/cpb2d_scaffold.py`: the CPB2D CLI entry point and sole scaffold implementation.
+- `tests/test_cpb2d_scaffold.py`: intake, generation, transaction, and skill-wiring contract tests.
 - Child skills under `skills/pfc-*`: specialist routes for basic modeling, CAD import, contact models, standard tests, FISH, dynamics, coupling, post-processing, vedo, AE/energy, and calibration.
 
