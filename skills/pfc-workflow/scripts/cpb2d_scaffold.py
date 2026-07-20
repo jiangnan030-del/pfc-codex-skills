@@ -353,7 +353,7 @@ def _unsafe_posix_part(part: str) -> bool:
     return (
         part in {"", ".", ".."}
         or part.endswith((".", " "))
-        or ":" in part
+        or any(character in part for character in '<>:"|?*')
         or part[0] in "=+@"
         or base in _WINDOWS_DEVICES
     )
@@ -1320,7 +1320,7 @@ def _acquire_lock(output_dir: Path) -> tuple[Path, int]:
     return lock_path, descriptor
 
 
-def _swap_directories(stage: Path, output_dir: Path) -> None:
+def _swap_directories(stage: Path, output_dir: Path) -> str | None:
     backup = _unique_sibling(output_dir, "backup")
     os.replace(output_dir, backup)
     try:
@@ -1334,7 +1334,11 @@ def _swap_directories(stage: Path, output_dir: Path) -> None:
                 f"{backup.resolve()}"
             ) from rollback_error
         raise publish_error
-    shutil.rmtree(backup)
+    try:
+        shutil.rmtree(backup)
+    except OSError:
+        return f"published project but could not remove backup: {backup.resolve()}"
+    return None
 
 
 def create_project(
@@ -1390,7 +1394,9 @@ def create_project(
             current = _read_manifest(output_dir)
             if current != prior:
                 raise ConfigError("output project changed during force generation")
-            _swap_directories(stage, output_dir)
+            cleanup_warning = _swap_directories(stage, output_dir)
+            if cleanup_warning is not None:
+                warnings.append(cleanup_warning)
         else:
             os.replace(stage, output_dir)
         return CreateResult(output_dir, warnings, managed_files, case_order)

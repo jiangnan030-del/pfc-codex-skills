@@ -306,6 +306,12 @@ def test_control_characters_are_rejected(tmp_path, location, field, value):
         "intact.xlsx",
         "other/intact.xlsx",
         "data/experimental/file:stream.xlsx",
+        "data/experimental/bad<name.xlsx",
+        "data/experimental/bad>name.xlsx",
+        'data/experimental/bad"name.xlsx',
+        "data/experimental/bad|name.xlsx",
+        "data/experimental/bad?name.xlsx",
+        "data/experimental/bad*name.xlsx",
         "data/experimental/CON.xlsx",
         "data/experimental/trailing./intact.xlsx",
         "data/experimental/trailing /intact.xlsx",
@@ -879,6 +885,12 @@ def test_force_rejects_output_without_prior_manifest(tmp_path):
         (lambda manifest: manifest["managed_files"].append("readme_RUNBOOK.md"), "alias"),
         (lambda manifest: manifest["managed_files"].append("C:/outside"), "unsafe managed path"),
         (lambda manifest: manifest["managed_files"].append("safe:stream"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("bad<name"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("bad>name"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append('bad"name'), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("bad|name"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("bad?name"), "unsafe managed path"),
+        (lambda manifest: manifest["managed_files"].append("bad*name"), "unsafe managed path"),
         (lambda manifest: manifest["managed_files"].append("CON/file"), "unsafe managed path"),
         (lambda manifest: manifest["managed_files"].append("trail./file"), "unsafe managed path"),
     ],
@@ -947,6 +959,43 @@ def test_second_directory_rename_failure_restores_exact_project(tmp_path, monkey
         create_project(FIXTURE, output, force=True)
     assert _tree_snapshot(output) == before
     assert not list(tmp_path.glob(".project.cpb2d-backup-*"))
+
+
+def test_backup_cleanup_failure_returns_success_and_preserves_backup(tmp_path, monkeypatch):
+    import cpb2d_scaffold
+
+    output = tmp_path / "project"
+    create_project(FIXTURE, output)
+    intake = write_intake(
+        tmp_path,
+        lambda data: data["project"].update(title="Published replacement"),
+    )
+    real_rmtree = cpb2d_scaffold.shutil.rmtree
+
+    def fail_backup_only(path, *args, **kwargs):
+        if ".cpb2d-backup-" in Path(path).name:
+            raise OSError("injected backup cleanup failure")
+        return real_rmtree(path, *args, **kwargs)
+
+    monkeypatch.setattr(cpb2d_scaffold.shutil, "rmtree", fail_backup_only)
+    result = create_project(intake, output, force=True)
+
+    backups = list(tmp_path.glob(".project.cpb2d-backup-*"))
+    assert len(backups) == 1
+    expected = (
+        "published project but could not remove backup: "
+        f"{backups[0].resolve()}"
+    )
+    assert expected in result.warnings
+    assert backups[0].is_dir()
+    assert yaml.safe_load(
+        (output / "project_config.yaml").read_text(encoding="utf-8")
+    )["project"]["title"] == "Published replacement"
+    manifest = json.loads(
+        (output / "scaffold_manifest.json").read_text(encoding="utf-8")
+    )
+    assert expected not in manifest["warnings"]
+    assert validate_generated_project(output) == []
 
 
 def test_rollback_failure_keeps_backup_and_reports_absolute_path(tmp_path, monkeypatch):
@@ -1031,6 +1080,29 @@ def test_cli_creation_loads_intake_once(tmp_path, monkeypatch, capsys):
     ]) == 0
     assert calls == 1
     assert "enabled case order: intact, b0_d20" in capsys.readouterr().out
+
+
+def test_cli_creation_prints_dynamic_result_warning_and_returns_zero(
+    tmp_path, monkeypatch, capsys
+):
+    import create_cpb2d_project
+    from cpb2d_scaffold import CreateResult
+
+    output = tmp_path / "project"
+    warning = "published project but could not remove backup: C:\\absolute\\backup"
+    monkeypatch.setattr(
+        create_cpb2d_project,
+        "create_project",
+        lambda *args, **kwargs: CreateResult(output, [warning], [], ["intact"]),
+    )
+
+    assert create_cpb2d_project.main([
+        "--from-intake", str(FIXTURE), "--output-dir", str(output)
+    ]) == 0
+    captured = capsys.readouterr()
+    assert f"warning: {warning}" in captured.out
+    assert "created project:" in captured.out
+    assert captured.err == ""
 
 
 def test_cli_user_error_returns_two(tmp_path):
