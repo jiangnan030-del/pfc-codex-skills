@@ -72,3 +72,20 @@ lhs_design.py -> run_campaign.py -> fit_surrogate.py -> optimize_targets.py
 - `optimize_targets.py`：按 `bayes`、`rsm` 或 `de` 优化目标，并继续调用实际 case evaluator。
 
 这条路线不是脚手架生成步骤。intact runtime 未通过、实验列与单位未确认或 seed 尚不能稳定复现时，不得启动自动标定。
+
+### CPB2D intact evaluator
+
+`cpb2d_calibration.py` 是 beginner scaffold 的 PFC2D 6.0 intact 单点 evaluator。它不会原地修改现有 case，而是从候选参数 YAML 创建独立受管项目，通过 `ws://localhost:9001` bridge 运行 `run_all.dat`，验证 SAV/CSV 与 peak/stage 状态，再写 metrics JSON。
+
+运行前先启动 PFC2D GUI bridge。实际 CLI 以脚本 `argparse` 为准，核心参数为：
+
+```text
+--params-file <candidate.yaml>
+--metrics-file <metrics.json>
+--artifact-dir <independent-run-dir>
+--experiment-curve <stress_strain.csv>
+--targets-file <targets.json>
+--timeout-sec <seconds>
+```
+
+输出指标包括 peak stress/strain、early/middle/late 割线刚度、实验终点应变处的 final/peak ratio、最终裂纹数、整条曲线归一化 RMSE、objective 和 runtime status。未产生 `final.sav`、peak 未确认、stage fallback 或达到最大应变 safety stop 的候选不得作为合格最优点。
