@@ -274,7 +274,9 @@ PFC 标定没有银弹，本包提供四条边界清晰、可切换的路线，�
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=jiangnan030-del/pfc-codex-skills&type=Date)](https://www.star-history.com/#jiangnan030-del/pfc-codex-skills&Date)
+## Star History
+
+[![Star History Chart](https://api.star-history.com/chart?repos=jiangnan030-del/pfc-codex-skills&type=date&legend=top-left&sealed_token=gysylRGorSvLSMvGvJ4r2MFU_b_-VbaCQaUXRfNoiR-3hUFjx0eqOQGjd86W46sPn3HTzEL-sn0e72-ChbbPQ3yPX3KcFaliq0CtK_LTfSevE7s52sZSrw)](https://www.star-history.com/?type=date&repos=jiangnan030-del%2Fpfc-codex-skills)
 
 </div>
 
