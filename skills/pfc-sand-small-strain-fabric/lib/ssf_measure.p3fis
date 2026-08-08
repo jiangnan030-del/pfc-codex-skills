@@ -1,0 +1,47 @@
+; ssf_measure.p3fis
+; Named stress/strain/energy histories and final G0 metrics.
+
+fish define ssf_axial_strain
+    ; Return engineering axial strain from named z walls and initial height.
+    ssf_axial_strain=0.0
+end
+
+fish define ssf_deviator_stress
+    ; Return q from named wall reactions and current areas.
+    ssf_deviator_stress=0.0
+end
+
+fish define ssf_volume_strain
+    ; Return dV/V from all six named walls.
+    ssf_volume_strain=0.0
+end
+
+fish define ssf_mean_pressure
+    ; Return mean boundary stress; report drift, do not servo it in CV mode.
+    ssf_mean_pressure=0.0
+end
+
+fish define ssf_update_checks
+    ssf_out_volume_residual=math.abs(ssf_volume_strain)
+    ; Compute kinetic/strain-energy ratio with target-version energy APIs.
+    ; ssf_out_energy_ratio = kinetic_energy/strain_energy
+end
+
+fish define ssf_setup_measurement
+    ; Delete only histories/callbacks owned by ssf before re-registering.
+    history interval 1
+    fish history name 'ssf/cyclic/axial_strain' @ssf_axial_strain
+    fish history name 'ssf/cyclic/deviator_stress' @ssf_deviator_stress
+    fish history name 'ssf/cyclic/volume_strain' @ssf_volume_strain
+    fish history name 'ssf/cyclic/mean_pressure' @ssf_mean_pressure
+end
+
+fish define ssf_finalize_case
+    ssf_update_checks
+    [ssf_compute_fabric]
+    [ssf_compute_coordination]
+    ssf_out_ad_after=ssf_out_ad
+    ; Use one complete loop and one amplitude convention for stress/strain.
+    ; Compute ssf_out_g0 and ssf_out_damping from exported named histories.
+    ssf_state_status='completed'
+end
