@@ -1,0 +1,92 @@
+# pfc-freeze-thaw-damage : meso parameters and case matrix
+# Reference case: Sichuan yellow sandstone, dry density 2.25 g/cm3, 50 x 100 mm.
+# Re-calibrate every value for a different rock.
+
+specimen:
+  shape: cylinder
+  diameter_mm: 50.0
+  height_mm: 100.0
+  dry_density_g_cm3: 2.25
+
+particles:
+  mineral:
+    group: rock
+    density_kg_m3: 2500.0
+    radius_min_mm: 0.8
+    radius_max_mm: 1.0
+    target_porosity: 0.16
+  pore_water:
+    group: water
+    density_kg_m3: 920.0
+    radius_min_mm: 0.6
+    radius_max_mm: 0.8
+    fill_porosity: 0.90
+
+# Three bond families. Only rock-rock may break; its breakage is the damage measure.
+bonds:
+  rock_rock:
+    breakable: true
+    tensile_strength_MPa: 3.10
+    modulus_GPa: 1.5
+    cohesion_MPa: 4.5
+    friction_angle_deg: 40.0
+    kn_over_ks: 1.5
+  water_rock:
+    breakable: false
+    tensile_strength_MPa: 100.0
+    modulus_GPa: 0.56
+    cohesion_MPa: 100.0
+    friction_angle_deg: 0.0
+    kn_over_ks: 1.5
+  water_water:
+    breakable: false
+    tensile_strength_MPa: 100.0
+    modulus_GPa: 0.56
+    cohesion_MPa: 100.0
+    friction_angle_deg: 0.0
+    kn_over_ks: 1.5
+
+calibration:
+  test_ucs_MPa: 75.05
+  test_modulus_GPa: 9.02
+  numerical_ucs_MPa: 73.40
+  numerical_modulus_GPa: 8.72
+  max_allowed_error_percent: 5.0
+
+freeze_thaw:
+  temperature_min_C: -30.0
+  temperature_max_C: 0.0
+  period_min: 60.0
+  substeps_per_cycle: 30
+  cycles: 50
+  rho_water_over_rho_ice: 1.09
+  volume_increment_form: incremental
+  uniform_temperature: true
+  simulate_positive_branch: false
+  equilibrium_ratio: 1.0e-5
+
+cases:
+  - name: sigma0_00
+    axial_stress_fraction: 0.0
+  - name: sigma0_02
+    axial_stress_fraction: 0.2
+  - name: sigma0_04
+    axial_stress_fraction: 0.4
+  - name: sigma0_06
+    axial_stress_fraction: 0.6
+
+servo:
+  relaxation_factor: 0.5
+  stress_tolerance: 5.0e-3
+  lateral_boundary: free
+
+post_processing:
+  band_interval_mm: 5.0
+  angle_bin_deg: 5.0
+  histories: [axial_strain, radial_strain, volumetric_strain, crack_count, temperature, unfrozen_water_content]
+
+save_chain: [ftc_ini, ftc_bonded, ftc_state1, ftc_cycle_n]
+
+assumptions:
+  uniform_specimen_temperature: true
+  pore_water_migration: false
