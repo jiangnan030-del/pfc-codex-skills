@@ -1,0 +1,117 @@
+; ============================================================================
+; gen_ftc_specimen.p3dat
+; Two-particle freeze-thaw specimen: mineral grains + pore-water particles,
+; three bond families (rock-rock, water-rock, water-water).
+; Staged save chain: ftc_ini -> ftc_bonded
+; Reference case: cylinder 50 x 100 mm, Sichuan yellow sandstone.
+; Verify command syntax against the official docs for your PFC version.
+; ============================================================================
+
+model new
+model random 10001
+model title 'Freeze-thaw specimen: mineral + pore water'
+
+; ---------------------------------------------------------------- parameters
+fish define setup
+    ; --- specimen geometry (m) ---
+    global sp_rad    = 0.025          ; specimen radius, 50 mm diameter
+    global sp_hgt    = 0.100          ; specimen height, 100 mm
+
+    ; --- mineral particles ---
+    global rk_rlo    = 0.8e-3         ; min radius
+    global rk_rhi    = 1.0e-3         ; max radius
+    global rk_dens   = 2500.0         ; kg/m3
+    global rk_poros  = 0.16           ; target packing porosity for grains
+
+    ; --- pore-water particles ---
+    global wt_rlo    = 0.6e-3
+    global wt_rhi    = 0.8e-3
+    global wt_dens   = 920.0          ; kg/m3
+    global wt_poros  = 0.90           ; loose fill of the remaining pore space
+
+    ; --- rock-rock bond (load carrying, breakable) ---
+    global rk_emod   = 1.5e9          ; Pa
+    global rk_krat   = 1.5            ; kn/ks
+    global rk_ten    = 3.10e6         ; Pa
+    global rk_coh    = 4.5e6          ; Pa
+    global rk_fa     = 40.0           ; deg
+    global rk_fric   = 0.5
+
+    ; --- water bonds (force transmission only, never break) ---
+    global wt_emod   = 0.56e9         ; Pa
+    global wt_krat   = 1.5
+    global wt_ten    = 100.0e6        ; Pa
+    global wt_coh    = 100.0e6        ; Pa
+    global wt_fa     = 0.0            ; deg
+    global wt_fric   = 0.0
+
+    global damp_loc  = 0.7
+end
+[setup]
+
+; ---------------------------------------------------------------- domain
+model domain extent [-2.0*sp_rad] [2.0*sp_rad] ...
+                    [-2.0*sp_rad] [2.0*sp_rad] ...
+                    [-0.6*sp_hgt] [1.6*sp_hgt] condition destroy
+
+model cmat default model linearpbond method deform emod [rk_emod] kratio [rk_krat] ...
+    property fric [rk_fric]
+
+; ---------------------------------------------------------------- walls
+; cylindrical lateral wall + two loading end walls
+wall generate name 'vessel' cylinder ...
+    base 0.0 0.0 0.0 axis 0.0 0.0 1.0 ...
+    height [sp_hgt] radius [sp_rad] cap false false onewall
+wall generate name 'bottom' plane position 0.0 0.0 0.0        dip 0.0 dd 0.0
+wall generate name 'top'    plane position 0.0 0.0 [sp_hgt]   dip 0.0 dd 0.0
+
+; ---------------------------------------------------------------- particles
+; 1) mineral skeleton
+ball distribute porosity [rk_poros] radius [rk_rlo] [rk_rhi] ...
+    box [-sp_rad] [sp_rad] [-sp_rad] [sp_rad] 0.0 [sp_hgt] ...
+    group 'rock'
+ball delete range cylinder end-1 0.0 0.0 -0.01 end-2 0.0 0.0 [sp_hgt+0.01] ...
+    radius [sp_rad] not
+ball attribute density [rk_dens] damp [damp_loc]
+
+model cycle 2000 calm 100
+model solve ratio-average 1e-5
+model save 'ftc_ini'
+
+; 2) pore-water particles inserted into the remaining pore space
+ball distribute porosity [wt_poros] radius [wt_rlo] [wt_rhi] ...
+    box [-sp_rad] [sp_rad] [-sp_rad] [sp_rad] 0.0 [sp_hgt] ...
+    group 'water'
+ball delete range cylinder end-1 0.0 0.0 -0.01 end-2 0.0 0.0 [sp_hgt+0.01] ...
+    radius [sp_rad] not
+ball attribute density [wt_dens] damp [damp_loc] range group 'water'
+
+model cycle 2000 calm 100
+model solve ratio-average 1e-5
+
+; ---------------------------------------------------------------- bonds
+model clean
+contact method bond gap 0.0
+
+; rock-rock: load carrying, breakable -> its failure is the damage measure
+contact property pb_ten [rk_ten] pb_coh [rk_coh] pb_fa [rk_fa] fric [rk_fric] ...
+    range contact type 'ball-ball' group 'rock' group 'rock'
+contact method deform emod [rk_emod] kratio [rk_krat] ...
+    range contact type 'ball-ball' group 'rock' group 'rock'
+
+; water-rock and water-water: transmit frost-heave force only, never break
+contact property pb_ten [wt_ten] pb_coh [wt_coh] pb_fa [wt_fa] fric [wt_fric] ...
+    range contact type 'ball-ball' group 'water'
+contact method deform emod [wt_emod] kratio [wt_krat] ...
+    range contact type 'ball-ball' group 'water'
+
+; ---------------------------------------------------------------- equilibrium
+ball attribute displacement multiply 0.0 velocity multiply 0.0 spin multiply 0.0
+model solve ratio-average 1e-5
+ball attribute displacement multiply 0.0 velocity multiply 0.0 spin multiply 0.0
+model save 'ftc_bonded'
+
+; Next steps:
+;   1) calibrate rock-rock parameters against pre-freeze UCS / E (gate: few percent)
+;   2) call axial_servo.p3fis to apply and hold sigma_1  -> save 'ftc_state1'
+;   3) call ftc_cycle.p3fis to run the freeze-thaw loop  -> save 'ftc_cycle_n'
