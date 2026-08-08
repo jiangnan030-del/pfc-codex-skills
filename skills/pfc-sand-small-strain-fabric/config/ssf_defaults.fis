@@ -1,0 +1,39 @@
+; ssf_defaults.fis
+; Dimension-independent defaults for pfc-sand-small-strain-fabric v1.1.0.
+
+fish define ssf_load_defaults
+    global ssf_cfg_dim = 3
+    global ssf_cfg_seed = 10001
+    global ssf_cfg_side = 0.050
+    global ssf_cfg_void_ratio = 0.65
+    global ssf_cfg_dmin = 0.30e-3
+    global ssf_cfg_dmax = 0.60e-3
+    global ssf_cfg_density = 2650.0
+
+    global ssf_cfg_rm = 2.0
+    global ssf_cfg_pebble_count = 7
+    global ssf_cfg_ani = 2
+    global ssf_cfg_ani_kappa = 4.0
+    global ssf_cfg_angle_deg = 45.0
+
+    global ssf_cfg_grain_shear = 18.0e9
+    global ssf_cfg_grain_poisson = 0.15
+    global ssf_cfg_fric_pp = 0.5
+    global ssf_cfg_fric_pw = 0.0
+    global ssf_cfg_damp_prepare = 0.7
+
+    global ssf_cfg_pressure = 100.0e3
+    global ssf_cfg_eps_amp = 3.0e-6
+    global ssf_cfg_frequency = 5.0
+    global ssf_cfg_loops = 1
+    global ssf_cfg_ratio_limit = 1.0e-5
+
+    global ssf_cfg_volume_tol = 1.0e-7
+    global ssf_cfg_pressure_drift_tol = 0.05
+    global ssf_cfg_energy_ratio_tol = 1.0e-3
+    global ssf_cfg_fabric_tol = 0.03
+end
+[ssf_load_defaults]
+
+; Naming: ssf_cfg_* config, ssf_state_* runtime, ssf_out_* outputs.
+; Walls: ssf_wall_*. Group slot: ssf_role. Histories: ssf/cyclic/*.
