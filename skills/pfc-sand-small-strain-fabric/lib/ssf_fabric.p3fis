@@ -1,0 +1,64 @@
+; ssf_fabric.p3fis
+; 3D fabric sampling and metrics. Verify orientation/contact APIs.
+
+fish define ssf_sample_uniform_axis
+    local u=2.0*math.random.uniform-1.0
+    local p=2.0*math.pi*math.random.uniform
+    local s=math.sqrt(1.0-u*u)
+    ssf_sample_uniform_axis=vector(s*math.cos(p),s*math.sin(p),u)
+end
+
+fish define ssf_sample_planar_axis(kappa)
+    local ok=false
+    loop while ok=false
+        local v=ssf_sample_uniform_axis
+        if math.random.uniform <= math.exp(-kappa*comp.z(v)^2) then
+            ssf_sample_planar_axis=v
+            ok=true
+        endif
+    endloop
+end
+
+fish define ssf_sample_major_axis
+    if ssf_cfg_ani=1 then
+        ssf_sample_major_axis=ssf_sample_uniform_axis
+    else
+        ssf_sample_major_axis=ssf_sample_planar_axis(ssf_cfg_ani_kappa)
+    endif
+end
+
+fish define ssf_assign_fabric
+    loop foreach local cp clump.list
+        local v=ssf_sample_major_axis
+        clump.extra(cp,1)=comp.x(v)
+        clump.extra(cp,2)=comp.y(v)
+        clump.extra(cp,3)=comp.z(v)
+        ; Rotate local +z to v using target-version orientation API.
+    endloop
+end
+
+fish define ssf_compute_fabric
+    ; Rij=mean(ni*nj); aij=7.5*(Rij-deltaij/3).
+    ; ad=sqrt(1.5*sum(aij*aij)); grain-grain contacts only.
+    global ssf_out_ad=0.0
+end
+
+fish define ssf_compute_coordination
+    ; Zm=(2*Nc-N1)/(Np-N1-N0), per physical clump/grain.
+    global ssf_out_zm=0.0
+end
+
+fish define ssf_assert_build_state
+    if clump.num=0 then
+        ssf_state_status='failed_no_grains'
+    endif
+end
+
+fish define ssf_assert_material_state
+    ssf_out_ad_before=ssf_out_ad
+    if ssf_out_zm <= 0.0 then
+        ssf_state_status='failed_coordination'
+    else
+        ssf_state_status='material_ready'
+    endif
+end
