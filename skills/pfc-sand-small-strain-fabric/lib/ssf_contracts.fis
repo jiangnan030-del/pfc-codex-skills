@@ -1,0 +1,57 @@
+; ssf_contracts.fis
+; Shared state reset, case-id/save naming and layer assertions.
+; This library must not restore, save or start long solves.
+
+fish define ssf_reset_case_state
+    global ssf_state_case_id = ''
+    global ssf_state_stage = 'reset'
+    global ssf_state_cycle_count = 0
+    global ssf_state_loop_complete = false
+    global ssf_state_status = 'initialized'
+    global ssf_out_ad_before = 0.0
+    global ssf_out_ad_after = 0.0
+    global ssf_out_zm = 0.0
+    global ssf_out_g0 = 0.0
+    global ssf_out_damping = 0.0
+    global ssf_out_volume_residual = 0.0
+    global ssf_out_pressure_drift = 0.0
+    global ssf_out_energy_ratio = 0.0
+end
+
+fish define ssf_build_case_id
+    ; Production implementation should format fixed-width values exactly as:
+    ; rm20_ani2_a045_e065_p100_s10001
+    local rm10 = math.round(ssf_cfg_rm*10.0)
+    local e100 = math.round(ssf_cfg_void_ratio*100.0)
+    local pkpa = math.round(ssf_cfg_pressure/1000.0)
+    ssf_state_case_id = 'rm'+string(rm10) ...
+        +'_ani'+string(ssf_cfg_ani) ...
+        +'_a'+string(math.round(ssf_cfg_angle_deg)) ...
+        +'_e'+string(e100) ...
+        +'_p'+string(pkpa) ...
+        +'_s'+string(ssf_cfg_seed)
+end
+
+fish define ssf_save_name(stage)
+    ssf_save_name = 'ssf_3d_hertz_'+stage+'_'+ssf_state_case_id
+    if stage = 'compacted' then
+        ssf_save_name = 'ssf_3d_prep_compacted_'+ssf_state_case_id
+    endif
+end
+
+fish define ssf_assert_dependencies
+    if ssf_state_case_id = '' then
+        ssf_build_case_id
+    endif
+    if ssf_cfg_dim # 3 then
+        io.out('SSF error: this implementation requires PFC3D')
+        ssf_state_status = 'failed_dimension'
+    endif
+end
+
+; Layer contracts:
+; Build outputs geometry metadata + compacted save.
+; Material outputs material-ready save + initial ad/Zm.
+; Test consumes only material-ready and outputs named histories.
+; Observe functions are idempotent and side-effect limited.
+; Runner alone writes logs, saves and manifest rows.
