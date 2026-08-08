@@ -1,0 +1,75 @@
+version: 1.1.0
+pfc_version: verify_with_pfc_mcp
+namespace: ssf
+units: {length: m, mass: kg, force: N, stress: Pa, time: s}
+
+case_id_format: rm{rm10}_ani{ani}_a{angle3}_e{e100}_p{pkpa}_s{seed}
+example_case_id: rm20_ani2_a045_e065_p100_s10001
+
+specimen:
+  shape: cube
+  side_m: 0.050
+  preparation: layered_under_compaction
+  gravity: false
+  equivalent_diameter_m: [0.00030, 0.00060]
+
+shape_cases:
+  - {key: sphere, rm: 1.0, pebbles: 1}
+  - {key: rm15, rm: 1.5, pebbles: 5}
+  - {key: rm20, rm: 2.0, pebbles: 7}
+  - {key: rm25, rm: 2.5, pebbles: 9}
+
+fabric_cases:
+  - {key: ani1, level: 1, distribution: uniform_sphere, kappa: 0.0}
+  - {key: ani2, level: 2, distribution: planar, kappa: 4.0}
+  - {key: ani3, level: 3, distribution: planar, kappa: 12.0}
+
+state_matrix:
+  void_ratios: [0.55, 0.65, 0.75]
+  confining_pressures_Pa: [100000]
+  loading_angles_deg: [0, 45, 90]
+  random_seeds: [10001, 10002, 10003]
+
+hertz:
+  grain_shear_modulus_Pa: 18.0e9
+  grain_poisson_ratio: 0.15
+  density_kg_m3: 2650
+  particle_particle_friction: 0.5
+  particle_wall_friction: 0.0
+  preparation_local_damping: 0.7
+  cyclic_damping: sensitivity_study
+
+cyclic:
+  mode: constant_volume_mechanical_undrained_analogue
+  control: axial_strain
+  axial_strain_half_amplitude: 3.0e-6
+  frequency_Hz: 5.0
+  loops: 1
+  amplitude_vnv: [1.0e-7, 3.0e-7, 1.0e-6, 3.0e-6]
+
+save_format: ssf_{dim}_{material}_{stage}_{case_id}
+save_stages: [compacted, material_ready, rotated, cyclic_done]
+
+manifest_fields:
+  - case_id
+  - dim
+  - material
+  - shape
+  - ani
+  - void_ratio
+  - pressure
+  - angle
+  - seed
+  - input_save
+  - output_save
+  - G0
+  - damping
+  - ad_before
+  - ad_after
+  - Zm
+  - volume_residual
+  - pressure_drift
+  - energy_ratio
+  - status
+  - elapsed
+  - code_hash
