@@ -1,0 +1,23 @@
+; run_small_strain_cyclic.p3dat
+; One angle/amplitude case, always restored from material_ready.
+program call 'config/ssf_defaults.fis'
+program call 'lib/ssf_contracts.fis'
+program call 'lib/ssf_fabric.p3fis'
+program call 'lib/ssf_servo.p3fis'
+program call 'lib/ssf_measure.p3fis'
+[ssf_build_case_id]
+[ssf_assert_dependencies]
+model restore [ssf_save_name('material_ready')]
+[ssf_rotate_loading_case]
+model save [ssf_save_name('rotated')]
+[ssf_servo_reset]
+[ssf_setup_measurement]
+[ssf_compute_fabric]
+ssf_out_ad_before=ssf_out_ad
+fish callback add @ssf_update_checks -1.1
+fish callback add @ssf_apply_cyclic_control -1.0
+model solve fish-halt @ssf_should_halt
+fish callback remove @ssf_apply_cyclic_control -1.0
+fish callback remove @ssf_update_checks -1.1
+[ssf_finalize_case]
+model save [ssf_save_name('cyclic_done')]
