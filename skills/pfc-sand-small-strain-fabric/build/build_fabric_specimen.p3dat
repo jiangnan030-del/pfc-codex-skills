@@ -1,0 +1,52 @@
+; build_fabric_specimen.p3dat
+; Build layer: templates, requested fabric, packing and compaction only.
+; Output: ssf_3d_prep_compacted_{case_id}
+; Verify clump-template/orientation syntax for the target PFC version.
+
+model new
+model random [ssf_cfg_seed]
+model title 'SSF controlled-fabric specimen build'
+
+program call 'config/ssf_defaults.fis'
+program call 'lib/ssf_contracts.fis'
+program call 'lib/ssf_fabric.p3fis'
+[ssf_reset_case_state]
+[ssf_build_case_id]
+
+model domain extent [-0.7*ssf_cfg_side] [0.7*ssf_cfg_side] ...
+                    [-0.7*ssf_cfg_side] [0.7*ssf_cfg_side] ...
+                    [-0.7*ssf_cfg_side] [0.7*ssf_cfg_side]
+
+wall generate box [-0.5*ssf_cfg_side] [0.5*ssf_cfg_side] ...
+                  [-0.5*ssf_cfg_side] [0.5*ssf_cfg_side] ...
+                  [-0.5*ssf_cfg_side] [0.5*ssf_cfg_side] onewall
+; Rename generated walls to ssf_wall_xmin/xmax/ymin/ymax/zmin/zmax.
+
+; Preparation model only. The target Hertz model is installed by Material.
+contact cmat default model linear method deformability ...
+    emod [ssf_cfg_grain_shear] kratio 1.0 property fric 0.0
+
+; Create one selected shape template per case:
+; sphere: 1 pebble; rm15: 5; rm20: 7; rm25: 9.
+; Template local major axis is +z; QA volume, centroid and inertia first.
+[ssf_build_selected_template]
+
+; Layered under-compaction is preferred for paper-style reproduction.
+; Assign group 'ssf:grain' in slot 'ssf_role'.
+[ssf_generate_grains]
+[ssf_assign_fabric]
+ball attribute density [ssf_cfg_density] damp [ssf_cfg_damp_prepare]
+
+model cycle 2000 calm 100
+model mechanical timestep scale
+model solve ratio-average [ssf_cfg_ratio_limit]
+model mechanical timestep auto
+model calm
+
+[ssf_compute_fabric]
+[ssf_compute_coordination]
+[ssf_assert_build_state]
+model save [ssf_save_name('compacted')]
+
+; Build must not install final Hertz parameters, rotate loading axes, register
+; cyclic histories or calculate G0.
