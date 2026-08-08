@@ -1,0 +1,62 @@
+; make_ellipsoid_clumps.p3dat
+; Sphere and 5/7/9-pebble ellipsoid templates for rm=1.0/1.5/2.0/2.5.
+; Verify clump-template and Hertz property syntax for the target PFC version.
+
+model new
+model random 10001
+model title 'Sand fabric: ellipsoidal clump templates'
+
+fish define setup
+    global box_half = 0.025
+    global rho_p = 2650.0
+    global gp = 18.0e9
+    global nu_p = 0.15
+    global mu_pp = 0.5
+    global mu_pw = 0.0
+    global damp_prepare = 0.7
+    global dmin = 0.30e-3
+    global dmax = 0.60e-3
+    global target_void_ratio = 0.65
+    global target_porosity = target_void_ratio/(1.0+target_void_ratio)
+end
+[setup]
+
+model domain extent [-1.4*box_half] [1.4*box_half] ...
+                    [-1.4*box_half] [1.4*box_half] ...
+                    [-1.4*box_half] [1.4*box_half]
+wall generate box [-box_half] [box_half] ...
+                  [-box_half] [box_half] ...
+                  [-box_half] [box_half] onewall
+
+; Hertz-Mindlin is normally represented by PFC's hertz contact model.
+; Set grain shear modulus=18 GPa, Poisson ratio=0.15 and friction=0.5
+; using the property names documented for the target release.
+contact cmat default model hertz property fric [mu_pp]
+
+; Build templates in local coordinates with the major axis along +z:
+;   sphere       rm=1.0  (ball or one-pebble clump)
+;   ellipsoid_15 rm=1.5  5 pebbles
+;   ellipsoid_20 rm=2.0  7 pebbles
+;   ellipsoid_25 rm=2.5  9 pebbles
+; Replace the following patterns with validated target-version syntax:
+; clump template create name 'ellipsoid_15' ...
+; clump template create name 'ellipsoid_20' ...
+; clump template create name 'ellipsoid_25' ...
+
+; Template QA before specimen generation:
+; 1) union volume/equivalent diameter; 2) centroid; 3) inertia axes;
+; 4) measured envelope aspect ratio; 5) equal equivalent-diameter PSD.
+model save 'clump_templates'
+
+; Generate exactly one shape family per case, then assign orientations:
+; clump distribute porosity [target_porosity] diameter [dmin] [dmax] ...
+;       template 'ellipsoid_20' box ...
+; clump attribute density [rho_p] damp [damp_prepare]
+; program call 'prepare_fabric.p3fis'
+; [assign_fabric]
+; model cycle 2000 calm 100
+; model solve ratio-average 1e-5
+; model save 'fabric_compacted'
+
+; Use layered under-compaction when reproducing the paper preparation method.
+; Set particle-wall friction to zero with a contact-material-table range.
