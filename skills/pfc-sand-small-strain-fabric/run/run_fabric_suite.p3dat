@@ -1,0 +1,26 @@
+; run_fabric_suite.p3dat
+; Runner owns dependency checks, case routing, saves, logs and manifest.
+program call 'config/ssf_defaults.fis'
+program call 'lib/ssf_contracts.fis'
+[ssf_reset_case_state]
+[ssf_build_case_id]
+[ssf_assert_dependencies]
+
+program log-file 'output/logs/ssf_3d_hertz_suite.log'
+program log on
+
+; For each cases.yaml row:
+; 1 build only if compacted save is absent
+; 2 install material only if material-ready save is absent
+; 3 restore material-ready independently for every angle/amplitude
+; 4 call the test, assert outputs, save, export histories and append manifest
+
+program call 'build/build_fabric_specimen.p3dat'
+program call 'material/install_hertz.p3dat'
+program call 'test/run_small_strain_cyclic.p3dat'
+
+; Append fields declared in config/cases.yaml to output/manifest.csv.
+; Required: case_id, input/output save, PFC version, seed, G0, damping,
+; ad before/after, Zm, residuals, status, elapsed time and code hash.
+[ssf_append_manifest]
+program log off
