@@ -3,12 +3,11 @@ name: pfc-sand-small-strain-fabric
 description: >
   Child skill of pfc-workflow for PFC3D studies of sand small-strain shear
   modulus (G0/Gmax). Build spherical and ellipsoidal clumps, prescribe
-  major-axis orientation distributions, use Hertz-Mindlin contacts, run
-  constant-volume small-amplitude cyclic triaxial tests, and calculate G0,
-  fabric tensors and mechanical coordination number. Use for particle-shape
-  effects, fabric anisotropy, directional stiffness, cyclic triaxial DEM,
-  bender-element interpretation, or G0-void-ratio relationships.
-version: 1.0.0
+  major-axis fabric, install Hertz-Mindlin contacts, run constant-volume
+  small-amplitude cyclic tests, and calculate G0, fabric tensors and
+  mechanical coordination. Uses a Build-Material-Test-Observe-Runner
+  architecture and the ssf_ naming namespace.
+version: 1.1.0
 requires: ["pfc-mcp"]
 related_skills:
   - pfc-workflow
@@ -24,209 +23,216 @@ related_skills:
 
 ## Parent Skill Relationship
 
-This is a specialist child of `pfc-workflow`:
+This specialist child implements `pfc-workflow` phases P1-P7 for sand G0:
 
-- P1: define particle shape, void ratio, fabric, pressure and loading direction.
-- P2: create spherical/ellipsoidal clumps and controlled orientation fabric.
-- P3: calibrate Hertz-Mindlin contact response and initial state.
-- P4: consolidate, rotate the material/loading axes and run one small-strain loop.
-- P5: calculate G0, fabric anisotropy, mechanical coordination and fitted laws.
-- P6/P7: verify amplitude/rate/seed/resolution independence and deliver results.
-
-Return to `pfc-workflow` for generic project planning, batch execution, V&V and reporting.
+- P1: define shape, void ratio, fabric, pressure, angle and seeds.
+- P2: build clump templates and controlled orientation fabric.
+- P3: install/calibrate Hertz-Mindlin contacts and consolidate.
+- P4: run one declared constant-volume small-strain loop per case.
+- P5: calculate G0, damping, fabric, coordination and fitted laws.
+- P6/P7: verify amplitude/rate/seed/resolution independence and deliver a manifest.
 
 ## When To Use
 
-Use this skill when the task mentions:
+Use for G0/Gmax, small-strain sand stiffness, ellipsoidal grains, fabric
+anisotropy, directional modulus, cyclic-triaxial DEM, fabric tensors,
+mechanical coordination or G0-void-ratio relationships.
 
-- small-strain or maximum shear modulus (`G0`, `Gmax`) of sand;
-- particle shape, elongation, ellipsoidal grains or clumps;
-- depositional/fabric anisotropy or directional stiffness;
-- constant-volume/undrained small-amplitude cyclic triaxial DEM;
-- fabric tensor, contact-normal distribution or mechanical coordination number;
-- the coupling among void ratio, pressure, fabric and loading direction.
+This is not a complete liquefaction model: constant volume is only a mechanical
+undrained analogue; explicit pore-pressure generation needs additional coupling.
 
-Do not use it as a complete liquefaction model: pore-pressure generation and cyclic strength require additional validation or fluid coupling.
+## Architecture Contract
 
-## Physical Picture -> Numerical Mapping
+All PFC code follows five layers:
 
-| Physical item | PFC representation | Main control/output |
+| Layer | Entry | Owns | Must not do |
+|---|---|---|---|
+| Build | `build/build_fabric_specimen.p3dat` | templates, orientation, packing, compaction | cyclic test or final G0 |
+| Material | `material/install_hertz.p3dat` | Hertz install, friction, equilibrium, consolidation | direction cases/history |
+| Test | `test/run_small_strain_cyclic.p3dat` | one declared angle/amplitude test | rebuild or change shape |
+| Observe | `lib/ssf_*.fis` | metrics, control, histories, stop rules | restore/save/long solve |
+| Runner | `run/run_fabric_suite.p3dat` | dependency checks, case routing, log/save/manifest | duplicate equations |
+
+Each direction case starts from the same material-ready save. Shared libraries
+must be idempotent: setup/reset removes prior callbacks and clears state.
+
+## Naming Contract
+
+Namespace: `ssf` (sand small-strain fabric).
+
+- FISH functions: `ssf_verb_noun`, e.g. `ssf_compute_fabric`.
+- Configuration globals: `ssf_cfg_*`.
+- Runtime state: `ssf_state_*`.
+- Derived outputs: `ssf_out_*`.
+- Walls: `ssf_wall_xmin/xmax/ymin/ymax/zmin/zmax`; never depend on wall IDs.
+- Groups: `ssf:grain`, `ssf:boundary`, slot `ssf_role`.
+- Histories: `ssf/cyclic/axial_strain`, `ssf/cyclic/deviator_stress`, etc.
+- Executable command files: `.p3dat`; 3D FISH libraries: `.p3fis`;
+  truly dimension-independent libraries only: `.fis`.
+
+Case ID:
+
+```text
+rm20_ani2_a045_e065_p100_s10001
+```
+
+It encodes aspect ratio, Ani level, angle, void ratio, pressure (kPa) and seed.
+
+Save name:
+
+```text
+ssf_{dim}_{material}_{stage}_{case_id}
+```
+
+Canonical stages:
+
+```text
+ssf_3d_prep_compacted_{case_id}
+ssf_3d_hertz_material_ready_{case_id}
+ssf_3d_hertz_rotated_{case_id}
+ssf_3d_hertz_cyclic_done_{case_id}
+```
+
+## Physical Mapping
+
+| Physical item | PFC representation | Control/output |
 |---|---|---|
-| Grain shape | sphere or 5/7/9-pebble ellipsoidal clump | aspect ratio `rm=1.0/1.5/2.0/2.5` |
-| Depositional fabric | prescribed major-axis orientation distribution | Ani I/II/III |
-| Fabric intensity | contact-normal fabric tensor | `Rij`, `aij`, `ad` |
-| Load-bearing skeleton | mechanical coordination number | `Zm` |
-| Quartz-sand contact | Hertz-Mindlin contact | `Gp`, `nu`, friction |
-| Undrained equivalence | axial strain control + zero-volume lateral control | volume-strain residual |
-| Direction effect | rotate specimen or loading coordinates | 0/45/90 degrees |
-| Small-strain stiffness | stress/strain amplitude of one loop | `G0 = DeltaSigma/gamma` |
+| Grain shape | sphere or 5/7/9-pebble ellipsoidal clump | rm=1.0/1.5/2.0/2.5 |
+| Depositional fabric | major-axis orientation distribution | Ani I/II/III |
+| Fabric intensity | contact-normal fabric tensor | Rij, aij, ad |
+| Load-bearing skeleton | mechanical coordination | Zm |
+| Quartz contact | Hertz-Mindlin | Gp, nu, friction |
+| Undrained analogue | axial strain + zero-volume lateral control | volume residual |
+| Direction effect | rotate material/loading coordinates | 0/45/90 degrees |
+| Small-strain stiffness | one-loop stress/strain amplitude | G0 |
 
 ## Core Equations
 
-Particle aspect ratio:
-
 ```text
-rm = la / lb
+rm = la/lb
+Rij = mean(n_i*n_j)
+aij = (15/2)*(Rij-deltaij/3)
+ad  = sqrt((3/2)*sum(aij*aij))
+Zm  = (2*Nc-N1)/(Np-N1-N0)
+G0  = DeltaSigma/gamma
+G0  = A*exp(-a*e)*(p0/pa)^n
 ```
 
-Contact-normal fabric tensor and anisotropy invariant:
-
-```text
-Rij = (1/Nc) * sum(n_i * n_j)
-aij = (15/2) * (Rij - deltaij/3)
-ad  = sqrt((3/2) * aij * aij)
-```
-
-Mechanical coordination number:
-
-```text
-Zm = (2*Nc - N1) / (Np - N1 - N0)
-```
-
-Small-strain modulus and the Hardin-Richart-style fit:
-
-```text
-G0 = DeltaSigma / gamma
-G0 = A * exp(-a*e) * (p0/pa)^n
-```
-
-Use the same amplitude convention for stress and strain (half amplitude or peak-to-peak, never mixed).
+Use the same amplitude convention for stress and strain.
 
 ## Operating Rules
 
-1. Separate shape, density, fabric and direction with a controlled case matrix.
-2. Compare G0 only at matched void ratio, pressure and approximately matched `Zm`.
-3. Verify a low-strain modulus plateau; do not assume one imposed amplitude is the strict Gmax limit.
-4. Keep cyclic loading quasi-static and monitor kinetic/strain-energy ratio.
-5. Enforce zero volume change without applying two incompatible servos to one degree of freedom.
-6. Export target and achieved orientation distributions, not only a rendered figure.
-7. Save template, compacted, consolidated, rotated and cyclic stages separately.
-8. Verify every command and API against the target PFC version through `pfc-mcp`.
-
-## Required Inputs
-
-- PFC version and SI unit convention.
-- Equivalent particle-size distribution and specimen dimensions.
-- Shape: sphere or ellipsoid aspect ratio `rm`.
-- Orientation distribution/Ani level and random seed.
-- Target void ratio or relative density.
-- Initial confining pressure and loading direction.
-- Cyclic axial-strain amplitude, frequency and loop count.
-- Hertz-Mindlin properties and convergence criteria.
-
-If the paper/reproduction source omits pressure or grading details, keep them explicit parameters; do not invent values.
+1. Separate shape, density, fabric, pressure and direction in the case matrix.
+2. Keep Build, Material, Test, Observe and Runner responsibilities independent.
+3. Use the `ssf_` namespace and named walls/groups/histories everywhere.
+4. Compare G0 only at matched void ratio, pressure and approximately matched Zm.
+5. Demonstrate a low-strain plateau and quasi-static energy response.
+6. In constant-volume mode, use lateral DOFs only for volume control; report
+   mean-pressure drift instead of applying a competing pressure servo.
+7. Export target and achieved orientations, not only a rendered plot.
+8. Write every case to `output/manifest.csv` with version, seed and code hash.
+9. Verify target-version syntax through `pfc-mcp` before running.
 
 ## Pipeline
 
 ```text
-S1 define factor matrix
- -> S2 build clump templates and controlled orientation fabric
- -> S3 compact to target void ratio and install/calibrate Hertz contacts
- -> S4 consolidate and verify ad/Zm
- -> S5 rotate specimen/loading direction
- -> S6 run a constant-volume small-strain loop
- -> S7 calculate G0, fabric and force-chain metrics
- -> S8 fit G0-e-p and complete V&V
+Runner defines case_id
+ -> Build creates templates/fabric and compacted save
+ -> Material installs Hertz and creates material-ready save
+ -> Observe validates ad and Zm
+ -> Test restores material-ready, rotates and runs one loop
+ -> Observe calculates G0/damping/energy/fabric change
+ -> Runner writes cyclic-done save, log and manifest
+ -> post-processing fits G0-e-p and creates orientation plots
 ```
 
 ## Standard Operating Procedure
 
-1. Create a spherical baseline and 5/7/9-pebble ellipsoid templates for `rm=1.5/2.0/2.5`.
-2. Check each template's volume, centroid, inertia tensor and major-axis direction.
-3. Sample clump orientations: Ani I near-uniform on the sphere; Ani II/III increasingly concentrated around the target depositional plane.
-4. Compact using layered under-compaction or an equivalent controlled procedure to the target void ratio.
-5. Install Hertz-Mindlin contacts and consolidate to the selected initial pressure.
-6. Calculate `ad` and `Zm`. Within one shape family, Ani levels should change `ad` strongly while leaving `Zm` nearly stable.
-7. Rotate the specimen or the loading coordinate system to 0, 45 or 90 degrees.
-8. Apply a sinusoidal axial strain while lateral walls enforce zero volume change; record one complete equilibrated loop.
-9. Calculate G0 from consistent stress/strain amplitudes; fit results by shape, fabric and direction.
-10. Run strain-amplitude, frequency, damping, resolution and random-seed checks.
+1. Read `config/cases.yaml`; generate one unique case ID.
+2. Build sphere and 5/7/9-pebble templates for rm=1.5/2.0/2.5.
+3. Check volume, centroid, inertia axes and equivalent-diameter consistency.
+4. Sample Ani I/II/III orientations and compact to target void ratio.
+5. Install Hertz-Mindlin and consolidate to the declared initial pressure.
+6. Calculate ad and Zm; stop the case if initial-state tolerances fail.
+7. Restore material-ready independently for every 0/45/90-degree case.
+8. Run one complete 5 Hz loop at axial strain half-amplitude 3.0e-6.
+9. Calculate G0, damping, pressure drift, volume residual and energy ratio.
+10. Repeat amplitude/frequency/damping/resolution/seed checks and write manifest.
 
-## Reference Parameter Set
-
-Quartz-sand reproduction starting point:
+## Reference Starting Values
 
 | Parameter | Value |
 |---|---:|
-| Particle shear modulus | 18 GPa |
-| Particle Poisson ratio | 0.15 |
-| Particle density | 2650 kg/m3 |
-| Particle-particle friction | 0.5 |
-| Particle-wall friction | 0.0 |
-| Local damping (preparation stage) | 0.7 |
-| Cyclic axial-strain amplitude | 3.0e-6 |
+| Grain shear modulus | 18 GPa |
+| Grain Poisson ratio | 0.15 |
+| Density | 2650 kg/m3 |
+| Grain friction | 0.5 |
+| Wall friction | 0.0 |
+| Preparation local damping | 0.7 |
+| Cyclic axial-strain half-amplitude | 3.0e-6 |
 | Frequency | 5 Hz |
 
-These are reproduction seeds, not universal calibrated Toyoura-sand properties. Check damping sensitivity during the cyclic stage.
+These are reproduction starting points, not universal Toyoura-sand calibration.
 
-## Case Matrix
+## Observe Interface
 
-- Shape: sphere plus `rm=1.5, 2.0, 2.5` ellipsoids.
-- Fabric: Ani I, Ani II, Ani III for each ellipsoid family.
-- Direction: 0 degrees for the baseline; 0/45/90 degrees for directional Ani cases.
-- Density/pressure: configurable; compare only matched states.
-- Repeats: at least three random seeds for uncertainty reporting.
+```text
+ssf_reset_case_state()
+ssf_assert_dependencies()
+ssf_sample_major_axis(ani_level)
+ssf_compute_fabric()       -> ssf_out_rij/aij/ad
+ssf_compute_coordination() -> ssf_out_zm
+ssf_setup_measurement()
+ssf_apply_cyclic_control()
+ssf_should_halt()
+ssf_finalize_case()
+```
 
-## Post-Processing Recipe
+## Runner Manifest
 
-- Loop: stress-strain curve, G0, loop area, damping ratio and mean-pressure drift.
-- State: void ratio, volume-strain residual, unbalanced-force ratio and energy ratio.
-- Fabric: `Rij`, `aij`, `ad`, principal direction and angle to loading.
-- Skeleton: `Zm`, total contacts, rattler fraction and strong/weak force-chain orientation.
-- Fit: `A`, `a`, `n`, R-squared and confidence intervals for each shape/fabric/direction group.
-- Plot: common-scale spherical histogram plus equal-area orientation map to reduce 3D occlusion.
+Each row records:
 
-## Result-Verification Checklist
+```text
+case_id,dim,material,shape,ani,void_ratio,pressure,angle,seed,
+input_save,output_save,G0,damping,ad_before,ad_after,Zm,
+volume_residual,pressure_drift,energy_ratio,status,elapsed,code_hash
+```
 
-Expected trends from Wang et al. (2026):
+## Expected Trends
 
-- G0 decreases as void ratio increases; the combined fit reported about `R2=0.94`.
-- At comparable density, ellipsoidal specimens have greater G0 than spherical ones; G0 generally rises with aspect ratio.
-- For one shape and state, stronger fabric anisotropy lowers G0; its effect becomes larger at higher void ratio.
-- At matched fabric, G0 increases as loading direction changes from 0 to 45 to 90 degrees.
-- Alignment of particle major axes and loading direction forms a more efficient force-chain network.
-- Some strong-fabric 90-degree cases do not follow a simple exponential G0-e law; do not force a global fit.
+- G0 decreases with void ratio; the source combined fit is about R2=0.94.
+- Ellipsoidal specimens are generally stiffer than spherical ones.
+- For one shape/state, stronger fabric anisotropy lowers G0.
+- The fabric effect increases at larger void ratio.
+- At matched fabric, G0 generally increases from 0 to 45 to 90 degrees.
+- Strong-fabric 90-degree cases may not obey one global exponential G0-e law.
 
 ## V&V Gate
 
-Verification:
-
-- clump geometry/inertia and achieved aspect ratio;
-- target versus achieved orientation distribution;
-- particle-resolution, timestep, frequency, damping and seed sensitivity;
-- kinetic/strain-energy ratio and volume-strain residual;
-- unchanged fabric after one genuinely small loop.
-
-Validation:
-
-- compare with bender-element, resonant-column or small-strain cyclic-triaxial data;
-- validate the G0-e-p curve and directional modulus ratio, not one G0 point only;
-- scan amplitudes (for example 1e-7 to 3e-6) to demonstrate the low-strain plateau.
-
-## Limitations
-
-- Multi-sphere ellipsoids simplify real angularity, roundness and surface roughness.
-- Constant volume is a mechanical undrained analogue, not explicit pore-pressure simulation.
-- The published 22-case trends do not uniquely define a general constitutive law for strong fabric at 90 degrees.
-- Extension to `G/Gmax-gamma`, damping, cyclic liquefaction and anisotropic elasticity needs additional cases and validation.
+Verify clump geometry, achieved orientation, ad/Zm, particle resolution,
+timestep, frequency, damping, random seeds, kinetic/strain-energy ratio,
+volume residual and fabric change over the loop. Validate against bender-element,
+resonant-column or small-strain cyclic-triaxial measurements where available.
 
 ## Output Contract
 
 Deliver:
 
-- `params.yaml` with version, units, PSD, templates, orientations, pressure, amplitude, frequency, damping and seeds;
-- staged saves: `clump_templates -> fabric_compacted -> consolidated -> rotated_angle -> cyclic_done`;
-- loop data, G0, void ratio, pressure drift, `ad`, `Zm`, orientation and force-chain plots;
-- shape x fabric x void-ratio x direction summary, fits, V&V evidence and exceptions.
+- `config/cases.yaml` plus `config/ssf_defaults.fis`;
+- canonical compacted/material-ready/rotated/cyclic-done saves;
+- named `ssf/cyclic/*` and `ssf/state/*` histories;
+- loop data, G0, damping, void ratio, pressure drift, ad, Zm and plots;
+- `output/manifest.csv`, logs, code hash, V&V evidence and exceptions.
 
 ## Local Contents
 
-- `references/fabric-metrics.md`: tensor, invariant, coordination and orientation-plot rules.
-- `references/hertz-mindlin.md`: reference parameters and calibration cautions.
-- `references/findings.md`: measured trends and acceptance checks.
-- `scripts/make_ellipsoid_clumps.p3dat`: template-generation skeleton.
-- `scripts/prepare_fabric.p3fis`: controlled orientation sampling and fabric metrics.
-- `scripts/cyclic_small_strain.p3fis`: consolidation/loading control skeleton.
-- `scripts/fabric_g0_post.py`: G0, tensor, coordination and fit postprocessor.
-- `templates/params.yaml`: reproducible case parameters.
-- `examples/README.md`: run order and validation checks.
+- `config/`: defaults and case matrix.
+- `build/`: template/fabric specimen creation.
+- `material/`: Hertz-Mindlin installation/consolidation.
+- `test/`: one declared small-strain cyclic test.
+- `lib/`: contracts, fabric, servo and measurement interfaces.
+- `run/`: reproducible suite runner.
+- `post/`: G0/fabric fitting and orientation plotting.
+- `references/`: equations, calibration cautions and expected trends.
+- `examples/`: run order and checks.
+- `output/`: logs, saves, histories, figures and manifest schema.
