@@ -1,0 +1,36 @@
+; install_hertz.p3dat
+; Material layer: restore compacted state, install Hertz behavior, equilibrate
+; and consolidate. Output: ssf_3d_hertz_material_ready_{case_id}.
+
+program call 'config/ssf_defaults.fis'
+program call 'lib/ssf_contracts.fis'
+program call 'lib/ssf_fabric.p3fis'
+[ssf_build_case_id]
+model restore [ssf_save_name('compacted')]
+
+; PFC's Hertz model represents Hertz-Mindlin-style grain contact behavior.
+; Confirm target-release property names through pfc-mcp.
+contact model hertz range contact type 'ball-ball'
+contact property fric [ssf_cfg_fric_pp] range contact type 'ball-ball'
+; Set grain shear modulus and Poisson ratio with documented Hertz properties.
+
+; Use zero particle-wall friction for the reference case. Apply via CMAT/ranges
+; so grain-grain and grain-wall contacts cannot silently exchange properties.
+contact property fric [ssf_cfg_fric_pw] range contact type 'ball-facet'
+
+; Remove construction transients before consolidation.
+ball attribute displacement multiply 0.0
+ball attribute velocity multiply 0.0 spin multiply 0.0
+ball attribute force-contact multiply 0.0 moment-contact multiply 0.0
+model cycle 1
+model solve ratio-average [ssf_cfg_ratio_limit]
+
+; Isotropic wall servo to ssf_cfg_pressure. Material owns consolidation only;
+; cyclic constant-volume control belongs to the Test layer.
+[ssf_consolidate_isotropic]
+model solve ratio-average [ssf_cfg_ratio_limit]
+
+[ssf_compute_fabric]
+[ssf_compute_coordination]
+[ssf_assert_material_state]
+model save [ssf_save_name('material_ready')]
