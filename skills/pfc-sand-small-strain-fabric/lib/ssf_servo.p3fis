@@ -1,0 +1,34 @@
+; ssf_servo.p3fis
+; Test-layer controller: axial sinusoidal strain + lateral zero-volume control.
+; Do not apply a competing lateral pressure servo in this mode.
+
+fish define ssf_servo_reset
+    global ssf_state_time0=mech.time.total
+    global ssf_state_loop_complete=false
+    global ssf_state_eps_target=0.0
+end
+
+fish define ssf_apply_cyclic_control
+    local t=mech.time.total-ssf_state_time0
+    local w=2.0*math.pi*ssf_cfg_frequency
+    ssf_state_eps_target=ssf_cfg_eps_amp*math.sin(w*t)
+
+    ; Convert target axial strain rate to z-wall velocities.
+    ; Apply equal/opposite x/y wall velocities so dV/V is zero.
+    ; Resolve all walls by ssf_wall_* names, never numeric IDs.
+    [ssf_set_axial_velocity]
+    [ssf_set_lateral_constant_volume_velocity]
+
+    if t >= ssf_cfg_loops/ssf_cfg_frequency then
+        ssf_state_loop_complete=true
+    endif
+end
+
+fish define ssf_should_halt
+    ssf_should_halt=false
+    if ssf_state_loop_complete then
+        if ssf_out_energy_ratio <= ssf_cfg_energy_ratio_tol then
+            ssf_should_halt=true
+        endif
+    endif
+end
