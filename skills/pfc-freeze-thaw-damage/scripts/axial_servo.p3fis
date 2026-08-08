@@ -1,0 +1,82 @@
+; axial_servo.p3fis
+; Hold sigma_1 before and during freeze-thaw.
+; Skeleton: compute_gain -> servo_walls -> stop_me
+
+fish define setup
+    global sp_rad = 0.025
+    global sp_hgt0 = 0.100
+    global ucs0 = 73.40e6
+    global sig_frac = 0.4          ; 0.0, 0.2, 0.4, 0.6
+    global sig_targ = sig_frac*ucs0
+    global sig_tol = 5.0e-3
+    global serv_fac = 0.5
+    global area_ax = math.pi*sp_rad^2
+    global wp_top = wall.find('top')
+    global wp_bot = wall.find('bottom')
+    global sig_ax = 0.0
+    global gain_ax = 0.0
+    global gp_axial_strain = 0.0
+    global gp_radial_strain = 0.0
+end
+[setup]
+
+fish define compute_gain
+    local ksum = 0.0
+    loop foreach local cp wall.contactmap(wp_top)
+        ksum = ksum + contact.prop(cp,'kn')
+    endloop
+    if ksum = 0.0 then
+        ksum = 1.0e6
+    endif
+    gain_ax = serv_fac*area_ax/(ksum*global.timestep)
+end
+
+fish define update_strains
+    local hnow = wall.pos.z(wp_top)-wall.pos.z(wp_bot)
+    gp_axial_strain = (hnow-sp_hgt0)/sp_hgt0
+    gp_radial_strain = 0.5*(meas.strain.xx(mp_mid)+meas.strain.yy(mp_mid))
+end
+
+fish define servo_walls
+    compute_gain
+    sig_ax = -wall.force.contact.z(wp_top)/area_ax
+    wall.vel.z(wp_top) = gain_ax*(sig_ax-sig_targ)
+    update_strains
+end
+
+fish define stop_me
+    stop_me = 0
+    if sig_targ <= 0.0 then
+        stop_me = 1
+    else
+        if math.abs((sig_ax-sig_targ)/sig_targ) < sig_tol then
+            stop_me = 1
+        endif
+    endif
+end
+
+fish define apply_sigma1
+    command
+        measure create id 1 position 0.0 0.0 [0.5*sp_hgt0] radius [0.6*sp_rad]
+    endcommand
+    global mp_mid = meas.find(1)
+    if sig_frac = 0.0 then
+        command
+            wall attribute velocity-z 0.0 range name 'top'
+            model solve ratio-average 1e-5
+            model save 'ftc_state1'
+        endcommand
+        exit
+    endif
+    command
+        wall attribute velocity-z 0.0 range name 'bottom'
+        fish callback add @servo_walls -1.0
+        model solve fish-halt @stop_me
+        model cycle 5000
+        model solve ratio-average 1e-5
+        model save 'ftc_state1'
+    endcommand
+end
+
+; Keep servo_walls active during ftc_cycle.p3fis.
+; Lateral boundary is free. Verify syntax against the target PFC version.
