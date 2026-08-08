@@ -1,0 +1,146 @@
+; ============================================================================
+; ftc_cycle.p3fis
+; Freeze-thaw main loop driver:
+;   mechanical time -> temperature (Eq. 4)
+;                   -> unfrozen water content (Eq. 3)
+;                   -> pore-water particle target volume (Eqs. 1-2)
+;                   -> radius update -> cycle to mechanical equilibrium
+; The PFC thermal module is NOT used: temperature is assigned uniformly.
+; Staged save chain: ftc_state1 -> ftc_cycle_n
+; ============================================================================
+
+fish define ftc_setup
+    global t_min      = -30.0        ; minimum temperature, deg C
+    global t_period   = 60.0         ; schedule period, minutes
+    global n_sub      = 30           ; temperature substeps per cycle
+    global n_cycles   = 50           ; number of freeze-thaw cycles
+    global rho_ratio  = 1.09         ; rho_w / rho_i
+    global use_incr   = true         ; true: dV = V0*(ratio-1) ~ 0.09*V0 (recommended)
+                                     ; false: dV = V0*ratio (literal Eq. 1 form)
+    global eq_ratio   = 1e-5         ; equilibrium ratio after each volume update
+    global ftc_count  = 0
+    global cur_temp   = 0.0
+    global cur_wu     = 1.0
+end
+[ftc_setup]
+
+; ---------------------------------------------------------------------------
+; Store the initial (unfrozen) radius of every pore-water particle in extra 1.
+; Call once, right after the specimen is bonded and sigma_1 is stable.
+; ---------------------------------------------------------------------------
+fish define store_initial_radius
+    loop foreach local bp ball.list
+        if ball.isgroup(bp,'water') then
+            ball.extra(bp,1) = ball.radius(bp)      ; r0
+        endif
+    endloop
+end
+
+; ---------------------------------------------------------------------------
+; Eq. (4): T = t_min * |sin(pi/t_period * t)|, t in minutes
+; ---------------------------------------------------------------------------
+fish define ftc_temperature(t_arg)
+    ftc_temperature = t_min * math.abs(math.sin(math.pi / t_period * t_arg))
+end
+
+; ---------------------------------------------------------------------------
+; Eq. (3): unfrozen water content w_u (liquid fraction)
+; w_u = 1 - [1 + 0.139*(-1/T)^(1/3)*ln((1+e^(0.268T))/2)]*(1 - e^(0.268T))
+; ---------------------------------------------------------------------------
+fish define unfrozen_water(tc)
+    if tc > -1e-6 then
+        unfrozen_water = 1.0                       ; T > 0 C : all liquid
+        exit
+    endif
+    local ex  = math.exp(0.268 * tc)
+    local br  = 1.0 + 0.139 * (-1.0/tc)^(1.0/3.0) * math.ln((1.0 + ex) / 2.0)
+    local wu  = 1.0 - br * (1.0 - ex)
+    if wu < 0.0 then
+        wu = 0.0
+    endif
+    if wu > 1.0 then
+        wu = 1.0
+    endif
+    unfrozen_water = wu
+end
+
+; ---------------------------------------------------------------------------
+; Eqs. (1)-(2): target volume of a pore-water particle, applied as a radius.
+;   dV = V0*(ratio-1) [incremental, recommended] or V0*ratio [literal]
+;   V  = V0 + (1-wu)*dV                (T <= 0 C)
+;   V  = V0                            (T >  0 C)
+;   r  = r0 * (V/V0)^(1/3)
+; ---------------------------------------------------------------------------
+fish define apply_ice_expansion(wu)
+    local dfac = rho_ratio - 1.0
+    if use_incr = false then
+        dfac = rho_ratio
+    endif
+    local vfac = 1.0 + (1.0 - wu) * dfac           ; V / V0
+    local rfac = vfac^(1.0/3.0)                    ; r / r0
+    loop foreach local bp ball.list
+        if ball.isgroup(bp,'water') then
+            ball.radius(bp) = ball.extra(bp,1) * rfac
+        endif
+    endloop
+end
+
+; ---------------------------------------------------------------------------
+; One freeze-thaw cycle: sweep the temperature schedule in n_sub substeps.
+; Each substep is quasi-static: change volume, then solve to equilibrium.
+; ---------------------------------------------------------------------------
+fish define ftc_one_cycle
+    local i = 0
+    loop while i < n_sub
+        i = i + 1
+        local t_arg = t_period * float(i) / float(n_sub)
+        cur_temp = ftc_temperature(t_arg)
+        cur_wu   = unfrozen_water(cur_temp)
+        apply_ice_expansion(cur_wu)
+        command
+            model solve ratio-average [eq_ratio]
+        endcommand
+    endloop
+    ftc_count = ftc_count + 1
+end
+
+; Stop condition: bearing capacity lost (e.g. 0.6*sigma0 fails near 45 cycles).
+fish define stop_ftc
+    stop_ftc = false
+    if math.abs(gp_axial_strain) > 0.02 then
+        stop_ftc = true
+    endif
+end
+
+; ---------------------------------------------------------------------------
+; Full campaign with staged saves.
+; ---------------------------------------------------------------------------
+fish define ftc_run
+    store_initial_radius
+    loop while ftc_count < n_cycles
+        ftc_one_cycle
+        command
+            model save ['ftc_cycle_' + string(ftc_count)]
+        endcommand
+        if stop_ftc = true then
+            exit
+        endif
+    endloop
+end
+
+; ---------------------------------------------------------------------------
+; Monitoring: strains, crack count, temperature, unfrozen water content.
+; gp_axial_strain / gp_radial_strain come from axial_servo.p3fis.
+; ---------------------------------------------------------------------------
+history interval 100
+fish history name 'temp'   @cur_temp
+fish history name 'wu'     @cur_wu
+fish history name 'ftc_n'  @ftc_count
+fish history name 'eps_a'  @gp_axial_strain
+fish history name 'eps_r'  @gp_radial_strain
+model history name 'cracks' mechanical bond-break
+
+; Usage:
+;   model restore 'ftc_state1'
+;   program call 'ftc_cycle.p3fis'
+;   [ftc_run]
