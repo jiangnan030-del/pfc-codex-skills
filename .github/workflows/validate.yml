@@ -1,0 +1,41 @@
+name: Validate skills and pfc-code knowledge base
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  knowledge-base:
+    name: Knowledge base (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile query tool
+        run: python -m py_compile scripts/query_pfc_code_kb.py
+      - name: Validate catalog lock and entries
+        run: python scripts/query_pfc_code_kb.py --check
+      - name: Exercise ranked JSON query
+        run: python scripts/query_pfc_code_kb.py "parallel bond ucs" --dimension 3d --json > /tmp/pfc-code-query.json
+
+  repository:
+    name: Repository validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate skills and links
+        run: python scripts/validate_skills.py

@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "source": {
+    "owner": "jiangnan030-del",
+    "repo": "pfc-code",
+    "branch": "main",
+    "commit": "af774eb322e6c6bef18a56a0a69770e0e82c9bdf",
+    "version_signal": "PFC 6-style example corpus with some legacy command spellings; verify every final command against the target PFC version."
+  },
+  "evidence_tiers": {
+    "tutorial": "Feature semantics and minimal teaching sequence.",
+    "example": "End-to-end workflow and file orchestration pattern.",
+    "verification": "Numerical or analytical check suitable for V&V design.",
+    "python": "itasca/Python automation and array/callback pattern.",
+    "thermal": "Thermal-mechanical extension pattern.",
+    "coupling": "External or CFD coupling contract."
+  },
+  "entries": [
+    {
+      "id": "granular-driver-2d",
+      "title": "2D granular workflow driver",
+      "path": "datafiles2d/examples/granular/Doall.p2dat",
+      "sha": "8be4f35407411e4e0586bf1464ce7f2e327ec45c",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P2", "P3", "P4"],
+      "topics": ["orchestrator", "program-call", "save-restore", "dense-loose", "biaxial", "shear"],
+      "summary": "Thin driver that sets case parameters, calls stage files, and saves/restores named milestones."
+    },
+    {
+      "id": "granular-build-2d",
+      "title": "2D granular specimen generation",
+      "path": "datafiles2d/examples/granular/MakeSpecimen.p2dat",
+      "sha": "1b10c996c29fa5759a999b316ae91aae6056e266",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P2"],
+      "topics": ["domain", "cmat", "walls", "seed", "ball-distribute", "equilibrium", "floaters", "gauge"],
+      "summary": "Deterministic packing build with explicit CMAT, boundaries, convergence, floater identification, and gauge initialization."
+    },
+    {
+      "id": "granular-compact-2d",
+      "title": "2D isotropic servo compaction",
+      "path": "datafiles2d/examples/granular/CompactSpecimen.p2dat",
+      "sha": "2743aaab227cb886385c09b82ac9c43e6644eae4",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P2", "P4", "P5"],
+      "topics": ["wall-servo", "stress-control", "fish-halt", "equilibrium", "measure", "porosity", "orientation-tracking"],
+      "summary": "Updates servo forces from current specimen dimensions and stops only after stress and force-ratio tolerances pass."
+    },
+    {
+      "id": "granular-biaxial-2d",
+      "title": "2D biaxial loading stage",
+      "path": "datafiles2d/examples/granular/BiaxialTest.p2dat",
+      "sha": "af7ff36884cd70a997a779d4110da5f79149cca6",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P4", "P5"],
+      "topics": ["strain-control", "wall-velocity", "history", "fish-halt", "displacement-reset"],
+      "summary": "Separates stress-controlled preparation from strain-controlled loading and resets displacement before the test."
+    },
+    {
+      "id": "stress-utilities-2d",
+      "title": "2D wall, Love-Weber, and regional stress utilities",
+      "path": "datafiles2d/examples/granular/StressUtilities.p2fis",
+      "sha": "4b8aed44af2000bddc950f8f0957decc0adea7cf",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P5", "P6"],
+      "topics": ["wall-stress", "love-weber", "measure-region", "stress-tensor", "sign-convention"],
+      "summary": "Provides independent boundary, whole-specimen, and regional stress estimators for cross-checking."
+    },
+    {
+      "id": "strain-utilities-2d",
+      "title": "2D measure and gauge strain utilities",
+      "path": "datafiles2d/examples/granular/StrainUtilities.p2fis",
+      "sha": "f9a52aae4e6fefde9cce146dad7add5aa8c162e6",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P5", "P6"],
+      "topics": ["measure-strain", "gauge-balls", "strain-tensor", "displacement-reset"],
+      "summary": "Separates measure-region strain integration from gauge-particle strain estimates."
+    },
+    {
+      "id": "rocktest-driver-2d",
+      "title": "2D parallel-bond rock-test driver",
+      "path": "datafiles2d/examples/rocktest/doall_parallel.p2dat",
+      "sha": "18c59707da8d8c52a673b811f773238f2fa9da89",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P2", "P3", "P4", "P7"],
+      "topics": ["orchestrator", "parallel-bond", "ucs", "tension", "logging", "save-restore"],
+      "summary": "Builds one bonded baseline, branches UCS and tension from the same state, and records a run log."
+    },
+    {
+      "id": "rocktest-build-2d",
+      "title": "2D unbonded rock specimen",
+      "path": "datafiles2d/examples/rocktest/make_sample.p2dat",
+      "sha": "669eff1644d023a96987c4110c915857945a0de8",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P2"],
+      "topics": ["domain", "cmat", "walls", "seed", "packing", "density-scaling", "equilibrium"],
+      "summary": "Uses density scaling only for assembly equilibration, restores automatic timestep control, then saves the unbonded state."
+    },
+    {
+      "id": "rocktest-bond-2d",
+      "title": "2D parallel-bond installation",
+      "path": "datafiles2d/examples/rocktest/parallel_bonded.p2dat",
+      "sha": "e998d7fd7cb7c3e8aca2477e1a0ee1220c5e54ef",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P2", "P3"],
+      "topics": ["linearpbond", "bond-gap", "stiffness", "strength", "force-reset", "equilibrium"],
+      "summary": "Installs bonds in a distinct stage, resets displacement and residual contact force/moment, re-equilibrates, and saves a bonded baseline."
+    },
+    {
+      "id": "rocktest-ucs-2d",
+      "title": "2D UCS test",
+      "path": "datafiles2d/examples/rocktest/ucs.p2dat",
+      "sha": "bb25a242f747feb9b6c61496ae0b17b36168fdbf",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P3", "P4", "P5"],
+      "topics": ["ucs", "wall-loading", "history", "crack-tracking", "post-peak-stop"],
+      "summary": "Initializes measurement and crack callbacks before loading and halts after a confirmed post-peak stress drop."
+    },
+    {
+      "id": "rocktest-tension-2d",
+      "title": "2D direct-tension test",
+      "path": "datafiles2d/examples/rocktest/tension.p2dat",
+      "sha": "2a9f852b0b9de7edadc611b18793ee7667fa2c48",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P3", "P4", "P5"],
+      "topics": ["direct-tension", "particle-grips", "measure-stress", "gauge-strain", "crack-tracking"],
+      "summary": "Shows particle-grip loading and independent measure/gauge instrumentation for tensile calibration."
+    },
+    {
+      "id": "fracture-tracking-2d",
+      "title": "2D bond-break fracture tracking",
+      "path": "datafiles2d/examples/rocktest/fracture.p2fis",
+      "sha": "0bac4255c550232dfa0b8971e58e7f20e902b5db",
+      "dimension": "2d",
+      "kind": "example",
+      "phases": ["P4", "P5"],
+      "topics": ["bond-break", "fish-callback", "tension-shear", "dfn", "fragment", "batching"],
+      "summary": "Converts bond-break events into typed fractures and batches expensive fragment recomputation."
+    },
+    {
+      "id": "cmat-basic-2d",
+      "title": "2D basic CMAT ordering",
+      "path": "datafiles2d/tutorials/using_cmat/cmat1.p2dat",
+      "sha": "22916c908cad23bd190132a49e3d051bf1ef7b27",
+      "dimension": "2d",
+      "kind": "tutorial",
+      "phases": ["P2"],
+      "topics": ["cmat", "default-slot", "generation-order", "gravity"],
+      "summary": "Minimal evidence that default contact assignment should be defined explicitly and early."
+    },
+    {
+      "id": "cmat-multimaterial-2d",
+      "title": "2D multi-material CMAT slots",
+      "path": "datafiles2d/tutorials/using_cmat/cmat3.p2dat",
+      "sha": "80bcb8babe74bc844b4426013380e47abbefe574",
+      "dimension": "2d",
+      "kind": "tutorial",
+      "phases": ["P2"],
+      "topics": ["cmat", "optional-slot", "groups", "hertz", "ball-ball", "ball-facet"],
+      "summary": "Uses ordered optional slots and type-specific defaults for glass, steel, and wall contacts."
+    },
+    {
+      "id": "cmat-apply-2d",
+      "title": "2D current-contact versus future-contact assignment",
+      "path": "datafiles2d/tutorials/using_cmat/cmat5.p2dat",
+      "sha": "bc2cb4e559304e181cb52e0d38e9d65db9d982d4",
+      "dimension": "2d",
+      "kind": "tutorial",
+      "phases": ["P2", "P3"],
+      "topics": ["cmat-modify", "cmat-apply", "existing-contacts", "future-contacts", "range"],
+      "summary": "Demonstrates that editing CMAT does not safely update current contacts until apply/contact commands are used."
+    },
+    {
+      "id": "cmat-proximity-2d",
+      "title": "2D bond gap and CMAT proximity",
+      "path": "datafiles2d/tutorials/using_cmat/cmat6.p2dat",
+      "sha": "1839f7dc83478ff909fc766e774e5190e0934afa",
+      "dimension": "2d",
+      "kind": "tutorial",
+      "phases": ["P2", "P3"],
+      "topics": ["bond-gap", "proximity", "model-clean", "inactive-contact", "cmat-apply"],
+      "summary": "Shows that a positive installation gap may require proximity, contact detection, and CMAT application before bonding."
+    },
+    {
+      "id": "rocktest-build-3d",
+      "title": "3D cylindrical rock specimen",
+      "path": "datafiles3d/examples/rocktest/make_sample.p3dat",
+      "sha": "874153a038572ca16dddb0dedde45a3eace31f36",
+      "dimension": "3d",
+      "kind": "example",
+      "phases": ["P2"],
+      "topics": ["domain", "planes", "seed", "packing", "density-scaling", "cylinder", "wall-delete"],
+      "summary": "Builds and trims a reproducible cylindrical assembly after equilibration and restores automatic timestep control."
+    },
+    {
+      "id": "rocktest-bond-3d",
+      "title": "3D parallel-bond installation",
+      "path": "datafiles3d/examples/rocktest/parallel_bonded.p3dat",
+      "sha": "6e3b6bf78a70adaf153db0a4c5d6d33956e4ac83",
+      "dimension": "3d",
+      "kind": "example",
+      "phases": ["P2", "P3"],
+      "topics": ["linearpbond", "bond-gap", "force-reset", "moment-reset", "equilibrium"],
+      "summary": "3D analogue of the explicit bond-install/reset/re-equilibrate stage contract."
+    },
+    {
+      "id": "rocktest-ucs-3d",
+      "title": "3D UCS test",
+      "path": "datafiles3d/examples/rocktest/ucs.p3dat",
+      "sha": "e69b9dd1f7edada6b25da1e200a2e6c7b3586329",
+      "dimension": "3d",
+      "kind": "example",
+      "phases": ["P3", "P4", "P5"],
+      "topics": ["ucs", "wall-loading", "history", "fracture", "post-peak-stop", "legacy-spelling"],
+      "summary": "Useful workflow evidence but also a warning that legacy command aliases must be version-checked."
+    },
+    {
+      "id": "bonded-assembly-3d",
+      "title": "3D bonded assembly tutorial",
+      "path": "datafiles3d/tutorials/bonded_assembly/cmlinearpbond_simple.p3dat",
+      "sha": "9497aa6b92bd268bc03aedd182fc18ff4f6e1b1b",
+      "dimension": "3d",
+      "kind": "tutorial",
+      "phases": ["P2", "P5", "P6"],
+      "topics": ["linearpbond", "cmat", "proximity", "measure", "density-scaling", "force-reset", "comparison"],
+      "summary": "Compares bonded states with and without linear stiffness/force reset, making state-transition effects observable."
+    },
+    {
+      "id": "callbacks-fluid-3d",
+      "title": "3D FISH callback ordering",
+      "path": "datafiles3d/tutorials/callbacks/callbacks2.p3dat",
+      "sha": "20a96a8f880746aa87e0d6e0851778d94db8e835",
+      "dimension": "3d",
+      "kind": "tutorial",
+      "phases": ["P2", "P4"],
+      "topics": ["fish-callback", "cycle-point", "component-creation", "applied-force", "ordering", "remove-callback"],
+      "summary": "Documents callback timing constraints, deterministic ordering, and explicit callback removal."
+    },
+    {
+      "id": "python-ucs-3d",
+      "title": "3D Python-driven UCS",
+      "path": "datafiles3d/python/test_ucs/test_ucs.py",
+      "sha": "3886cca68355c0531bd0bcc835507e56924de394",
+      "dimension": "3d",
+      "kind": "python",
+      "phases": ["P2", "P4", "P5"],
+      "topics": ["itasca", "ballarray", "python-callback", "ucs", "metrics", "plot"],
+      "summary": "Shows object creation, array masks, cycle callbacks, and metric extraction; adapt rather than copy because it contains duplicated notebook-style cells."
+    },
+    {
+      "id": "measure-verification-3d",
+      "title": "3D measure-porosity verification",
+      "path": "datafiles3d/verifications/measure_logic/MeasureLogic.p3dat",
+      "sha": "3867c468e459106bbf188f087849111ce51f38e0",
+      "dimension": "3d",
+      "kind": "verification",
+      "phases": ["P5", "P6"],
+      "topics": ["measure", "porosity", "random-probes", "analytical-error", "resolution"],
+      "summary": "Compares measurement-sphere porosity to closed-form values across probe sizes and resolutions."
+    },
+    {
+      "id": "wave-verification-3d",
+      "title": "3D wave-propagation verification",
+      "path": "datafiles3d/verifications/wave_propagation/wave_propagation.p3dat",
+      "sha": "a9c0b3cf4aa5311890a00306433d2b5bc937d3c3",
+      "dimension": "3d",
+      "kind": "verification",
+      "phases": ["P4", "P6"],
+      "topics": ["wave", "dynamic", "verification", "timestep", "dispersion"],
+      "summary": "Reference route for dynamic-wave verification before application-scale simulations."
+    },
+    {
+      "id": "dfn-generation-3d",
+      "title": "3D DFN generation and simplification",
+      "path": "datafiles3d/examples/dfn_generation/dfntutorial.p3dat",
+      "sha": "7d20a3b2bccaefd241f4c604d66d88271d857625",
+      "dimension": "3d",
+      "kind": "example",
+      "phases": ["P2", "P5", "P6"],
+      "topics": ["dfn", "fisher", "power-law", "p10", "p21", "intersection", "connectivity", "simplification"],
+      "summary": "Stages DFN generation, density checks, trace/intersection analysis, connectivity, filtering, and combination with milestone saves."
+    },
+    {
+      "id": "thermal-free-expansion-3d",
+      "title": "3D thermal free-expansion verification route",
+      "path": "datafiles3d/thermal/free_expansion/free_expansion.p3dat",
+      "sha": "556f1be728d501c95c43f37169de00a0bae14ddb",
+      "dimension": "3d",
+      "kind": "thermal",
+      "phases": ["P2", "P4", "P6"],
+      "topics": ["thermal", "expansion", "thermomechanical", "verification"],
+      "summary": "Use as a feature-level verification precursor before thermomechanical application models."
+    },
+    {
+      "id": "cfd-one-way-3d",
+      "title": "3D one-way CFD coupling",
+      "path": "datafiles3d/ccfd/one_way_coupling/one_way_cfd.p3dat",
+      "sha": "f7c6d4decfe34e33c188a78ef0abc95380ead269",
+      "dimension": "3d",
+      "kind": "coupling",
+      "phases": ["P2", "P4"],
+      "topics": ["cfd", "one-way-coupling", "mesh", "external-files"],
+      "summary": "Shows that coupled cases require an explicit auxiliary-file contract, not a standalone command file."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/jiangnan030-del/pfc-code",
+  "owner": "jiangnan030-del",
+  "repo": "pfc-code",
+  "branch": "main",
+  "commit": "af774eb322e6c6bef18a56a0a69770e0e82c9bdf",
+  "commit_date_utc": "2026-08-09T12:43:31Z",
+  "integration_mode": "external-pinned-catalog",
+  "license_status": "No LICENSE file was present at the pinned commit when reviewed.",
+  "content_policy": {
+    "allowed": [
+      "derived modeling rules",
+      "file metadata and hashes",
+      "pinned GitHub links",
+      "user-initiated external checkout"
+    ],
+    "not_allowed_without_rights_review": [
+      "vendoring upstream source files into this MIT repository",
+      "relicensing upstream examples",
+      "claiming the corpus is an authoritative version manual"
+    ]
+  }
+}
