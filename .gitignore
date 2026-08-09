@@ -11,6 +11,9 @@ __pycache__/
 venv/
 .env
 
+# External knowledge-base checkouts
+.cache/
+
 # PFC/Itasca generated outputs and private projects
 *.sav
 *.p2sav

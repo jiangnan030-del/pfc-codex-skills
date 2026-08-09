@@ -1,536 +1,298 @@
 ---
 name: pfc-workflow
-description: Build, calibrate, solve, and post-process a complete ITASCA PFC workflow through a reusable skill. Use when the user asks about PFC2D/PFC3D, DEM, particle flow, bonded or granular specimens, micro-parameter calibration, UCS/Brazilian/biaxial/triaxial tests, force chains, crack evolution, porosity, VTK/VTP export, ParaView/PyVista post-processing, Bayesian optimization, Latin hypercube sampling, DOE, surrogate models, or automated calibration.
+description: Orchestrate evidence-backed ITASCA PFC2D/PFC3D studies across planning, modeling, calibration, solving, post-processing, V&V, and delivery; use for full DEM workflows, model audits, or pfc-code-backed case generation.
 ---
 
 # PFC Workflow
 
-This is the primary workflow skill for ITASCA PFC studies. It sits under
-`pfc-skill-pack`, which owns shared package conventions and references, and it
-owns the full project lifecycle: planning, specimen generation, calibration,
-solving, post-processing routing, V&V, and delivery. Treat it as the
-orchestrator skill for concrete PFC work.
+`pfc-workflow` is the lifecycle orchestrator for complete ITASCA PFC studies. It keeps cross-phase decisions in one place and delegates only specialist work to child skills.
 
-Use subskills only through this workflow split:
+The workflow is **evidence-backed**:
 
-- `pfc-basics`: foundation PFC 6.0 model lifecycle, domain, balls, walls,
-  clumps, rblocks, groups, ranges, and minimal runnable setup patterns; use
-  during P1-P2 when the case needs basic object creation before specialist routing
-- `pfc-standard-tests`: canonical PFC 6.0 UCS, biaxial, triaxial,
-  direct shear, Brazilian, and three-point bending test templates; use during
-  P1-P2 when selecting or materializing a standard laboratory-test command flow
-- `pfc-cad-import`: CAD/DXF/STL/geometry import, wall conversion, particle
-  filling contracts, clump/rblock templates, and legacy helper-app preservation;
-  use whenever the case starts from external geometry or preprocessing tools
-- `pfc-mineral-heterogeneity`: digital image or mineral-fraction intake,
-  mineral clusters, per-mineral LPBM parameters, interface contacts, and
-  Weibull damage; use when rock behavior depends on mineral composition or
-  heterogeneous phase distribution
-- `pfc-gbm-brittle-rock`: PFC2D grain-based brittle-rock modeling, Voronoi/
-  rblock GBM construction, smooth-joint grain boundaries, prefabricated cracks,
-  biaxial loading, fracture tracking, and energy histories; use when the case
-  is a GBM/equivalent-crystal brittle-rock workflow rather than generic mineral
-  heterogeneity or FJM3D
-- `pfc-contact-models`: contact-law selection, CMAT setup, contact properties,
-  bond activation methods, property inheritance, and contact-level validation;
-  use whenever the case needs nontrivial contact model design or audit
-- `pfc-servo-calibration`: wall/ball servo logic, stress-control snippets,
-  target-force/stress convergence checks, and manual micro-to-macro tuning
-  order; use during P2-P3 when boundary control or calibration sequencing is
-  the specialist task
-- `pfc-fast-calibration`: improved LPBM rapid micro-parameter calibration,
-  13-factor orthogonal design, strong/weak contact grouping, Weibull damage,
-  Pearson correlation, regression formulas, and macro-target back-solving; use
-  during P3 when a bonded-rock calibration needs a fast multi-parameter route
-- `dual-target-calibration`: trial-budget-limited calibration with exactly two
-  active levers and two confirmed coupled macro targets, guarded zero-crossing,
-  local 2x2 solve, basin recovery, and controlled sensitivity fine-tuning; use
-  during P3 only after the baseline and experiment contract are reproducible
-- `pfc-fish`: FISH functions, callbacks, histories, IO helpers, maps/tables,
-  object traversal, and reusable helper-file refactoring; use whenever the
-  case needs nontrivial FISH logic or legacy FISH audit
-- `pfc-dynamics`: dynamic/seismic loading, imposed motion, damping/timestep
-  audits, kinetic/strain-energy histories, slope-motion, and blasting-style
-  reference review; use whenever inertial response or time-dependent loading is central
-- `pfc-stress-wave-aelocation`: stress-wave propagation, Ricker excitation,
-  dispersion checks, absorbing boundaries, P/S wavefronts, radiation patterns,
-  cross-correlation time delays, and velocity-free AE source localization; use
-  when the task is elastic-wave or AE-location specific rather than generic
-  dynamic loading
-- `pfc-fluid-coupling`: seepage, buoyancy, CFD element setup, Darcy/FiPy
-  coupling notes, and fluid-related auxiliary file contracts; use when the
-  loading path includes pore pressure, water, drag, or flow-solid interaction
-- `pfc-flac-coupling`: PFC-FLAC/FLAC3D discrete-continuum handoff,
-  wall-zone/interface coupling, continuum-particle stage contracts, and
-  version-risk notes; use when a continuum solver is part of the model
-- `pfc-postprocessing`: standard non-AE figures, fields, native stage plots,
-  VTP/VTK outputs, animations, and summary tables
-- `pfc-vedo-postprocess`: vedo-based PFC/DEM visualization for exported
-  particles, force chains, cracks, displacement or velocity vectors, slices,
-  and publication-quality 3D animations; use during P5 when the user wants a
-  Python/vedo route rather than ParaView/PyVista/native plotting
-- `pfc-ae-energy`: AE event export, AE energy metrics, clustered events,
-  mechanism plots, and Hudson/T-k style source analysis
+1. user data and case constraints define the physical problem;
+2. target-version documentation or `pfc-mcp` is the syntax authority;
+3. the pinned `pfc-code` catalog supplies reproducible example/tutorial/verification evidence;
+4. local references and child skills supply reusable methods;
+5. general model knowledge fills only clearly labeled gaps.
 
-If a task spans more than one phase, stay in `pfc-workflow` and delegate only
-the specialist parts to those subskills.
+Do not treat an example parameter value or legacy command alias as a universal default.
 
 ## When to use
 
 Use this skill when the user wants to:
 
-- build a PFC2D or PFC3D model from scratch
-- choose contact models for granular, bonded, or jointed materials
-- calibrate micro-parameters against macro targets such as modulus, strength, friction angle, cohesion, or peak strain
-- run UCS, Brazilian, biaxial, triaxial, direct shear, creep, cyclic, or coupled analyses
-- export force chains, crack data, porosity, stress-strain curves, or field plots
-- structure a PFC repository, reproducible workflow, or publishable DEM project
-- automate calibration with Bayesian optimization, DOE, LHS, surrogate models, response surfaces, or differential evolution
-
-## First rules
-
-1. Confirm the target PFC version before drafting commands. Syntax differs across PFC 6.0, 7.0, and later releases.
-2. If the user has `pfc-mcp`, use it to verify command syntax and run small trial snippets before long solves.
-3. Always fix random seeds, separate parameters from command flow, and save milestone states.
-4. During calibration, move one parameter family at a time unless the task is explicitly an automated optimization campaign.
-5. Prefer reproducible exports over manual GUI-only screenshots.
-6. For expensive black-box calibration, default to `LHS -> surrogate -> Bayesian optimization`, not brute-force trial-and-error.
-
-## Lifecycle
-
-Follow this seven-phase lifecycle unless the user explicitly narrows scope:
-
-- `P1` Problem definition and planning
-- `P2` Preprocessing and specimen generation
-- `P3` Calibration and parameter inversion
-- `P4` Solve control and run management
-- `P5` Post-processing and visualization
-- `P6` Verification and validation
-- `P7` Report and reproducible delivery
-
-## Routing guide
-
-Read the matching reference files before answering in depth:
-
-- `references/contact-models.md` for contact law selection
-- `references/calibration.md` for manual micro-to-macro mapping and tuning order
-- `references/auto-calibration.md` for Bayesian optimization, differential evolution, response surfaces, and campaign logic
-- `references/doe-surrogate.md` for Latin hypercube sampling, surrogate fitting, cross-validation, and sample-efficiency strategy
-- `references/postprocess.md` for histories, measures, crack monitoring, and output lists
-- `references/export-paraview.md` for VTK/VTP/CSV export and ParaView or PyVista workflows
-- `references/advanced-topics.md` for clumps, DFN, periodic boundaries, coupled physics, automation, and performance traps
-- `references/vnv-report.md` for verification, validation, and delivery standards
-
-Use these subskills as children, not peers:
-
-- `pfc-basics` during planning/modeling when the task needs a clean model start,
-  domain extents, basic balls/walls/clumps/rblocks, groups, ranges, or a minimal
-  runnable foundation before routing to a more specialized child skill
-- `pfc-standard-tests` during planning/modeling when the loading path is a
-  canonical laboratory test and the case should start from a reusable PFC 6.0
-  template or normalized stage list
-- `pfc-cad-import` during planning/preprocessing when the task starts from
-  CAD/DXF/STL/FEM geometry, external preprocessing apps, wall import, particle
-  filling, clump templates, rblocks, or geometry-based range selection
-- `pfc-mineral-heterogeneity` during planning/modeling/calibration setup when
-  the task starts from mineral fractions, segmented rock images, phase maps,
-  mineral clusters, per-mineral LPBM parameters, phase-interface contacts, or
-  Weibull damage heterogeneity
-- `pfc-gbm-brittle-rock` during planning/modeling/solve setup when the task is
-  a PFC2D GBM/equivalent-crystal brittle-rock case with Voronoi/rblock grain
-  geometry, mineral-body LPBM contacts, smooth-joint grain boundaries,
-  prefabricated cracks, biaxial loading, fracture tracking, or energy histories
-- `pfc-contact-models` during planning/modeling/calibration setup when the task
-  needs contact-law selection, CMAT/property/method ordering, bond activation,
-  inheritance assumptions, or contact-level validation
-- `pfc-servo-calibration` during modeling/calibration when the task needs
-  stress/force servo control, stiffness-based boundary updates, or a manual
-  micro-to-macro tuning sequence
-- `pfc-fast-calibration` during calibration when the task needs improved LPBM
-  strong/weak contacts, Weibull damage, 13-factor orthogonal design, Pearson
-  correlation, regression formulas, or quick back-solving from macro targets
-- `dual-target-calibration` during calibration when exactly two active levers
-  must match exactly two confirmed targets under a tight true-run budget and
-  local response basins require guarded zero-crossing/regression checkpoints
-- `pfc-fish` during planning/modeling/solve setup when the task needs FISH
-  functions, callbacks, histories, object traversal, data IO, maps/tables, or
-  refactoring reusable helper files
-- `pfc-dynamics` during planning/modeling/solve setup when the task needs
-  dynamic/seismic loading, waveform or imposed-motion design, damping/timestep
-  checks, kinetic-energy histories, slope motion, impact, or blasting-style references
-- `pfc-stress-wave-aelocation` during planning/modeling/solve/postprocessing
-  when the task needs stress-wave propagation, Ricker or sine sources,
-  dispersion checks, absorbing boundaries, P/S wavefronts, radiation patterns,
-  sensor waveforms, cross-correlation time delays, or velocity-free AE source
-  localization
-- `pfc-fluid-coupling` during planning/modeling when the task needs fluid-solid
-  coupling, buoyancy, CFD mesh files, seepage-force assumptions, or Python
-  Darcy/FiPy coupling handoff
-- `pfc-flac-coupling` during planning/modeling when the task needs a continuum
-  FLAC/FLAC3D domain coupled to PFC particles, wall-zone/interface handoff, or
-  coupled save-state staging
-- `pfc-postprocessing` after the mechanical solve when the need is standard
-  figures/fields/animations without AE specialization
-- `pfc-vedo-postprocess` after the mechanical solve when the user specifically
-  wants vedo, lightweight scripted 3D rendering, particle/force-chain/crack
-  scenes, cut-away shear-band views, or DEM animations from exported PFC data
-- `pfc-ae-energy` only when the case needs AE exports, AE plots, moment-tensor
-  interpretation, or T-k / Hudson style outputs
-
-## Default workflow
-
-### P1 Planning
-
-Define five items before touching code:
-
-1. dimensionality: 2D or 3D
-2. specimen/material class: granular, bonded, jointed, or coupled
-3. loading path: UCS, Brazilian, biaxial, triaxial, direct shear, cyclic, creep, or custom
-4. target observables: strength, modulus, peak strain, crack evolution, porosity, residual behavior, or failure mode
-5. output contract: which curves, tables, field plots, and saved states must be reproducible
-
-Use `templates/scope.md` as the planning skeleton.
-
-### P2 Modeling
-
-Build a representative specimen with a fixed seed, documented grading, explicit boundaries, and staged saves such as compacted, bonded, and loaded states.
-
-If the loading path is a standard test, first route the template selection and
-stage normalization through `pfc-standard-tests`; then return to
-`pfc-workflow` for parameterization, calibration, solve planning, and delivery.
-
-Read `references/contact-models.md` before choosing `linear`, `linearcbond`, `linearpbond`, `flatjoint`, `rrlinear`, or `hertz`.
-
-### P3 Calibration
-
-Use this sequence by default:
-
-1. calibrate elastic response first with `emod` and stiffness ratio
-2. calibrate strength next with bond strength parameters
-3. calibrate frictional behavior and failure envelope after elastic and strength baselines are stable
-4. switch to automated optimization when manual steering no longer yields predictable gains
-5. stop when the selected macro targets meet the user-defined tolerance
-
-If calibration depends on target stress/force control, confining pressure,
-servo-wall stability, or tuning-order explanation, route that specialist portion
-through `pfc-servo-calibration`; then return to `pfc-workflow` for the campaign
-or final solve plan.
-
-If calibration needs improved LPBM strong/weak contacts, Weibull damage,
-13-parameter orthogonal design, Pearson correlation, regression equations, or
-macro-target back-solving, route the specialist calibration portion through
-`pfc-fast-calibration`; then return to `pfc-workflow` for campaign execution,
-validation, post-processing routing, and delivery.
-
-If exactly two active levers must match exactly two confirmed coupled targets
-under a strict run budget, route the numerical decision method through
-`dual-target-calibration`. Keep true PFC execution, artifact management,
-confirmation runs, V&V, and delivery in `pfc-workflow`. If crossings cannot be
-obtained, response rank is deficient, or more than two levers are needed,
-return to the LHS/surrogate route rather than silently opening another lever.
-
-Use `templates/params.yaml` for simple manual bounds and `templates/calibration_campaign.yaml` for automated campaigns.
-
-### P4 Solve control
-
-Use small pilot solves before full runs. Control time step, damping, stop criteria, and batch strategy explicitly. Save restart states rather than relying on one long fragile run.
-
-### P5 Post-processing
-
-At minimum, expect reproducible exports for:
-
-- stress-strain data
-- peak and residual metrics
-- crack count or damage evolution
-- force chains or contact-force fields
-- porosity or volumetric response
-- saved states tied to plotting stages
-
-At this phase, route work as follows:
-
-- standard curves/fields/stage/native plots -> `pfc-postprocessing`
-- vedo 3D particle/force-chain/crack/vector/slice/animation rendering -> `pfc-vedo-postprocess`
-- AE/energy/mechanism plots -> `pfc-ae-energy`
-
-### P6 Verification and validation
-
-Separate these two checks:
-
-- verification: numerical settings, sensitivity to resolution, timestep, damping, or solver settings
-- validation: agreement with experiments, field data, or accepted benchmark behavior
-
-### P7 Delivery
-
-Deliver three artifact classes:
-
-- model and exported data
-- figures and summary tables
-- method/report text with version, seeds, parameter tables, and command flow traceability
-
-## Foundation basics route
-
-When the user asks for basic PFC command order, `model new`, domain setup,
-balls, walls, clumps, rblocks, groups, named ranges, or a minimal runnable
-foundation model, route the specialist setup portion through `pfc-basics`; then
-return to `pfc-workflow` for contact-model routing, calibration, solve strategy,
-validation, and delivery.
-
-## CAD and geometry route
-
-When the user asks for CAD/DXF/STL import, geometry sets, wall import, geometry
-export, external helper apps, particle filling from CAD/FEM regions, clump or
-rblock templates, or geometry-based range selection, route the specialist
-preprocessing portion through `pfc-cad-import`; then return to `pfc-workflow`
-for contact models, calibration, solve strategy, validation, and delivery.
-
-## Mineral heterogeneity route
-
-When the user asks for digital-image mineral segmentation, mineral fractions,
-quartz/feldspar/mica or other phase-aware rock models, cellular mineral
-clusters, per-mineral LPBM parameters, phase-interface contact rules, or
-Weibull damage distribution, route the specialist specimen-construction and
-parameter-assignment portion through `pfc-mineral-heterogeneity`; then return
-to `pfc-workflow` for full calibration campaign control, solve strategy,
-post-processing routing, V&V, and delivery.
-
-## GBM brittle-rock route
-
-When the user asks for GBM, equivalent crystal modeling, PFC2D brittle rock
-with mineral grain geometry, Voronoi/rblock grain construction, smooth-joint
-grain boundaries, prefabricated crack biaxial compression, fracture tracking,
-or crack/energy histories from the migrated GBM case, route the specialist
-construction and monitoring portion through `pfc-gbm-brittle-rock`; then return
-to `pfc-workflow` for full campaign control, validation, post-processing
-routing, and delivery.
-
-## Contact model route
-
-When the user asks for contact laws, CMAT setup, linear/parallel-bond/Hertz/
-flat-joint/smooth-joint/soft-bond selection, contact properties, bond methods,
-property inheritance, or contact-level validation, route the specialist
-contact-design portion through `pfc-contact-models`; then return to
-`pfc-workflow` for full case staging, macro calibration, validation, and delivery.
-
-## Fast calibration route
-
-When the user asks for improved parallel-bond fast calibration, high UCS/UTS
-ratio correction, strong/weak contact grouping, Weibull damage for calibration,
-13-factor orthogonal design, Pearson correlation, macro-micro regression, or
-back-solving micro-parameters from macro targets, route the specialist
-calibration-method portion through `pfc-fast-calibration`; then return to
-`pfc-workflow` for full campaign control, standard-test routing, V&V, and
-reproducible delivery.
-
-## FISH helper route
-
-When the user asks for FISH functions, callbacks, histories, IO, maps/tables,
-object traversal, data recording, reusable helper files, or legacy FISH snippet
-audits, route the specialist code-design portion through `pfc-fish`; then
-return to `pfc-workflow` for full case staging, solve strategy, validation, and
-delivery.
-
-## Dynamics route
-
-When the user asks for dynamic/seismic loading, imposed motion, waveform input,
-impact, slope motion, blasting/demolition references, damping audits, timestep
-stability, or kinetic/strain-energy response histories, route the specialist
-dynamic-design portion through `pfc-dynamics`; then return to `pfc-workflow`
-for full case staging, solve strategy, validation, and delivery.
-
-## Stress-wave and AE-location route
-
-When the user asks for stress waves, elastic waves, P/S wave speed,
-wavefronts, radiation patterns, Ricker wavelets, numerical dispersion,
-absorbing/free/rigid boundaries, sensor arrays, arrival-time differences,
-cross-correlation, Kundu velocity-free localization, arbitrary-triangle sensor
-clusters, pencil-lead-break validation, or AE source coordinates, route the
-specialist wave and localization portion through `pfc-stress-wave-aelocation`;
-then return to `pfc-workflow` for full campaign control, specimen calibration,
-post-processing routing, V&V, and delivery.
-
-## Advanced physics route
-
-When the user asks for seepage, buoyancy, CFD elements, pore pressure, drag,
-Darcy flow, or water-particle interaction, route the specialist fluid-coupling
-portion through `pfc-fluid-coupling`; then return to `pfc-workflow` for the full
-case plan, solve strategy, post-processing routing, V&V, and delivery.
-
-When the user asks for PFC-FLAC/FLAC3D, discrete-continuum coupling, continuum
-zones plus particles, wall-zone coupling, or coupled FLAC/PFC save-state
-staging, route the specialist handoff portion through `pfc-flac-coupling`; then
-return to `pfc-workflow` for the full case plan, solve strategy,
-post-processing routing, V&V, and delivery.
-
-For dynamics, blasting, thermal, or other advanced topics, read
-`references/advanced-topics.md` and use the relevant specialist skill if one is
-available.
-
-## Automated calibration stance
-
-When the user asks about `贝叶斯优化`, `LHS`, `拉丁超立方`, `代理模型`, `DOE`, `响应面`, `遗传算法`, or `自动标定`, answer with this default sequence:
-
-1. define parameter bounds and macro targets
-2. generate LHS initial samples
-3. evaluate true cases and save standardized records
-4. fit surrogate models and inspect cross-validation error
-5. run sequential Bayesian optimization with one expensive case per iteration
-6. fall back to response-surface or differential-evolution search only when the surrogate route is unstable or the objective is too rough
-7. export best parameters plus convergence and diagnostics plots
-
-## Bundled scripts
-
-The skill includes reusable campaign templates and the CPB2D scaffold generator:
-
-- `scripts/create_cpb2d_project.py`
-- `scripts/cpb2d_scaffold.py`
-- `scripts/lhs_design.py`
-- `scripts/run_campaign.py`
-- `scripts/fit_surrogate.py`
-- `scripts/optimize_targets.py`
-- `scripts/plot_campaign_diagnostics.py`
-- `scripts/runner_template.py`
-
-The campaign scripts are generic patterns for public repositories. For a new
-CPB2D UCS project, `scripts/create_cpb2d_project.py` backed by
-`scripts/cpb2d_scaffold.py` is the 唯一生成器: the bundled template bodies must
-be used as maintained and 不得由 AI 临时重写.
-
-## CPB2D Beginner Project Gate
-
-Trigger this gate when the user starts a new CPB2D UCS project from geometry
-and/or experimental data and does not yet have a runnable four-stage case.
-This gate precedes the expert P1-P7 workflow; it does not replace or duplicate
-that workflow once its runtime conditions have been met.
-
-First read `references/cpb2d-project-wizard.md`. Follow it 一次只问一个问题,
-record and explicitly confirm the complete `intake` and `assumptions`, then run
-`scripts/create_cpb2d_project.py --validate-only` against the proposed output
-directory before using that same script to create the scaffold.
-
-Do not start calibration, post-processing, or AE until the scaffold exists,
-static validation passes, and `pfc_cases/intact/run_all.dat` has been used as
-the first runtime target and has actually passed in PFC2D 6.0. A generated or
-statically valid project is not a runtime-validated project.
-
-Route adjacent requests explicitly:
-
-- new CPB2D UCS without a runnable four-stage case -> this scaffold gate
-- existing case folders -> `Existing project - Complete case route` and the
-  bundled `templates/project-case/` tools
-- non-CPB standard test -> `pfc-standard-tests`
-- figures -> `pfc-postprocessing`, script-first, after standard exports exist
-- heavy AE -> `pfc-ae-energy` only after standard stages and exports pass
-
-`--force` is not a general overwrite switch: it requires a prior managed
-manifest and rejects changed managed files through hash protection. Stage A-D
-may be a fallback stage representing the final state, while a fallback peak is
-not a confirmed physical peak; see `scripts/README.md` for the full semantics.
-
-## Existing project - Complete case route
-
-For an existing project that already has per-case folders such as `b90_d18`,
-prefer a single-case runner route instead of rebuilding the workflow by hand.
-
-Project-style runner and helpers are bundled under:
-
-- `templates/project-case/run_case.py`
-- `templates/project-case/generate_cases.py`
-- `templates/project-case/config.py`
-- `templates/project-case/postprocess_results_2d.py`
-- `templates/project-case/plot_contours_2d.py`
-- `templates/project-case/plot_peak_fields.py`
-- `templates/project-case/plot_stage_contact_maps.py`
-- `templates/project-case/analyze_stress_strain.py`
-- `templates/project-case/gen_force_chain_vtp.py`
-- `templates/project-case/render_force_chain.py`
-- `templates/project-case/export_stage_contact_python_data.py`
-
-Use this route when the user wants to run one full case from calibrated inputs
-through solve, native exports, post-processing, and verification.
-
-### Recommended execution order
-
-1. generate or verify the case directory and common files
-2. calibrate micro-parameters with `--solve-only` first
-3. once macro targets are acceptable, switch the case to AE/heavy export mode
-4. run the full case solve
-5. refresh standard post-processing figures
-6. refresh AE figures with the AE skill route
-7. verify expected artifacts before delivery
-
-This split is intentional:
-
-- `pfc-workflow` decides when the case is ready for each phase
-- `pfc-postprocessing` owns standard figure regeneration
-- `pfc-vedo-postprocess` owns vedo-specific 3D scene and animation regeneration from exported PFC data
-- `pfc-ae-energy` owns AE-heavy regeneration
-
-### Interpreter split
-
-In this project pattern, different Python environments may be appropriate for
-different stages:
-
-- bridge / `pfc-mcp` solve driving: use the interpreter that already has
-  `websockets`
-- AE plotting: use the interpreter that has the scientific plotting stack used
-  by `plot_ae_energy.py`
-
-Do not assume one interpreter is correct for both.
-
-### Typical commands
-
-Calibrate or check one case without AE/full plots:
-
-```powershell
-python .\run_case.py b90_d18 --solve-only
+- create or audit a PFC2D/PFC3D model;
+- choose a stage architecture, contact model, boundary condition, or measurement plan;
+- build granular, bonded, jointed, heterogeneous, dynamic, thermal, fluid, or coupled cases;
+- calibrate micro-parameters against macro targets;
+- run UCS, Brazilian, biaxial, triaxial, direct-shear, cyclic, creep, or custom paths;
+- automate a campaign through FISH, Python, DOE, surrogates, or optimizers;
+- export curves, crack events, force chains, porosity, fabric, fields, or animations;
+- prove numerical credibility and deliver a reproducible case package.
+
+If the task is a single narrow specialist question, route directly to the matching child skill. If it spans phases, remain here and delegate only the specialist portion.
+
+## Required inputs
+
+Before writing production commands, obtain or explicitly mark assumptions for:
+
+1. PFC product and version (`PFC2D`/`PFC3D`, 6.0/7.0/later);
+2. dimension and unit system;
+3. material class and required contact behavior;
+4. geometry, particle-size distribution, and target resolution;
+5. initial stress/state and boundary modes by axis;
+6. loading path, rate, stop condition, and quasi-static/dynamic criterion;
+7. calibration targets with units, tolerances, and experimental provenance;
+8. output contract: histories, saved states, raw exports, figures, and report metrics;
+9. available runtime route: GUI, console, Python/`itasca`, or `pfc-mcp`;
+10. run budget, license/parallelism constraints, and delivery deadline.
+
+If a missing item can change the model family or invalidate results, ask for it. Do not hide it behind a guessed default.
+
+## Evidence protocol: pfc-code knowledge base
+
+Read `references/pfc-code-modeling-standard.md` before generating or substantially refactoring a case.
+
+When the repository-level knowledge base is available, query it from the repository root:
+
+```bash
+python scripts/query_pfc_code_kb.py "<topic>" --dimension 2d
+python scripts/query_pfc_code_kb.py "<topic>" --dimension 3d
+python scripts/query_pfc_code_kb.py --check
 ```
 
-Run a full solved case with standard post-processing:
+Use the catalog in `../../knowledge/pfc-code/` as follows:
 
-```powershell
-python .\run_case.py b90_d18 --skip-native
+- **tutorial** — feature semantics and command ordering;
+- **example** — end-to-end orchestration and stage boundaries;
+- **verification** — numerical/analytical check for P6;
+- **python** — `itasca`, array, and callback automation;
+- **thermal/coupling** — multiphysics and auxiliary-file contracts.
+
+For high-risk logic, prefer an evidence triad: one tutorial, one end-to-end example, and one verification case. Record the pinned commit and source paths in the delivery manifest.
+
+The upstream `pfc-code` repository had no root license file at the pinned review commit. Use metadata, links, hashes, and independently derived rules; do not vendor or relicense upstream source files without a rights review.
+
+## Non-negotiable stage gates
+
+| Gate | Pass condition |
+|---|---|
+| `G0 Version` | Product/version, dimension, units, and stress sign are explicit; final syntax is checked against that version. |
+| `G1 Provenance` | User inputs, experimental targets, example evidence, assumptions, and copied/adapted assets are traceable. |
+| `G2 Determinism` | Seed, domain, CMAT defaults, object generation, and boundary identifiers are explicit. |
+| `G3 Equilibrium` | Packing/prestress passes a declared convergence criterion; fixed cycle count alone is insufficient. |
+| `G4 Contact state` | CMAT intent for future contacts and commands for current contacts are distinguished and audited. |
+| `G5 Reset` | After contact-model/bond changes, displacement and unintended residual forces/moments are handled, cycled, re-equilibrated, and saved. |
+| `G6 Loading` | Each axis has an explicit control mode; rate/inertia/servo stability and halt logic are checked. |
+| `G7 Measurement` | Equations, sign, area/volume, sample interval, histories, measures, and callbacks are initialized before loading. |
+| `G8 V&V` | Critical numerical features are verified; physical targets and failure mode are validated within tolerances. |
+| `G9 Delivery` | Raw data, state map, parameters, seed, version, source evidence, figures, and rerun instructions are complete. |
+
+Never advance a campaign merely because files exist. A fallback state is not a confirmed physical stage, and a generated scaffold is not a runtime-validated model.
+
+## Workflow
+
+### P1 — Problem definition and plan
+
+Produce a reviewed scope before code:
+
+- question and decision the model supports;
+- 2D/3D rationale and scale/resolution rationale;
+- material/contact-model hypothesis;
+- boundary and loading path;
+- target observables and acceptance tolerances;
+- numerical verification plan and physical validation data;
+- output/delivery contract;
+- version/runtime constraints.
+
+Use `templates/scope.md`.
+
+### P2 — Build and initialize
+
+Use a thin driver and explicit stages:
+
+```text
+00_scope_or_parameters
+10_build_unbonded
+20_compact_or_equilibrate
+30_install_contacts_or_bonds
+40_initialize_instrumentation
+50_load_or_solve
+60_export
+70_verify
 ```
 
-If native stage plots are missing after the solve, replay only the native
-exports from saved states instead of rerunning the whole simulation.
+Required behavior:
 
-### Expected outputs for one complete case
+1. define domain and CMAT before dependent contact creation;
+2. fix a seed for baseline/calibration runs;
+3. generate boundaries and particles with documented grading;
+4. relax and solve to an explicit equilibrium threshold;
+5. restore automatic/physical timestep control after any preparation-only density scaling;
+6. identify floaters when relevant;
+7. save an unbonded/equilibrated milestone;
+8. install contact models/bonds in a separate auditable stage;
+9. handle current contacts versus future CMAT assignment explicitly;
+10. reset only unintended state, re-equilibrate, and save the initialized baseline.
 
-- `stress_strain.csv`
-- `curve_compare_2d.png`
-- `curve_metrics_2d.xlsx`
-- `plot_*_peak.*` and `plot_*_final.*`
-- `plotdata_contacts_stage_*.csv`
-- `plotdata_measures_stage_*.csv`
-- `stage_*_native.png`
-- `stage_*_fracture_only.png`
-- `stage_*_fracture_ball.png`
-- `stage_*_contact_distribution.png`
-- `stage_*_contact_forcechain.png`
-- `stage_*_contact_forcechain_filtered.png`
-- `stage_*_fc.png`
-- `probe_contact_*.png`
-- `peak_ball_native.png`
+Read `references/contact-models.md`, `references/advanced-topics.md`, and `references/pfc-code-modeling-standard.md`.
+
+### P3 — Calibration and inversion
+
+Default order:
+
+1. elastic response;
+2. strength;
+3. post-peak/residual behavior;
+4. multi-confinement envelope;
+5. structured/heterogeneous variants only after the intact baseline passes.
+
+Choose one route deliberately:
+
+- **manual/servo** — `pfc-servo-calibration`, one parameter family at a time;
+- **two levers/two targets** — `dual-target-calibration`, only when rank/crossing prerequisites pass;
+- **improved LPBM rapid route** — `pfc-fast-calibration` for the declared 13-factor method;
+- **black-box multi-target route** — `LHS -> real runs -> surrogate diagnostics -> Bayesian/RSM/DE proposals -> independent confirmation` using `references/auto-calibration.md` and `references/doe-surrogate.md`.
+
+Every run must map micro parameters to macro outputs in a machine-readable record. A surrogate prediction is not a calibrated result until a true PFC run and an independent confirmation run pass.
+
+### P4 — Solve and run management
+
+- Run a small pilot before an expensive solve.
+- Declare timestep mode, damping, inertia criterion, servo limits, callback order, and stop logic.
+- Save restart states instead of relying on one long run.
+- Remove or re-register callbacks safely across restore/restart boundaries.
+- Keep calibration candidates in independent run directories.
+- Respect GUI, license, memory, and parallelism limits.
+
+### P5 — Post-process
+
+At minimum, preserve raw data for:
+
+- stress-strain and other governing response curves;
+- peak, residual, stage, and stop-status metrics;
+- crack/bond-break evolution where relevant;
+- force/contact/fabric or coordination statistics;
+- porosity/volumetric response where relevant;
+- milestone-state map and export provenance.
+
+Cross-check critical stress/strain measures using two independent estimators when practical. Route standard outputs to `pfc-postprocessing`, vedo scenes to `pfc-vedo-postprocess`, and AE/energy/moment-tensor outputs to `pfc-ae-energy`.
+
+Read `references/postprocess.md` and `references/export-paraview.md`.
+
+### P6 — Verification and validation
+
+Verification asks whether the numerical feature is implemented reliably. Use the `pfc-code` verification tier to select feature-level checks such as measure/porosity, wave propagation, bonded-state reset, or thermal expansion.
+
+Validation asks whether the model reproduces physical behavior. Compare curves, key scalars, and failure mode; run seed/resolution/timestep/damping sensitivity as required.
+
+Read `references/vnv-report.md`.
+
+### P7 — Report and deliver
+
+Deliver:
+
+- scope and assumptions;
+- version, units, sign convention, seed, and environment;
+- parameter/contact-model tables;
+- thin driver and stage files;
+- saved-state map and raw exports;
+- calibration run table and confirmation run;
+- verification/validation evidence;
+- figures generated from retained data;
+- source-evidence manifest and exact rerun command.
+
+## Specialist routing
+
+| Need | Child skill |
+|---|---|
+| model lifecycle, domain, balls, walls, clumps, rblocks, groups/ranges | `pfc-basics` |
+| contact-law selection, CMAT, properties, bonds, inheritance | `pfc-contact-models` |
+| UCS, Brazilian, biaxial, triaxial, direct shear, three-point bending | `pfc-standard-tests` |
+| stress/force servo and manual micro-to-macro sequence | `pfc-servo-calibration` |
+| exactly two active levers and two coupled targets | `dual-target-calibration` |
+| improved LPBM 13-factor orthogonal/regression route | `pfc-fast-calibration` |
+| FISH functions, callbacks, histories, maps/tables, IO | `pfc-fish` |
+| CAD/DXF/STL, wall conversion, geometry-based filling | `pfc-cad-import` |
+| assembly quality, boundary servo, loading rate, size effect, curve extraction | `pfc-modeling-techniques` |
+| GBM/Voronoi/rblock brittle rock | `pfc-gbm-brittle-rock` |
+| mineral segmentation and heterogeneous LPBM | `pfc-mineral-heterogeneity` |
+| BPM assumptions and brittle-rock limits | `pfc-brittle-rock-bpm` |
+| equivalent crystal network | `pfc-equivalent-crystal-model` |
+| flat-joint brittle rock | `pfc-flat-joint-brittle-rock` |
+| dynamic/seismic/impact/blasting loading | `pfc-dynamics` |
+| stress waves and AE source location | `pfc-stress-wave-aelocation` |
+| seepage, CFD, buoyancy, Darcy/FiPy | `pfc-fluid-coupling` |
+| PFC-FLAC/FLAC3D coupling | `pfc-flac-coupling` |
+| standard curves, fields, VTK/VTP, animation | `pfc-postprocessing` |
+| vedo-based 3D scenes | `pfc-vedo-postprocess` |
+| AE events, energy, moment tensor, source mechanism | `pfc-ae-energy` |
+| Chinese traditional-color chart palette | `xxd-data-viz` |
+
+## Operational routes
+
+### New beginner CPB2D project
+
+Read `references/cpb2d-project-wizard.md`, review `templates/cpb2d_intake.yaml`, and use `scripts/create_cpb2d_project.py` after reading its actual CLI.
+
+The first runtime target is the intact `run_all.dat`. Do not batch cracked cases, calibrate, post-process, or run AE until the intact case has executed in the declared PFC2D version and its saves/CSV/status semantics are checked. `--validate-only` validates the intended scaffold contract; it does not execute PFC.
+
+### Existing project case
+
+Read the actual scripts under `templates/project-case/` before invoking them. Use the existing case runner and export chain rather than rebuilding project-specific logic from memory. If native stage images are missing but milestone states exist, replay exports instead of rerunning the full mechanical solve.
+
+### Automated calibration
+
+Read `scripts/README.md` and the actual `argparse`/schema of each script. The general chain is:
+
+```text
+lhs_design.py -> run_campaign.py -> fit_surrogate.py -> optimize_targets.py
+```
+
+Do not start until the intact runtime, experiment columns/units, seed reproducibility, and evaluator output contract pass.
 
 ## Collaboration with pfc-mcp
 
-If `pfc-mcp` is available, this skill supplies the domain workflow while `pfc-mcp` supplies execution and documentation lookup. The recommended pattern is:
+When `pfc-mcp` is available:
 
-1. confirm version-specific syntax with the documentation route
-2. run a minimal specimen-generation or loading snippet
-3. save staged states and exported data
-4. drive calibration and plotting from reproducible scripts, not ad hoc GUI steps
-5. for automated campaigns, let a wrapper script call PFC serially and record each run in a standard table
+1. query the `pfc-code` catalog for candidate patterns;
+2. check final keywords against target-version documentation;
+3. run a minimal syntax/feature probe;
+4. run the intact/pilot case;
+5. inspect convergence, contact counts, saves, histories, and status;
+6. only then scale to calibration or production.
 
-## Local Contents
+`pfc-code` tells the Agent where proven patterns exist; `pfc-mcp` confirms how to express and execute them in the target environment.
 
-- `references/`: lifecycle routing, calibration, auto-calibration, DOE/surrogate modeling, contact models, ParaView export, post-processing, V&V, and advanced topics.
-- `references/cpb2d-project-wizard.md`: one-question-at-a-time beginner intake and runtime-gate contract.
-- `templates/scope.md`: reusable project-scope intake template.
-- `templates/cpb2d_intake.yaml`: public CPB2D intake seed reviewed through the wizard.
-- `templates/cpb2d-scaffold/`: maintained four-stage PFC2D template bodies; do not rewrite them ad hoc.
-- `templates/`: calibration campaign and project-case templates that use placeholders for local executables and case directories.
-- `scripts/create_cpb2d_project.py` and `scripts/cpb2d_scaffold.py`: the CPB2D CLI entry point and sole scaffold implementation.
-- `tests/test_cpb2d_scaffold.py`: intake, generation, transaction, and skill-wiring contract tests.
-- Child skills under `skills/pfc-*`: specialist routes for basic modeling, CAD import, contact models, standard tests, FISH, dynamics, coupling, post-processing, vedo, AE/energy, and calibration.
+## Output contract
 
+A completed workflow must provide:
+
+- a reviewed scope;
+- reproducible entrypoint and stage map;
+- version/units/sign/seed metadata;
+- parameter and contact assignment tables;
+- convergence and state-transition evidence;
+- machine-readable histories/metrics;
+- milestone states with confirmed/fallback labels;
+- calibration and independent confirmation records when applicable;
+- V&V results and acceptance decision;
+- source-evidence manifest;
+- rerun and post-processing instructions.
+
+If runtime execution was unavailable, label the result **static design only** and list the unpassed runtime gates. Never claim a successful PFC solve from static file inspection.
+
+## Local contents
+
+- `references/pfc-code-modeling-standard.md` — source-derived normative stage gates.
+- `../../knowledge/pfc-code/` — pinned external catalog, lock, and usage policy.
+- `../../scripts/query_pfc_code_kb.py` — offline catalog query/validation.
+- `references/contact-models.md` — constitutive-law selection.
+- `references/calibration.md`, `auto-calibration.md`, `doe-surrogate.md` — calibration routes.
+- `references/postprocess.md`, `export-paraview.md` — output and visualization contracts.
+- `references/advanced-topics.md` — shape, DFN, boundaries, coupling, and performance.
+- `references/vnv-report.md` — verification, validation, and delivery.
+- `references/cpb2d-project-wizard.md` — beginner intake/runtime gate.
+- `templates/` — scope, parameter, campaign, scaffold, and project-case assets.
+- `scripts/` — scaffold, runner, and calibration helpers; actual source/CLI is authoritative.
+- `tests/` — CPB2D scaffold/calibration and dual-target integration contracts.
