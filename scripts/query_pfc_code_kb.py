@@ -7,13 +7,14 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "knowledge" / "pfc-code" / "catalog.json"
 DEFAULT_LOCK = ROOT / "knowledge" / "pfc-code" / "source-lock.json"
 HEX40 = re.compile(r"[0-9a-f]{40}")
-VALID_PHASES = {f"P{i}" for i in range(1, 8)}
+VALID_PHASES = {"P1", "P2", "P3", "P4", "P5", "P6", "P7"}
 REQUIRED_ENTRY_FIELDS = {
     "id",
     "title",
@@ -27,17 +28,21 @@ REQUIRED_ENTRY_FIELDS = {
 }
 
 
-def load_json(path: Path) -> dict:
+def load_json(path: Path) -> Dict[str, Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        raise ValueError(f"missing file: {path}") from exc
+        raise ValueError("missing file: {}".format(path)) from exc
     except json.JSONDecodeError as exc:
-        raise ValueError(f"invalid JSON in {path}: {exc}") from exc
+        raise ValueError("invalid JSON in {}: {}".format(path, exc)) from exc
 
 
-def validate(catalog: dict, lock: dict, local_root: Path | None = None) -> list[str]:
-    errors: list[str] = []
+def validate(
+    catalog: Dict[str, Any],
+    lock: Dict[str, Any],
+    local_root: Optional[Path] = None,
+) -> List[str]:
+    errors: List[str] = []
     source = catalog.get("source", {})
     commit = source.get("commit", "")
     if not HEX40.fullmatch(commit):
@@ -52,48 +57,55 @@ def validate(catalog: dict, lock: dict, local_root: Path | None = None) -> list[
         errors.append("catalog entries must be a non-empty list")
         return errors
 
-    seen_ids: set[str] = set()
-    seen_paths: set[str] = set()
+    seen_ids: Set[str] = set()
+    seen_paths: Set[str] = set()
     for index, entry in enumerate(entries, 1):
-        prefix = f"entry {index}"
+        prefix = "entry {}".format(index)
+        if not isinstance(entry, dict):
+            errors.append("{} must be an object".format(prefix))
+            continue
         missing = REQUIRED_ENTRY_FIELDS - set(entry)
         if missing:
-            errors.append(f"{prefix} missing fields: {', '.join(sorted(missing))}")
+            errors.append(
+                "{} missing fields: {}".format(prefix, ", ".join(sorted(missing)))
+            )
             continue
         entry_id = entry["id"]
         path_text = entry["path"]
         if entry_id in seen_ids:
-            errors.append(f"duplicate entry id: {entry_id}")
+            errors.append("duplicate entry id: {}".format(entry_id))
         seen_ids.add(entry_id)
         if path_text in seen_paths:
-            errors.append(f"duplicate entry path: {path_text}")
+            errors.append("duplicate entry path: {}".format(path_text))
         seen_paths.add(path_text)
         path = Path(path_text)
         if path.is_absolute() or ".." in path.parts:
-            errors.append(f"{entry_id}: path must be repository-relative")
+            errors.append("{}: path must be repository-relative".format(entry_id))
         if not HEX40.fullmatch(entry["sha"]):
-            errors.append(f"{entry_id}: sha must be a lowercase 40-character blob SHA")
+            errors.append("{}: sha must be a lowercase 40-character blob SHA".format(entry_id))
         if entry["dimension"] not in {"2d", "3d"}:
-            errors.append(f"{entry_id}: dimension must be 2d or 3d")
+            errors.append("{}: dimension must be 2d or 3d".format(entry_id))
         phases = set(entry["phases"])
         if not phases or not phases <= VALID_PHASES:
-            errors.append(f"{entry_id}: phases must be drawn from P1-P7")
+            errors.append("{}: phases must be drawn from P1-P7".format(entry_id))
         if not isinstance(entry["topics"], list) or not entry["topics"]:
-            errors.append(f"{entry_id}: topics must be a non-empty list")
+            errors.append("{}: topics must be a non-empty list".format(entry_id))
         if local_root is not None and not (local_root / path).is_file():
-            errors.append(f"{entry_id}: missing from local checkout: {path_text}")
+            errors.append(
+                "{}: missing from local checkout: {}".format(entry_id, path_text)
+            )
     return errors
 
 
-def tokenise(text: str) -> list[str]:
+def tokenise(text: str) -> List[str]:
     return [token for token in re.split(r"[^a-z0-9_+-]+", text.lower()) if token]
 
 
-def score_entry(entry: dict, query_tokens: list[str]) -> int:
+def score_entry(entry: Dict[str, Any], query_tokens: List[str]) -> int:
     if not query_tokens:
         return 1
-    title_topics = " ".join([entry["title"], *entry["topics"]]).lower()
-    body = " ".join([entry["path"], entry["summary"], *entry["phases"]]).lower()
+    title_topics = " ".join([entry["title"]] + entry["topics"]).lower()
+    body = " ".join([entry["path"], entry["summary"]] + entry["phases"]).lower()
     score = 0
     for token in query_tokens:
         if token in title_topics:
@@ -103,7 +115,7 @@ def score_entry(entry: dict, query_tokens: list[str]) -> int:
     return score
 
 
-def pinned_url(source: dict, path: str) -> str:
+def pinned_url(source: Dict[str, Any], path: str) -> str:
     base = "https://github.com/" + source["owner"] + "/" + source["repo"]
     return base + "/blob/" + source["commit"] + "/" + quote(path, safe="/")
 
@@ -130,23 +142,24 @@ def main() -> int:
         lock = load_json(args.source_lock)
         errors = validate(catalog, lock, args.local_root)
     except ValueError as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
+        print("ERROR: {}".format(exc), file=sys.stderr)
         return 2
 
     if errors:
         for error in errors:
-            print(f"ERROR: {error}", file=sys.stderr)
+            print("ERROR: {}".format(error), file=sys.stderr)
         return 1
 
     if args.check:
         print(
-            f"OK: {len(catalog['entries'])} entries pinned to "
-            f"{catalog['source']['commit']}"
+            "OK: {} entries pinned to {}".format(
+                len(catalog["entries"]), catalog["source"]["commit"]
+            )
         )
         return 0
 
     query_tokens = tokenise(args.query)
-    matches: list[tuple[int, dict]] = []
+    matches: List[Tuple[int, Dict[str, Any]]] = []
     for entry in catalog["entries"]:
         if args.dimension and entry["dimension"] != args.dimension:
             continue
@@ -173,22 +186,22 @@ def main() -> int:
                 "phase": args.phase,
             },
             "results": [
-                {**entry, "url": pinned_url(source, entry["path"])}
+                dict(entry, url=pinned_url(source, entry["path"]))
                 for entry in selected
             ],
         }
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
-    print(f"pfc-code @ {source['commit']}")
+    print("pfc-code @ {}".format(source["commit"]))
     if not selected:
         print("No catalog matches.")
         return 0
     for entry in selected:
-        tags = ", ".join([entry["dimension"], entry["kind"], *entry["phases"]])
-        print(f"- {entry['title']} [{tags}]")
-        print(f"  {entry['summary']}")
-        print(f"  {pinned_url(source, entry['path'])}")
+        tags = ", ".join([entry["dimension"], entry["kind"]] + entry["phases"])
+        print("- {} [{}]".format(entry["title"], tags))
+        print("  {}".format(entry["summary"]))
+        print("  {}".format(pinned_url(source, entry["path"])))
     return 0
 
 
