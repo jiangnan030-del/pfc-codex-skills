@@ -104,10 +104,11 @@ def score_entry(entry: dict, query_tokens: list[str]) -> int:
 
 
 def pinned_url(source: dict, path: str) -> str:
-    encoded = quote(path, safe="/")
-    return (
-        f"https://github.com/{source['owner']}/{source['repo']}"
-        f"/blob/{source['commit']}/{encoded}"
+    return "https://github.com/{owner}/{repo}/blob/{commit}/{path}".format(
+        owner=source["owner"],
+        repo=source["repo"],
+        commit=source["commit"],
+        path=quote(path, safe="/"),
     )
 
 
